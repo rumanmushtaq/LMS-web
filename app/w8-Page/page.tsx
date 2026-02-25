@@ -1,10 +1,8 @@
+import W8BENForm from "@/views/w8Page";
 
 
-import W8Page from '@/views/footer/footerPage'
-import React from 'react';
-export default function WW8Page() {
+export default function Page() {
   return (
-      <W8Page/>
-    
+      <W8BENForm/>
   );
 }

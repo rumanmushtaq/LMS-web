@@ -1,15 +1,13 @@
-"use client";
+
 
 import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 /* -------------------- Patterns -------------------- */
 const datePattern = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])-\d{4}$/;
 const ssnPattern = /^\d{3}-\d{2}-\d{4}$/;
 
 /* -------------------- Schema -------------------- */
-const w8benSchema = z.object({
+export const w8benSchema = z.object({
   name: z.string().trim().min(1, "Full name is required"),
   country: z.string().trim().min(1, "Country is required"),
   permanentAddress: z.string().trim().min(1, "Permanent address is required"),
@@ -64,47 +62,3 @@ const w8benSchema = z.object({
 });
 
 export type W8BENFormValues = z.infer<typeof w8benSchema>;
-
-/* -------------------- Custom Hook -------------------- */
-export const useW8BENForm = () => {
-  const form = useForm<W8BENFormValues>({
-    resolver: zodResolver(w8benSchema),
-    defaultValues: {
-      name: "",
-      country: "",
-      permanentAddress: "",
-      cityStateProvince: "",
-      addressCountry: "",
-      mailingAddress: "",
-      mailingCityState: "",
-      mailingCountry: "",
-      usTaxId: "",
-      foreignTaxId: "",
-      ftinNotRequired: false,
-      referenceNumbers: "",
-      dateOfBirth: "",
-      treatyCountry: "",
-      articleParagraph: "",
-      withholdingRate: "",
-      incomeType: "",
-      additionalConditions: "",
-      signatureDate: "",
-      printName: "",
-      certify: false,
-    },
-  });
-
-  const onSubmit = async (values: W8BENFormValues) => {
-    try {
-      console.log("W8BEN Submitted:", values);
-      form.reset();
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  return {
-    form,
-    onSubmit,
-  };
-};
