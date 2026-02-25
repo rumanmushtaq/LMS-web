@@ -1,10 +1,10 @@
 
 
-
-export default function Page() {
+import W8Page from '@/views/footer/footerPage'
+import React from 'react';
+export default function WW8Page() {
   return (
-    <div>
-      <W8Page />
-    </div>
+      <W8Page/>
+    
   );
 }
