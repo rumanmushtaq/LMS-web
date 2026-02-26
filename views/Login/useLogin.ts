@@ -1,9 +1,9 @@
 "use client";
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form';
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { LoginFormValues, loginSchema } from '@/schemas/login';
+import authService from "@/services/auth"
 
 const useLogin = () => {
       const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -23,10 +23,11 @@ const useLogin = () => {
           rememberMe: data.rememberMe,
         });
     
-        // 👉 Here you can call:
-        // await signIn()
-        // await fetch("/api/login")
-        // or your auth service
+        try{
+          const res = await authService.loginApi(data)
+        }catch(error){
+
+        }
       };
   return {form, onSubmit, showPassword, setShowPassword}
 }
