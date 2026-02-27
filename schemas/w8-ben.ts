@@ -5,7 +5,6 @@ import { z } from "zod";
 const datePattern = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])-\d{4}$/;
 const ssnPattern = /^\d{3}-\d{2}-\d{4}$/;
 
-
 /* -------------------- Schema -------------------- */
 export const w8benSchema = z.object({
   name: z.string().trim().min(1, "Full name is required"),

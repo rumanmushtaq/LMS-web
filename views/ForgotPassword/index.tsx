@@ -19,8 +19,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import useForgotPassword from "./useForgotPassword";
-
-
 const ForgotPasswordForm = () => {
   const { form, onSubmit} = useForgotPassword();
 
