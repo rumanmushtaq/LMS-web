@@ -44,7 +44,7 @@ class AuthService {
     };
     try {
       const { data } = await HTTP_CLIENT.post(
-        apiEndpoints.Auth.FORGET_PASSWORD,
+        apiEndpoints.Auth.FORGOT_PASSWORD,
         payload,
       );
       return data;
