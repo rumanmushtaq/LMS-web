@@ -1,7 +1,6 @@
 // src/store/authStore.ts
 import { create } from "zustand"
-import { persist, devtools } from "zustand/middleware"
-
+import { persist, devtools } from "zustand/middleware";
 // Define User type
 type User = {
   id: string
@@ -18,9 +17,9 @@ interface AuthState {
   login: (user: User, token: string) => void
   logout: () => void
 
-  // Getters for convenience
+  // Getters for convenience 
   getUser: () => User | null
-  getToken: () => string | null
+  getToken: () => string | null 
 }
 
 // Create store
