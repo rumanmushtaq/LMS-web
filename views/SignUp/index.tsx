@@ -28,6 +28,8 @@ const SignupForm = () => {
     setShowPassword,
     showConfirmPassword,
     setShowConfirmPassword,
+    selectedRole,
+    setSelectedRole,
   } = useSignup();
 
   return (
@@ -56,34 +58,90 @@ const SignupForm = () => {
         Sign into Your Account
       </h1>
 
+      {/* Role Toggle */}
+      <div className="bg-muted rounded-lg p-1 mb-6 flex">
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedRole("student");
+            form.setValue("role", "student");
+          }}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+            selectedRole === "student"
+              ? "bg-background text-primary shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          I'm a Student
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedRole("tutor");
+            form.setValue("role", "tutor");
+          }}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+            selectedRole === "tutor"
+              ? "bg-background text-primary shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          I'm a Tutor
+        </button>
+      </div>
+
       {/* Form */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
 
-              {/* fullName */}
-          <FormField
-            control={form.control}
-            name="fullName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Full Name <span className="text-primary">*</span>
-                </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      type="text"
-                      placeholder="Enter your fullName"
-                      className="pr-10 h-12"
-                      {...field}
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* First Name & Last Name */}
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    First Name <span className="text-primary">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        placeholder="First name"
+                        className="pr-10 h-12"
+                        {...field}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Last Name <span className="text-primary">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        placeholder="Last name"
+                        className="pr-10 h-12"
+                        {...field}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           {/* Email */}
           <FormField
@@ -180,8 +238,8 @@ const SignupForm = () => {
             )}
           />
 
-          {/* Remember + Forgot */}
-          <div className="flex">
+          {/* Terms and Conditions - Commented out */}
+        <div className="flex">
             <FormField
               control={form.control}
               name="terms"
@@ -229,14 +287,14 @@ const SignupForm = () => {
         </form>
       </Form>
 
-      {/* Divider */}
+      {/* Divider
       <div className="flex items-center gap-4 my-6">
         <div className="flex-1 h-px bg-border" />
         <span className="text-sm text-muted-foreground">Or</span>
         <div className="flex-1 h-px bg-border" />
       </div>
 
-      {/* Social Buttons */}
+   
       <div className="flex gap-3">
         <Button
           variant="outline"
@@ -251,7 +309,7 @@ const SignupForm = () => {
         >
           Facebook
         </Button>
-      </div>
+      </div> */}
 
       {/* Sign Up */}
       <p className="text-center text-sm text-muted-foreground mt-6">

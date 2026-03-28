@@ -2,11 +2,17 @@ import { z } from "zod";
 
 export const signupSchema = z
   .object({
-    fullName: z
+    firstName: z
       .string()
       .trim()
-      .min(2, "Full name is required")
-      .max(100, "Full name is too long"),
+      .min(2, "First name is required")
+      .max(50, "First name is too long"),
+
+    lastName: z
+      .string()
+      .trim()
+      .min(2, "Last name is required")
+      .max(50, "Last name is too long"),
 
     email: z.string().trim().email("Please enter a valid email").max(255),
 
@@ -20,6 +26,10 @@ export const signupSchema = z
       .regex(/[0-9]/, "Must contain at least one number"),
 
     confirmPassword: z.string().trim().min(8, "Please confirm your password"),
+
+    role: z.enum(["student", "tutor"], {
+      message: "Please select a role",
+    }),
 
     terms: z.boolean().refine((val) => val === true, {
       message: "You must accept the Terms and Conditions",

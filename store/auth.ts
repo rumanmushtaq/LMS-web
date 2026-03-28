@@ -1,48 +1,67 @@
 // src/store/authStore.ts
-import { create } from "zustand"
-import { persist, devtools } from "zustand/middleware"
+import { create } from "zustand";
+import { persist, devtools } from "zustand/middleware";
+import Cookies from "js-cookie";
 
-// Define User type
-type User = {
-  id: string
-  name: string
-  email: string
-}
+// User type matching backend response
+export type AuthUser = {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+  isEmailVerified: boolean;
+};
 
-// Define Auth store state and actions
+// Auth store state and actions
 interface AuthState {
-  user: User | null
-  token: string | null
+  user: AuthUser | null;
+  accessToken: string | null;
+  refreshToken: string | null;
 
-  // Actions to update state
-  login: (user: User, token: string) => void
-  logout: () => void
+  // Actions
+  login: (user: AuthUser, accessToken: string, refreshToken: string) => void;
+  logout: () => void;
 
-  // Getters for convenience
-  getUser: () => User | null
-  getToken: () => string | null
+  // Getters
+  getUser: () => AuthUser | null;
+  getToken: () => string | null;
+  isAuthenticated: () => boolean;
 }
 
-// Create store
 export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
       (set, get) => ({
-        // Initial state
         user: null,
-        token: null,
+        accessToken: null,
+        refreshToken: null,
 
-        // Update state
-        login: (user, token) => set({ user, token }),
-        logout: () => set({ user: null, token: null }),
+        login: (user, accessToken, refreshToken) => {
+          // Persist tokens in cookies so axios interceptor can read them
+          Cookies.set("access_token", accessToken, { expires: 1 }); // 1 day
+          Cookies.set("refresh_token", refreshToken, { expires: 7 }); // 7 days
+          set({ user, accessToken, refreshToken });
+        },
 
-        // Get current state without modifying it
+        logout: () => {
+          Cookies.remove("access_token");
+          Cookies.remove("refresh_token");
+          set({ user: null, accessToken: null, refreshToken: null });
+        },
+
         getUser: () => get().user,
-        getToken: () => get().token,
+        getToken: () => get().accessToken,
+        isAuthenticated: () => !!get().accessToken,
       }),
       {
-        name: "auth-storage", // localStorage key
-      }
-    )
-  )
-)
+        name: "lms-auth-storage",
+        // Only persist non-sensitive data; tokens also stay in cookies
+        partialize: (state) => ({
+          user: state.user,
+          accessToken: state.accessToken,
+          refreshToken: state.refreshToken,
+        }),
+      },
+    ),
+  ),
+);
