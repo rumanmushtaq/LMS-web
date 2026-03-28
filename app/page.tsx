@@ -5,17 +5,8 @@ import InstructorProfile from "@/components/organisms/Auth/landingPAge/instructo
 
 export default function Home() {
   return (
-
-        <div className="min-h-screen bg-background">
-   
-  
-      <HeroBanner
-        // title="Earnings"
-        // breadcrumbs={[
-        //   { label: "Home" },
-        //   { label: "Earnings", active: true },
-        // ]}
-      />
+    <div className="min-h-screen bg-background">
+      <HeroBanner />
       <InstructorProfile />
       <DashboardSidebar />
       <EarningsContent />
