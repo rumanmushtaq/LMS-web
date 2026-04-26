@@ -109,7 +109,7 @@ const Header = () => {
 
           {/* Auth Buttons (Desktop) */}
           <div className="hidden lg:flex items-center gap-3 ml-2">
-            <Link href="/auth/login">
+            <Link href="/login">
               <Button
                 variant="outline"
                 className="h-11 px-8 rounded-full font-bold border-border/60 hover:bg-muted bg-muted/30"
@@ -117,7 +117,7 @@ const Header = () => {
                 Sign In
               </Button>
             </Link>
-            <Link href="/auth/signup">
+            <Link href="/signup">
               <Button className="h-11 px-8 rounded-full font-bold bg-[#FF4667] hover:bg-[#E63E5C] text-white shadow-lg shadow-pink-500/20">
                 Register
               </Button>
@@ -159,7 +159,7 @@ const Header = () => {
             ))}
             <hr className="my-2 border-border/50" />
             <div className="flex flex-col gap-3 pt-2">
-              <Link href="/auth/login" className="w-full">
+              <Link href="/login" className="w-full">
                 <Button
                   variant="outline"
                   className="h-12 w-full rounded-full font-bold"
@@ -167,7 +167,7 @@ const Header = () => {
                   Sign In
                 </Button>
               </Link>
-              <Link href="/auth/signup" className="w-full">
+              <Link href="/signup" className="w-full">
                 <Button className="h-12 w-full rounded-full font-bold bg-[#FF4667] text-white">
                   Register
                 </Button>

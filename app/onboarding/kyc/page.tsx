@@ -27,6 +27,8 @@ import {
   DollarSign,
   GraduationCap,
   Lock,
+  Calendar,
+  CreditCard,
 } from "lucide-react";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuthStore } from "@/store/auth";
@@ -68,6 +70,7 @@ const KYCPage = () => {
     // Step 4: Pricing
     lessonTimezone: "UTC-5 (EST)",
     pricePerHour: 25,
+    availabilityDays: [] as string[],
 
     // Step 5: Identity
     idType: "Passport",
@@ -75,6 +78,14 @@ const KYCPage = () => {
     idFrontUrl: "",
     idBackUrl: "",
     selfieUrl: "",
+
+    // Step 6: Payment Details
+    bankAccount: {
+      bankName: "",
+      accountNumber: "",
+      routingNumber: "",
+      accountHolderName: "",
+    },
   });
 
   const [isUploading, setIsUploading] = useState<string | null>(null);
@@ -194,6 +205,7 @@ const KYCPage = () => {
     { title: "Student View", icon: BookOpen },
     { title: "Availability", icon: Clock },
     { title: "Identity", icon: Fingerprint },
+    { title: "Account", icon: CreditCard },
   ];
 
   if (!user) return null;
@@ -705,6 +717,49 @@ const KYCPage = () => {
                   <div className="space-y-8">
                     <div className="space-y-4">
                       <Label className="text-[10px] font-black uppercase tracking-widest ml-1 text-primary">
+                        Availability Days
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          "Monday",
+                          "Tuesday",
+                          "Wednesday",
+                          "Thursday",
+                          "Friday",
+                          "Saturday",
+                          "Sunday",
+                        ].map((day) => {
+                          const isSelected =
+                            formData.availabilityDays.includes(day);
+                          return (
+                            <button
+                              key={day}
+                              onClick={() => {
+                                const newDays = isSelected
+                                  ? formData.availabilityDays.filter(
+                                      (d) => d !== day,
+                                    )
+                                  : [...formData.availabilityDays, day];
+                                setFormData({
+                                  ...formData,
+                                  availabilityDays: newDays,
+                                });
+                              }}
+                              className={`px-4 py-2 rounded-xl border-2 font-bold text-xs transition-all ${
+                                isSelected
+                                  ? "border-primary bg-primary/5 text-primary"
+                                  : "border-muted bg-white hover:border-primary/30"
+                              }`}
+                            >
+                              {day.slice(0, 3)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1 text-primary">
                         Price Per Hour (USD)
                       </Label>
                       <div className="relative group">
@@ -880,7 +935,7 @@ const KYCPage = () => {
 
                 <div className="pt-8">
                   <Button
-                    onClick={handleSubmit}
+                    onClick={nextStep}
                     disabled={
                       loading ||
                       !formData.selfieUrl ||
@@ -888,15 +943,129 @@ const KYCPage = () => {
                       !formData.idBackUrl ||
                       !formData.idNumber
                     }
+                    className="w-full h-20 rounded-[32px] bg-primary text-white font-black uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.01] transition-all group disabled:opacity-50 disabled:grayscale"
+                  >
+                    Next: Payment Details{" "}
+                    <ArrowRight className="ml-4 w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* STEP 6: TEACHER ACCOUNT (PAYMENTS) */}
+            {step === 6 && (
+              <motion.div
+                key="step6"
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                variants={fadeInUp}
+                className="space-y-10"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
+                    <CreditCard className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black">Teacher Account</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Where you want to receive your payments
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
+                      Bank Name
+                    </Label>
+                    <Input
+                      className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                      value={formData.bankAccount.bankName}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          bankAccount: {
+                            ...formData.bankAccount,
+                            bankName: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="e.g. Chase Bank"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
+                      Account Holder Name
+                    </Label>
+                    <Input
+                      className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                      value={formData.bankAccount.accountHolderName}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          bankAccount: {
+                            ...formData.bankAccount,
+                            accountHolderName: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="Your Full Name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
+                      Account Number
+                    </Label>
+                    <Input
+                      className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                      value={formData.bankAccount.accountNumber}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          bankAccount: {
+                            ...formData.bankAccount,
+                            accountNumber: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="e.g. 1234567890"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
+                      Routing Number / SWIFT
+                    </Label>
+                    <Input
+                      className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                      value={formData.bankAccount.routingNumber}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          bankAccount: {
+                            ...formData.bankAccount,
+                            routingNumber: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="e.g. 021000021"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-8">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={
+                      loading ||
+                      !formData.bankAccount.bankName ||
+                      !formData.bankAccount.accountNumber ||
+                      !formData.bankAccount.accountHolderName
+                    }
                     className="w-full h-20 rounded-[32px] bg-foreground text-background font-black uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.01] transition-all group disabled:opacity-50 disabled:grayscale"
                   >
                     {loading ? (
                       <Loader2 className="w-6 h-6 animate-spin" />
-                    ) : !formData.selfieUrl ||
-                      !formData.idFrontUrl ||
-                      !formData.idBackUrl ||
-                      !formData.idNumber ? (
-                      "Complete All Requirements"
                     ) : (
                       <>
                         Finalize Enrollment{" "}
