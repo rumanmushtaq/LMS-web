@@ -15,6 +15,24 @@ const apiEndpoints = {
     TWO_FACTOR_AUTH: "/api/v1/auth/2fa",
     TWO_FACTOR_AUTH_VERIFY: "/api/v1/auth/2fa/verify",
   },
+  Users: {
+    PROFILE: "/api/v1/users/profile",
+  },
+  Certificates: {
+    MY: "/api/v1/certificates/my",
+  },
+  Instructors: {
+    LIST: "/api/v1/instructors",
+    FILTER_OPTIONS: "/api/v1/instructors/filter-options",
+    MY_STUDENTS: "/api/v1/instructors/my-students",
+  },
+  Onboarding: {
+    UPLOAD: "/api/v1/tutors/onboarding/upload",
+    VALIDATE_TAX: "/api/v1/tutors/onboarding/validate-tax",
+    CONTRACT: "/api/v1/tutors/onboarding/contract",
+    TAX_FORM: "/api/v1/tutors/onboarding/tax-form",
+    KYC: "/api/v1/tutors/onboarding/kyc",
+  },
 };
 
 export default apiEndpoints;

@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormValues, signupSchema } from "@/schemas/signup";
 import authService from "@/services/auth";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/auth";
 
 const useSignup = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -30,6 +31,7 @@ const useSignup = () => {
       terms: undefined,
     },
   });
+  const { login } = useAuthStore();
 
   const onSubmit = async (data: SignupFormValues) => {
     setLoading(true);
@@ -38,7 +40,26 @@ const useSignup = () => {
     try {
       // Only send fields the backend expects (exclude terms & confirmPassword)
       const { terms, confirmPassword, ...signupPayload } = data;
-      await authService.signupApi(signupPayload);
+      const res = await authService.signupApi(signupPayload);
+      console.log("Signup response:", res);
+
+      // Access tokens and user from the 'data' wrapper in the response
+      const responseData = res?.data;
+
+      // If tokens are returned (for Tutors), log them in and redirect to contract
+      if (responseData?.tokens && responseData?.user) {
+        console.log(
+          "Tutor detected, logging in and redirecting to contract...",
+        );
+        login(
+          responseData.user,
+          responseData.tokens.accessToken,
+          responseData.tokens.refreshToken,
+        );
+        router.push("/independent-contract");
+        return;
+      }
+      console.log("No tokens in response, redirecting to check-email...");
 
       // Store the email in sessionStorage so the check-email page can resend if needed
       sessionStorage.setItem("pending_verification_email", data.email);

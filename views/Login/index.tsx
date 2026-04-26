@@ -18,10 +18,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import useLogin from "./useLogin";
 
 const LoginForm = () => {
-  const { form, onSubmit, showPassword, setShowPassword } = useLogin();
+  const { form, onSubmit, showPassword, setShowPassword, loading, error } =
+    useLogin();
+  const searchParams = useSearchParams();
+  const messageParam = searchParams.get("message");
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -48,6 +53,27 @@ const LoginForm = () => {
       <h1 className="text-3xl font-bold text-foreground mb-8">
         Sign into Your Account
       </h1>
+
+      {/* Status Messages */}
+      {messageParam === "pending_verification" && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3 text-blue-800 text-sm">
+          <CheckCircle2 className="h-5 w-5 shrink-0 text-blue-600" />
+          <div>
+            <p className="font-semibold">Application Submitted!</p>
+            <p className="opacity-80">
+              Your teacher profile is currently under review by our admins. You
+              will receive an email once verified.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {error && !messageParam && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-800 text-sm">
+          <AlertCircle className="h-5 w-5 shrink-0 text-red-600" />
+          <p>{error}</p>
+        </div>
+      )}
 
       {/* Form */}
       <Form {...form}>

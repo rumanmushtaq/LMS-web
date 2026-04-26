@@ -3,11 +3,13 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import authService from "@/services/auth";
+import { useAuthStore } from "@/store/auth";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
+  const storeLogin = useAuthStore((state) => state.login);
 
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading",
@@ -28,6 +30,19 @@ function VerifyEmailContent() {
         setMessage(
           res?.message || "Your email has been verified successfully!",
         );
+
+        // If tokens are returned (Tutor onboarding flow)
+        if (res.tokens && res.user) {
+          // Store tokens in auth store
+          storeLogin(res.user, res.tokens.accessToken, res.tokens.refreshToken);
+
+          // Use a small delay so user can see the success message
+          setTimeout(() => {
+            if (res.user.role === "tutor") {
+              router.push("/independent-contract");
+            }
+          }, 2000);
+        }
       } catch (err: any) {
         setStatus("error");
         setMessage(
