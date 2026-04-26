@@ -6,6 +6,7 @@ import { SignupFormValues, signupSchema } from "@/schemas/signup";
 import authService from "@/services/auth";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
+import { toast } from "sonner";
 
 const useSignup = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -70,6 +71,7 @@ const useSignup = () => {
       const message =
         err?.response?.data?.message || "Sign up failed. Please try again.";
       setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
