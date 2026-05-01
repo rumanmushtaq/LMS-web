@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginFormValues, loginSchema } from "@/schemas/login";
 import authService from "@/services/auth";
 import { useAuthStore } from "@/store/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const useLogin = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -14,6 +14,8 @@ const useLogin = () => {
 
   const storeLogin = useAuthStore((state) => state.login);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect") || "/";
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -34,8 +36,8 @@ const useLogin = () => {
       // Backend returns { user, accessToken, refreshToken }
       storeLogin(res.user, res.accessToken, res.refreshToken);
 
-      // Redirect to home/dashboard after successful login
-      router.push("/");
+      // Redirect to home/dashboard or the previous page after successful login
+      router.push(redirectUrl);
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Login failed. Please try again.";

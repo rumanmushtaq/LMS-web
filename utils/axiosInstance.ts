@@ -30,8 +30,12 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     const status = error.response ? error.response.status : null;
+    const isAuthRoute =
+      error.config?.url?.includes("/auth/login") ||
+      error.config?.url?.includes("/auth/signup") ||
+      error.config?.url?.includes("/auth/verify");
 
-    if (status === 401) {
+    if (status === 401 && !isAuthRoute) {
       toast.error(
         "Unauthorized: Session expired or invalid token. Please log in again.",
       );
@@ -40,7 +44,10 @@ axiosInstance.interceptors.response.use(
       Cookies.remove("access_token");
       Cookies.remove("refresh_token");
       if (typeof window !== "undefined") {
-        // window.location.href = "/login";
+        const currentPath = window.location.pathname;
+        if (currentPath !== "/login" && currentPath !== "/signup") {
+          window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+        }
       }
     } else if (status === 403) {
       toast.error(

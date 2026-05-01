@@ -1,18 +1,24 @@
-"use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormValues, signupSchema } from "@/schemas/signup";
 import authService from "@/services/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
+import { toast } from "sonner";
 
 const useSignup = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
+
+  const searchParams = useSearchParams();
+  const roleParam = searchParams.get("role");
+
   const [selectedRole, setSelectedRole] = useState<"student" | "tutor">(
-    "student",
+    roleParam === "tutor" || roleParam === "student"
+      ? (roleParam as "student" | "tutor")
+      : "student",
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,10 +33,20 @@ const useSignup = () => {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "student",
+      role:
+        roleParam === "tutor" || roleParam === "student"
+          ? roleParam
+          : "student",
       terms: undefined,
     },
   });
+
+  useEffect(() => {
+    if (roleParam === "tutor" || roleParam === "student") {
+      setSelectedRole(roleParam);
+      form.setValue("role", roleParam);
+    }
+  }, [roleParam, form]);
   const { login } = useAuthStore();
 
   const onSubmit = async (data: SignupFormValues) => {
@@ -67,9 +83,11 @@ const useSignup = () => {
       // Redirect to check-email page
       router.push("/check-email");
     } catch (err: any) {
+      console.log("Signup error:", err?.response?.data?.message);
       const message =
         err?.response?.data?.message || "Sign up failed. Please try again.";
       setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

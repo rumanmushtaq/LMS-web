@@ -3,6 +3,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import axiosInstance from "@/utils/axiosInstance";
+import { toast } from "sonner";
 
 /* -------------------- Schema -------------------- */
 const contactSchema = z.object({
@@ -32,13 +34,12 @@ export const useContactForm = () => {
 
   const onSubmit = async (data: ContactFormData) => {
     try {
-      console.log("Form submitted:", data);
-
-      // toast.success("Message sent successfully!");
+      await axiosInstance.post("/auth/contact", data);
+      toast.success("Message sent successfully! We'll get back to you soon.");
       form.reset();
     } catch (error) {
       console.error(error);
-      // toast.error("Something went wrong.");
+      toast.error("Failed to send message. Please try again later.");
     }
   };
 

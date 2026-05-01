@@ -239,7 +239,7 @@ const IndependentContractPage = () => {
                 <div className="flex justify-end">
                   <Button
                     onClick={() => setStep(2)}
-                    className="h-14 px-10 rounded-2xl bg-foreground text-background font-black uppercase tracking-widest text-xs hover:scale-[1.02] active:scale-95 transition-all"
+                    className="h-14 px-10 rounded-2xl border-2 border-primary bg-transparent text-primary font-black uppercase tracking-widest text-xs hover:bg-primary hover:text-white hover:scale-[1.02] active:scale-95 transition-all"
                   >
                     I Have Reviewed the Terms{" "}
                     <ChevronRight className="ml-2 w-4 h-4" />
@@ -286,7 +286,7 @@ const IndependentContractPage = () => {
                       className={`p-8 rounded-[32px] border-2 text-left transition-all duration-300 ${isUSPerson === opt.val ? "border-primary bg-primary/[0.02] shadow-xl shadow-primary/10" : "border-[#EFEFEF] bg-white hover:border-primary/50"}`}
                     >
                       <div
-                        className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${isUSPerson === opt.val ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}
+                        className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 border-2 transition-all duration-300 ${isUSPerson === opt.val ? "bg-primary text-white border-primary" : "bg-transparent text-primary border-primary"}`}
                       >
                         <opt.icon className="w-6 h-6" />
                       </div>
@@ -299,16 +299,16 @@ const IndependentContractPage = () => {
                 </div>
                 <div className="flex justify-between items-center pt-8">
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     onClick={() => setStep(1)}
-                    className="font-black uppercase tracking-widest text-[10px]"
+                    className="h-14 px-8 rounded-2xl border-2 border-[#EFEFEF] bg-white text-[#1A1A1A] font-black uppercase tracking-widest text-[10px] hover:bg-[#F9F9F9] hover:border-[#EAEAEA] transition-all"
                   >
                     <ChevronLeft className="mr-1 w-4 h-4" /> Back
                   </Button>
                   <Button
                     onClick={() => setStep(3)}
                     disabled={isUSPerson === null}
-                    className="h-14 px-12 rounded-2xl bg-foreground text-background font-black uppercase tracking-widest text-xs"
+                    className="h-14 px-12 rounded-2xl border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-white font-black uppercase tracking-widest text-xs transition-all disabled:opacity-50"
                   >
                     Proceed to Signature{" "}
                     <ChevronRight className="ml-2 w-4 h-4" />

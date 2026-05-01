@@ -11,10 +11,9 @@ const InstructorProfile = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2, duration: 0.4 }}
-      className="container my-10"
+      className="container mx-auto my-10"
     >
-      <div className="gradient-profile rounded-2xl px-8 py-8 flex flex-col md:flex-row items-center justify-between relative overflow-hidden">
-        
+      <div className="bg-primary rounded-[40px] px-8 py-10 flex flex-col md:flex-row items-center justify-between relative overflow-hidden shadow-2xl shadow-primary/20">
         {/* Decorative circles */}
         <div className="absolute right-10 top-4 w-32 h-32 rounded-full border-2 border-primary-foreground/10 opacity-30" />
         <div className="absolute right-24 bottom-2 w-20 h-20 rounded-full bg-primary-foreground/5" />

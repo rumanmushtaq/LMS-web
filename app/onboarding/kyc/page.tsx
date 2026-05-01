@@ -29,6 +29,7 @@ import {
   Lock,
   Calendar,
   CreditCard,
+  MoonIcon,
 } from "lucide-react";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuthStore } from "@/store/auth";
@@ -42,6 +43,7 @@ const fadeInUp = {
 
 const KYCPage = () => {
   const [step, setStep] = useState(1);
+  const [isClient, setIsClient] = useState(false);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
 
@@ -70,7 +72,7 @@ const KYCPage = () => {
     // Step 4: Pricing
     lessonTimezone: "UTC-5 (EST)",
     pricePerHour: 25,
-    availabilityDays: [] as string[],
+    availability: [] as { day: string; startTime: string; endTime: string }[],
 
     // Step 5: Identity
     idType: "Passport",
@@ -94,24 +96,48 @@ const KYCPage = () => {
   const token = useAuthStore((state) => state.accessToken);
 
   useEffect(() => {
+    setIsClient(true);
+    const savedStep = localStorage.getItem("kyc_step");
+    if (savedStep) {
+      setStep(parseInt(savedStep));
+    }
+    const savedData = localStorage.getItem("kyc_form_data");
+    if (savedData) {
+      setFormData((prev) => ({ ...prev, ...JSON.parse(savedData) }));
+    }
+
     const fetchUser = async () => {
       try {
         const res = await axiosInstance.get(apiEndpoints.Auth.ME);
         const userData = res.data.data || res.data;
         setUser(userData);
-        // Pre-fill names
-        setFormData((prev) => ({
-          ...prev,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-        }));
+        // Pre-fill names if not already set by localStorage
+        if (!savedData) {
+          setFormData((prev) => ({
+            ...prev,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+          }));
+        }
       } catch (error) {
         console.error("Failed to fetch user", error);
-        router.push("/login");
+        router.push("/login?redirect=/onboarding/kyc");
       }
     };
     if (token) fetchUser();
   }, [token, router]);
+
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem("kyc_step", step.toString());
+    }
+  }, [step, isClient]);
+
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem("kyc_form_data", JSON.stringify(formData));
+    }
+  }, [formData, isClient]);
 
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -186,6 +212,8 @@ const KYCPage = () => {
       await axiosInstance.post(apiEndpoints.Onboarding.KYC, payload);
 
       toast.success("Profile submitted for review!");
+      localStorage.removeItem("kyc_step");
+      localStorage.removeItem("kyc_form_data");
       useAuthStore.getState().logout();
       router.push("/login?message=pending_verification");
     } catch (error) {
@@ -296,7 +324,7 @@ const KYCPage = () => {
                       First Name
                     </Label>
                     <Input
-                      className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                      className="h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
                       value={formData.firstName}
                       onChange={(e) =>
                         setFormData({ ...formData, firstName: e.target.value })
@@ -308,7 +336,7 @@ const KYCPage = () => {
                       Last Name
                     </Label>
                     <Input
-                      className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                      className="h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
                       value={formData.lastName}
                       onChange={(e) =>
                         setFormData({ ...formData, lastName: e.target.value })
@@ -320,7 +348,7 @@ const KYCPage = () => {
                       Country
                     </Label>
                     <select
-                      className="w-full h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold text-sm appearance-none"
+                      className="w-full h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm appearance-none"
                       value={formData.country}
                       onChange={(e) =>
                         setFormData({ ...formData, country: e.target.value })
@@ -338,7 +366,7 @@ const KYCPage = () => {
                       Default Timezone
                     </Label>
                     <select
-                      className="w-full h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold text-sm appearance-none"
+                      className="w-full h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm appearance-none"
                       value={formData.timezone}
                       onChange={(e) =>
                         setFormData({ ...formData, timezone: e.target.value })
@@ -355,7 +383,7 @@ const KYCPage = () => {
                       Native Language
                     </Label>
                     <Input
-                      className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                      className="h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
                       value={formData.nativeLanguage}
                       onChange={(e) =>
                         setFormData({
@@ -370,7 +398,7 @@ const KYCPage = () => {
                       Other Spoken Languages
                     </Label>
                     <Input
-                      className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                      className="h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
                       placeholder="e.g. Spanish, French (comma separated)"
                       onChange={(e) =>
                         setFormData({
@@ -438,7 +466,7 @@ const KYCPage = () => {
                           onClick={() =>
                             setFormData({ ...formData, category: cat })
                           }
-                          className={`py-4 rounded-2xl border-2 font-bold text-xs transition-all ${formData.category === cat ? "border-primary bg-primary/5 text-primary" : "border-muted bg-white hover:border-primary/30"}`}
+                          className={`py-4 rounded-2xl border-2 font-bold text-xs transition-all ${formData.category === cat ? "border-primary bg-primary/5 text-primary shadow-sm" : "border-[#EFEFEF] bg-white hover:border-primary/30"}`}
                         >
                           {cat}
                         </button>
@@ -452,7 +480,7 @@ const KYCPage = () => {
                         Years of Experience
                       </Label>
                       <select
-                        className="w-full h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold text-sm"
+                        className="w-full h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#4A4A4A] rounded-2xl font-bold text-sm outline-none focus:border-primary/50 transition-colors"
                         value={formData.experience}
                         onChange={(e) =>
                           setFormData({
@@ -473,7 +501,7 @@ const KYCPage = () => {
                         Education Background
                       </Label>
                       <Input
-                        className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                        className="h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
                         placeholder="e.g. Master's in Applied Mathematics"
                         value={formData.education}
                         onChange={(e) =>
@@ -504,7 +532,7 @@ const KYCPage = () => {
                           </div>
                         </div>
                       ))}
-                      <label className="aspect-square rounded-3xl border-2 border-dashed border-muted hover:border-primary flex flex-col items-center justify-center cursor-pointer transition-all bg-muted/10">
+                      <label className="aspect-square rounded-3xl border-2 border-dashed border-[#EFEFEF] hover:border-primary flex flex-col items-center justify-center cursor-pointer transition-all bg-muted/10">
                         {isUploading === "certification" ? (
                           <Loader2 className="w-6 h-6 animate-spin text-primary" />
                         ) : (
@@ -527,9 +555,9 @@ const KYCPage = () => {
 
                 <div className="flex gap-4 pt-6">
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     onClick={prevStep}
-                    className="flex-1 h-16 rounded-2xl font-black uppercase tracking-widest"
+                    className="flex-1 h-16 rounded-2xl border-2 border-[#EFEFEF] bg-white text-[#1A1A1A] font-black uppercase tracking-widest hover:bg-[#F9F9F9] hover:border-[#EAEAEA] transition-all"
                   >
                     <ArrowLeft className="mr-3 w-5 h-5" /> Back
                   </Button>
@@ -572,7 +600,7 @@ const KYCPage = () => {
                       About Me / Personal Bio
                     </Label>
                     <textarea
-                      className="w-full h-40 p-6 bg-muted/30 border-none rounded-[32px] font-bold text-sm resize-none focus:ring-2 ring-primary/20 outline-none"
+                      className="w-full h-40 p-6 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-[32px] font-bold text-sm resize-none"
                       placeholder="Share your passion, teaching style, and goals..."
                       value={formData.aboutMe}
                       onChange={(e) =>
@@ -640,9 +668,9 @@ const KYCPage = () => {
 
                 <div className="flex gap-4 pt-6">
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     onClick={prevStep}
-                    className="flex-1 h-16 rounded-2xl font-black uppercase tracking-widest"
+                    className="flex-1 h-16 rounded-2xl border-2 border-[#EFEFEF] bg-white text-[#1A1A1A] font-black uppercase tracking-widest hover:bg-[#F9F9F9] hover:border-[#EAEAEA] transition-all"
                   >
                     <ArrowLeft className="mr-3 w-5 h-5" /> Back
                   </Button>
@@ -697,7 +725,7 @@ const KYCPage = () => {
                         Lesson Timezone (Primary Target)
                       </Label>
                       <select
-                        className="w-full h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold text-sm"
+                        className="w-full h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm"
                         value={formData.lessonTimezone}
                         onChange={(e) =>
                           setFormData({
@@ -716,10 +744,15 @@ const KYCPage = () => {
 
                   <div className="space-y-8">
                     <div className="space-y-4">
-                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1 text-primary">
-                        Availability Days
+                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1 text-[#1A1A1A]">
+                        Business Hours
                       </Label>
-                      <div className="flex flex-wrap gap-2">
+                      <p className="text-xs text-muted-foreground ml-1 mb-4">
+                        Control your active tutoring hours for different times
+                        of the day
+                      </p>
+
+                      <div className="flex flex-col border-2 border-[#EFEFEF] rounded-3xl bg-white overflow-hidden shadow-sm divide-y divide-[#EFEFEF]">
                         {[
                           "Monday",
                           "Tuesday",
@@ -729,58 +762,121 @@ const KYCPage = () => {
                           "Saturday",
                           "Sunday",
                         ].map((day) => {
-                          const isSelected =
-                            formData.availabilityDays.includes(day);
+                          const availabilityEntry = formData.availability.find(
+                            (d) => d.day === day,
+                          );
+                          const isSelected = !!availabilityEntry;
+
+                          const toggleDay = () => {
+                            if (isSelected) {
+                              setFormData({
+                                ...formData,
+                                availability: formData.availability.filter(
+                                  (d) => d.day !== day,
+                                ),
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                availability: [
+                                  ...formData.availability,
+                                  { day, startTime: "09:00", endTime: "17:30" },
+                                ],
+                              });
+                            }
+                          };
+
                           return (
-                            <button
+                            <div
                               key={day}
-                              onClick={() => {
-                                const newDays = isSelected
-                                  ? formData.availabilityDays.filter(
-                                      (d) => d !== day,
-                                    )
-                                  : [...formData.availabilityDays, day];
-                                setFormData({
-                                  ...formData,
-                                  availabilityDays: newDays,
-                                });
-                              }}
-                              className={`px-4 py-2 rounded-xl border-2 font-bold text-xs transition-all ${
-                                isSelected
-                                  ? "border-primary bg-primary/5 text-primary"
-                                  : "border-muted bg-white hover:border-primary/30"
-                              }`}
+                              className="flex items-center justify-between p-4 px-6 hover:bg-slate-50 transition-colors"
                             >
-                              {day.slice(0, 3)}
-                            </button>
+                              <div
+                                className="flex items-center gap-4 w-40 cursor-pointer"
+                                onClick={toggleDay}
+                              >
+                                <div
+                                  className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out shadow-inner ${isSelected ? "bg-primary" : "bg-muted"}`}
+                                >
+                                  <span
+                                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isSelected ? "translate-x-5" : "translate-x-1"}`}
+                                  />
+                                </div>
+                                <span
+                                  className={`text-sm font-bold ${isSelected ? "text-[#1A1A1A]" : "text-[#1A1A1A] opacity-40"}`}
+                                >
+                                  {day}
+                                </span>
+                              </div>
+
+                              {isSelected ? (
+                                <div className="flex items-center gap-6 flex-1 justify-end animate-in fade-in zoom-in duration-300">
+                                  <div className="flex items-center gap-3 bg-[#F9F9F9] px-3 py-1.5 rounded-xl border border-transparent hover:border-[#EFEFEF] transition-all">
+                                    <span className="text-xs font-bold text-muted-foreground">
+                                      From
+                                    </span>
+                                    <input
+                                      type="time"
+                                      value={availabilityEntry.startTime}
+                                      onChange={(e) => {
+                                        const newAvailability = [
+                                          ...formData.availability,
+                                        ];
+                                        const index = newAvailability.findIndex(
+                                          (d) => d.day === day,
+                                        );
+                                        newAvailability[index].startTime =
+                                          e.target.value;
+                                        setFormData({
+                                          ...formData,
+                                          availability: newAvailability,
+                                        });
+                                      }}
+                                      className="bg-transparent text-sm font-bold text-[#1A1A1A] outline-none"
+                                    />
+                                  </div>
+                                  <div className="flex items-center gap-3 bg-[#F9F9F9] px-3 py-1.5 rounded-xl border border-transparent hover:border-[#EFEFEF] transition-all">
+                                    <span className="text-xs font-bold text-muted-foreground">
+                                      To
+                                    </span>
+                                    <input
+                                      type="time"
+                                      value={availabilityEntry.endTime}
+                                      onChange={(e) => {
+                                        const newAvailability = [
+                                          ...formData.availability,
+                                        ];
+                                        const index = newAvailability.findIndex(
+                                          (d) => d.day === day,
+                                        );
+                                        newAvailability[index].endTime =
+                                          e.target.value;
+                                        setFormData({
+                                          ...formData,
+                                          availability: newAvailability,
+                                        });
+                                      }}
+                                      className="bg-transparent text-sm font-bold text-[#1A1A1A] outline-none"
+                                    />
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-6 flex-1 justify-end">
+                                  <div className="flex items-center gap-3 px-10 py-1.5 opacity-40">
+                                    <span className="text-sm font-bold text-muted-foreground">
+                                      Closed
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-3 px-10 py-1.5 opacity-40">
+                                    <span className="text-sm font-bold text-muted-foreground">
+                                      Closed
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           );
                         })}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1 text-primary">
-                        Price Per Hour (USD)
-                      </Label>
-                      <div className="relative group">
-                        <div className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-primary">
-                          $
-                        </div>
-                        <input
-                          type="number"
-                          className="w-full h-24 pl-12 pr-8 bg-primary/5 border-2 border-primary/20 rounded-[32px] text-4xl font-black outline-none transition-all focus:border-primary"
-                          value={formData.pricePerHour}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              pricePerHour: parseInt(e.target.value),
-                            })
-                          }
-                        />
-                        <div className="mt-4 flex justify-between text-[10px] font-black uppercase tracking-tighter text-muted-foreground px-2">
-                          <span>Recommended: $20 - $45</span>
-                          <span>Platform Fee included</span>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -788,9 +884,9 @@ const KYCPage = () => {
 
                 <div className="flex gap-4 pt-10">
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     onClick={prevStep}
-                    className="flex-1 h-16 rounded-2xl font-black uppercase tracking-widest"
+                    className="flex-1 h-16 rounded-2xl border-2 border-[#EFEFEF] bg-white text-[#1A1A1A] font-black uppercase tracking-widest hover:bg-[#F9F9F9] hover:border-[#EAEAEA] transition-all"
                   >
                     <ArrowLeft className="mr-3 w-5 h-5" /> Back
                   </Button>

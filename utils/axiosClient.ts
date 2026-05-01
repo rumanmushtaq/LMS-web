@@ -40,7 +40,7 @@ export const setupAxios = () => {
       return config;
     },
     (error: unknown) => {
-      console.error("Request error: ", error);
+      // console.error("Request error: ", error); // Suppressed to prevent Next.js Error overlay
       //   toast.error("Failed to send the request. Please try again.");
       return Promise.reject(error);
     },
@@ -52,19 +52,30 @@ export const setupAxios = () => {
       return response;
     },
     (error: AxiosError<ErrorResponseData>) => {
-      console.error("Response error: ", error);
+      // console.error("Response error: ", error); // Suppressed to prevent Next.js Error overlay
 
       if (error.response) {
         const status = error.response.status;
         const message = error.response.data?.message || "An error occurred.";
+        const isAuthRoute =
+          error.config?.url?.includes("/auth/login") ||
+          error.config?.url?.includes("/auth/signup") ||
+          error.config?.url?.includes("/auth/verify");
 
-        if (status === 401) {
+        if (status === 401 && !isAuthRoute) {
           // Unauthorized error: Redirect to login
           // toast.error("Session expired. Please log in again.");
 
           console.log("Session expired. Please log in again.");
-          window.location.href = "/auth/login";
-        } else if (status >= 400 && status < 500) {
+          if (typeof window !== "undefined") {
+            const currentPath = window.location.pathname;
+            if (currentPath !== "/login" && currentPath !== "/signup") {
+              window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+            } else {
+              window.location.href = "/login";
+            }
+          }
+        } else if (status >= 400 && status < 500 && status !== 401) {
           if (typeof window !== "undefined") {
             window.dispatchEvent(
               new CustomEvent("api-error", {

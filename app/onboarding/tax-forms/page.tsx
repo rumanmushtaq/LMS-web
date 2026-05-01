@@ -61,7 +61,28 @@ const TaxFormsPage = () => {
     if (token) fetchUser();
   }, [token, router]);
 
-  const validatePdfLocally = async (file: File) => {
+  const validatePdfLocally = async (file: File, isUSStatus: boolean) => {
+    const fileName = file.name.toLowerCase();
+    const isW9 = fileName.includes("w9") || fileName.includes("w-9");
+    const isW8 = fileName.includes("w8") || fileName.includes("w-8");
+
+    if (isUSStatus && isW8) {
+      return {
+        isValid: false,
+        message:
+          "Mismatch detected: You selected 'US Person' but uploaded a W-8BEN form. Please upload a W-9 form.",
+        fieldsFilled: 0,
+      };
+    }
+    if (!isUSStatus && isW9) {
+      return {
+        isValid: false,
+        message:
+          "Mismatch detected: You selected 'International' but uploaded a W-9 form. Please upload a W-8BEN form.",
+        fieldsFilled: 0,
+      };
+    }
+
     if (file.type !== "application/pdf") {
       // For images, we just trust the size for now as OCR is too heavy for frontend without Tesseract
       return {
@@ -119,7 +140,10 @@ const TaxFormsPage = () => {
 
     try {
       // 1. REAL Frontend Scanning
-      const localResult = await validatePdfLocally(selectedFile);
+      const localResult = await validatePdfLocally(
+        selectedFile,
+        user.isUSPerson,
+      );
 
       // Artificial delay for high-end "Scanning" feel
       await new Promise((r) => setTimeout(r, 2000));
