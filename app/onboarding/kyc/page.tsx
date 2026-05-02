@@ -709,15 +709,15 @@ const KYCPage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-4">
-                  <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-[30%_1fr] md:gap-12 gap-8 pt-4 items-start">
+                  <div className="space-y-8 flex flex-col min-w-0 shrink-0">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
                         Your Timezone
                       </Label>
-                      <div className="flex items-center gap-4 p-5 rounded-2xl bg-muted/30">
+                      <div className="flex items-center gap-4 h-14 px-5 rounded-2xl bg-transparent border-2 border-primary/50">
                         <Clock className="text-primary w-5 h-5" />
-                        <span className="font-bold">{formData.timezone}</span>
+                        <span className="font-bold text-sm text-[#1A1A1A]">{formData.timezone}</span>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -742,7 +742,7 @@ const KYCPage = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-8">
+                  <div className="space-y-8 min-w-0">
                     <div className="space-y-4">
                       <Label className="text-[10px] font-black uppercase tracking-widest ml-1 text-[#1A1A1A]">
                         Business Hours
@@ -789,30 +789,32 @@ const KYCPage = () => {
                           return (
                             <div
                               key={day}
-                              className="flex items-center justify-between p-4 px-6 hover:bg-slate-50 transition-colors"
+                              className="flex flex-col lg:flex-row lg:items-center justify-between p-4 px-4 sm:px-6 hover:bg-slate-50 transition-colors gap-4"
                             >
                               <div
-                                className="flex items-center gap-4 w-40 cursor-pointer"
+                                className="flex items-center justify-between lg:justify-start gap-4 lg:w-40 cursor-pointer"
                                 onClick={toggleDay}
                               >
-                                <div
-                                  className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out shadow-inner ${isSelected ? "bg-primary" : "bg-muted"}`}
-                                >
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out shadow-inner ${isSelected ? "bg-primary" : "bg-muted"}`}
+                                  >
+                                    <span
+                                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isSelected ? "translate-x-5" : "translate-x-1"}`}
+                                    />
+                                  </div>
                                   <span
-                                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isSelected ? "translate-x-5" : "translate-x-1"}`}
-                                  />
+                                    className={`text-sm font-bold w-24 ${isSelected ? "text-[#1A1A1A]" : "text-[#1A1A1A] opacity-40"}`}
+                                  >
+                                    {day}
+                                  </span>
                                 </div>
-                                <span
-                                  className={`text-sm font-bold ${isSelected ? "text-[#1A1A1A]" : "text-[#1A1A1A] opacity-40"}`}
-                                >
-                                  {day}
-                                </span>
                               </div>
 
                               {isSelected ? (
-                                <div className="flex items-center gap-6 flex-1 justify-end animate-in fade-in zoom-in duration-300">
-                                  <div className="flex items-center gap-3 bg-[#F9F9F9] px-3 py-1.5 rounded-xl border border-transparent hover:border-[#EFEFEF] transition-all">
-                                    <span className="text-xs font-bold text-muted-foreground">
+                                <div className="flex flex-col sm:flex-row items-center gap-3 lg:gap-6 flex-1 lg:justify-end animate-in fade-in zoom-in duration-300 w-full lg:w-auto overflow-hidden">
+                                  <div className="flex items-center gap-2 sm:gap-3 bg-[#F9F9F9] px-3 py-2 sm:py-1.5 rounded-xl border border-transparent hover:border-[#EFEFEF] transition-all flex-1 sm:flex-none w-full sm:w-auto min-w-0">
+                                    <span className="text-xs font-bold text-muted-foreground shrink-0">
                                       From
                                     </span>
                                     <input
@@ -832,11 +834,11 @@ const KYCPage = () => {
                                           availability: newAvailability,
                                         });
                                       }}
-                                      className="bg-transparent text-sm font-bold text-[#1A1A1A] outline-none"
+                                      className="bg-transparent text-sm font-bold text-[#1A1A1A] outline-none w-full"
                                     />
                                   </div>
-                                  <div className="flex items-center gap-3 bg-[#F9F9F9] px-3 py-1.5 rounded-xl border border-transparent hover:border-[#EFEFEF] transition-all">
-                                    <span className="text-xs font-bold text-muted-foreground">
+                                  <div className="flex items-center gap-2 sm:gap-3 bg-[#F9F9F9] px-3 py-2 sm:py-1.5 rounded-xl border border-transparent hover:border-[#EFEFEF] transition-all flex-1 sm:flex-none w-full sm:w-auto min-w-0">
+                                    <span className="text-xs font-bold text-muted-foreground shrink-0">
                                       To
                                     </span>
                                     <input
@@ -856,12 +858,12 @@ const KYCPage = () => {
                                           availability: newAvailability,
                                         });
                                       }}
-                                      className="bg-transparent text-sm font-bold text-[#1A1A1A] outline-none"
+                                      className="bg-transparent text-sm font-bold text-[#1A1A1A] outline-none w-full"
                                     />
                                   </div>
                                 </div>
                               ) : (
-                                <div className="flex items-center gap-6 flex-1 justify-end">
+                                <div className="hidden lg:flex items-center gap-6 flex-1 justify-end">
                                   <div className="flex items-center gap-3 px-10 py-1.5 opacity-40">
                                     <span className="text-sm font-bold text-muted-foreground">
                                       Closed

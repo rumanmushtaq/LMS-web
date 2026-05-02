@@ -155,7 +155,7 @@ const Header = () => {
                 <Button
                   variant="outline"
                   onClick={() => logout()}
-                  className="h-11 rounded-full font-bold border-border/60 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
+                  className="h-11 rounded-full font-bold border-border/60 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive cursor-pointer"
                 >
                   Logout
                 </Button>
