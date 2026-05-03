@@ -10,6 +10,8 @@ export type AuthUser = {
   email: string;
   role: string;
   isEmailVerified: boolean;
+  status: string;
+  onboardingStep: string;
 };
 
 // Auth store state and actions

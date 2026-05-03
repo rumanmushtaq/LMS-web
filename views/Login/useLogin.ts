@@ -6,6 +6,7 @@ import { LoginFormValues, loginSchema } from "@/schemas/login";
 import authService from "@/services/auth";
 import { useAuthStore } from "@/store/auth";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getTutorRedirectPath } from "@/utils/onboarding-redirect";
 
 const useLogin = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -33,11 +34,25 @@ const useLogin = () => {
     try {
       const res = await authService.loginApi(data);
 
-      // Backend returns { user, accessToken, refreshToken }
-      storeLogin(res.user, res.accessToken, res.refreshToken);
+      // Backend returns { data: { user, tokens: { accessToken, refreshToken } } }
+      const userData = res?.data?.user;
+      const accessToken = res?.data?.tokens?.accessToken;
+      const refreshToken = res?.data?.tokens?.refreshToken;
+
+      if (!userData || !accessToken || !refreshToken) {
+        throw new Error("Invalid response from server");
+      }
+
+      storeLogin(userData, accessToken, refreshToken);
+
+      // Handle redirect based on user role and onboarding status
+      let finalRedirect = redirectUrl;
+      if (userData.role === "tutor") {
+        finalRedirect = getTutorRedirectPath(userData);
+      }
 
       // Redirect to home/dashboard or the previous page after successful login
-      router.push(redirectUrl);
+      router.push(finalRedirect);
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Login failed. Please try again.";

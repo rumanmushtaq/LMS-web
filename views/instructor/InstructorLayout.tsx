@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useAuthStore } from "@/store/auth";
+import {
+  getTutorRedirectPath,
+  isInstructorAccessAllowed,
+} from "@/utils/onboarding-redirect";
 import {
   LayoutDashboard,
   User,
@@ -49,6 +55,23 @@ export default function InstructorLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    if (user && user.role === "tutor") {
+      if (!isInstructorAccessAllowed(user)) {
+        const redirectPath = getTutorRedirectPath(user);
+        if (pathname !== redirectPath) {
+          router.push(redirectPath);
+        }
+      }
+    }
+  }, [user, pathname, router]);
+
+  if (user && user.role === "tutor" && !isInstructorAccessAllowed(user)) {
+    return null; // Prevent flicker while redirecting
+  }
 
   return (
     <div className="min-h-screen bg-background">
