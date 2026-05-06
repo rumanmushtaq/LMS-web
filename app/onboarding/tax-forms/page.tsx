@@ -220,7 +220,7 @@ const TaxFormsPage = () => {
     : "https://www.irs.gov/pub/irs-pdf/fw8ben.pdf";
 
   return (
-    <div className="min-h-screen bg-[#FDFCFD] text-[#1A1A1A] font-sans">
+    <div className="min-h-screen bg-background text-foreground font-sans">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] rounded-full bg-primary/5 blur-[120px]" />
         <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full bg-primary/3 blur-[120px]" />
@@ -248,7 +248,7 @@ const TaxFormsPage = () => {
               <span className="text-primary italic">Documentation.</span>
             </motion.h1>
             <div className="space-y-6">
-              <div className="flex gap-4 p-5 rounded-2xl bg-white shadow-sm border border-border/50">
+              <div className="flex gap-4 p-5 rounded-2xl bg-card shadow-sm border border-border">
                 <FileSearch className="w-10 h-10 text-primary p-2 bg-primary/5 rounded-xl" />
                 <div>
                   <h4 className="text-sm font-bold mb-1">
@@ -264,7 +264,7 @@ const TaxFormsPage = () => {
 
           <div className="lg:w-7/12">
             <div className="space-y-8">
-              <div className="rounded-3xl bg-white border border-border/50 p-8 shadow-xl">
+              <div className="rounded-3xl bg-card border border-border p-8 shadow-xl">
                 <h3 className="text-xl font-black mb-6">
                   1. Download & Prepare
                 </h3>
@@ -278,7 +278,7 @@ const TaxFormsPage = () => {
                 </a>
               </div>
 
-              <div className="rounded-3xl bg-white border border-border/50 p-8 shadow-xl overflow-hidden">
+              <div className="rounded-3xl bg-card border border-border p-8 shadow-xl overflow-hidden">
                 <h3 className="text-xl font-black mb-6">2. Secure Upload</h3>
 
                 <label
@@ -322,10 +322,10 @@ const TaxFormsPage = () => {
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
-                      className="mt-8 pt-8 border-t border-border/50"
+                      className="mt-8 pt-8 border-t border-border"
                     >
                       <div
-                        className={`p-4 rounded-2xl flex items-start gap-4 ${validationResult.isValid ? "bg-green-50 border border-green-100" : "bg-red-50 border border-red-100"}`}
+                        className={`p-4 rounded-2xl flex items-start gap-4 ${validationResult.isValid ? "bg-green-500/10 border border-green-500/20" : "bg-red-500/10 border border-red-500/20"}`}
                       >
                         {validationResult.isValid ? (
                           <BadgeCheck className="w-6 h-6 text-green-600 shrink-0" />
