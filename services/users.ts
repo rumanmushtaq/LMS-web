@@ -24,6 +24,16 @@ export interface UpdateProfileParams {
   gender?: string;
   dob?: string;
   bio?: string;
+  education?: {
+    degree: string;
+    institution: string;
+    period: string;
+  }[];
+  experience?: {
+    role: string;
+    company: string;
+    period: string;
+  }[];
 }
 
 class UsersService {
