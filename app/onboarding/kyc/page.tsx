@@ -94,25 +94,34 @@ const KYCPage = () => {
 
   const router = useRouter();
   const token = useAuthStore((state) => state.accessToken);
+  const authUser = useAuthStore((state) => state.user);
 
   useEffect(() => {
     setIsClient(true);
-    const savedStep = localStorage.getItem("kyc_step");
-    if (savedStep) {
-      setStep(parseInt(savedStep));
-    }
-    const savedData = localStorage.getItem("kyc_form_data");
-    if (savedData) {
-      setFormData((prev) => ({ ...prev, ...JSON.parse(savedData) }));
-    }
+    if (!token) return;
 
-    const fetchUser = async () => {
+    const fetchUserAndData = async () => {
       try {
         const res = await axiosInstance.get(apiEndpoints.Auth.ME);
         const userData = res.data.data || res.data;
         setUser(userData);
-        // Pre-fill names if not already set by localStorage
-        if (!savedData) {
+
+        const id = userData._id || userData.id;
+        const storageKey = `kyc_form_data_${id}`;
+        const stepKey = `kyc_step_${id}`;
+
+        const savedStep = localStorage.getItem(stepKey);
+        if (savedStep) {
+          setStep(parseInt(savedStep));
+        }
+        const savedData = localStorage.getItem(storageKey);
+        if (savedData) {
+          setFormData((prev) => ({ ...prev, ...JSON.parse(savedData) }));
+        }
+
+        // Pre-fill names if not already set by user-specific localStorage
+        // OR if the saved values are empty/placeholder
+        if (!savedData || !JSON.parse(savedData).firstName) {
           setFormData((prev) => ({
             ...prev,
             firstName: userData.firstName,
@@ -124,20 +133,23 @@ const KYCPage = () => {
         router.push("/login?redirect=/onboarding/kyc");
       }
     };
-    if (token) fetchUser();
+    fetchUserAndData();
   }, [token, router]);
 
   useEffect(() => {
-    if (isClient) {
-      localStorage.setItem("kyc_step", step.toString());
+    if (isClient && authUser?.id) {
+      localStorage.setItem(`kyc_step_${authUser.id}`, step.toString());
     }
-  }, [step, isClient]);
+  }, [step, isClient, authUser?.id]);
 
   useEffect(() => {
-    if (isClient) {
-      localStorage.setItem("kyc_form_data", JSON.stringify(formData));
+    if (isClient && authUser?.id) {
+      localStorage.setItem(
+        `kyc_form_data_${authUser.id}`,
+        JSON.stringify(formData),
+      );
     }
-  }, [formData, isClient]);
+  }, [formData, isClient, authUser?.id]);
 
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -236,10 +248,19 @@ const KYCPage = () => {
     { title: "Account", icon: CreditCard },
   ];
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-background">
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+        <p className="text-sm font-bold text-muted-foreground animate-pulse tracking-widest uppercase">
+          Initializing secure kyc environment...
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#FDFCFD] text-[#1A1A1A] font-sans pb-20">
+    <div className="min-h-screen bg-background text-foreground font-sans pb-20">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[5%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px]" />
         <div className="absolute bottom-[5%] left-[-5%] w-[400px] h-[400px] rounded-full bg-primary/3 blur-[100px]" />
@@ -270,13 +291,17 @@ const KYCPage = () => {
                   <motion.div
                     animate={{
                       scale: current ? 1.15 : 1,
-                      backgroundColor: active ? "var(--primary)" : "#fff",
-                      color: active ? "#fff" : "#888",
+                      backgroundColor: active
+                        ? "var(--primary)"
+                        : "var(--card)",
+                      color: active
+                        ? "var(--primary-foreground)"
+                        : "var(--muted-foreground)",
                       borderColor: current
                         ? "var(--primary)"
                         : active
                           ? "var(--primary)"
-                          : "#eee",
+                          : "var(--border)",
                     }}
                     className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg border-2 transition-all cursor-pointer"
                     onClick={() => active && setStep(num)}
@@ -294,7 +319,7 @@ const KYCPage = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-[44px] border border-border/50 shadow-2xl shadow-black/5 p-8 lg:p-14 overflow-hidden">
+        <div className="bg-card rounded-[44px] border border-border/50 shadow-2xl shadow-black/5 p-8 lg:p-14 overflow-hidden">
           <AnimatePresence mode="wait">
             {/* STEP 1: PERSONAL */}
             {step === 1 && (
@@ -324,7 +349,7 @@ const KYCPage = () => {
                       First Name
                     </Label>
                     <Input
-                      className="h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
+                      className="h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
                       value={formData.firstName}
                       onChange={(e) =>
                         setFormData({ ...formData, firstName: e.target.value })
@@ -336,7 +361,7 @@ const KYCPage = () => {
                       Last Name
                     </Label>
                     <Input
-                      className="h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
+                      className="h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
                       value={formData.lastName}
                       onChange={(e) =>
                         setFormData({ ...formData, lastName: e.target.value })
@@ -348,7 +373,7 @@ const KYCPage = () => {
                       Country
                     </Label>
                     <select
-                      className="w-full h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm appearance-none"
+                      className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm appearance-none"
                       value={formData.country}
                       onChange={(e) =>
                         setFormData({ ...formData, country: e.target.value })
@@ -366,7 +391,7 @@ const KYCPage = () => {
                       Default Timezone
                     </Label>
                     <select
-                      className="w-full h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm appearance-none"
+                      className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm appearance-none"
                       value={formData.timezone}
                       onChange={(e) =>
                         setFormData({ ...formData, timezone: e.target.value })
@@ -383,7 +408,7 @@ const KYCPage = () => {
                       Native Language
                     </Label>
                     <Input
-                      className="h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
+                      className="h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
                       value={formData.nativeLanguage}
                       onChange={(e) =>
                         setFormData({
@@ -398,7 +423,7 @@ const KYCPage = () => {
                       Other Spoken Languages
                     </Label>
                     <Input
-                      className="h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
+                      className="h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
                       placeholder="e.g. Spanish, French (comma separated)"
                       onChange={(e) =>
                         setFormData({
@@ -466,7 +491,7 @@ const KYCPage = () => {
                           onClick={() =>
                             setFormData({ ...formData, category: cat })
                           }
-                          className={`py-4 rounded-2xl border-2 font-bold text-xs transition-all ${formData.category === cat ? "border-primary bg-primary/5 text-primary shadow-sm" : "border-[#EFEFEF] bg-white hover:border-primary/30"}`}
+                          className={`py-4 rounded-2xl border-2 font-bold text-xs transition-all ${formData.category === cat ? "border-primary bg-primary/5 text-primary shadow-sm" : "border-border bg-card hover:border-primary/30 text-foreground"}`}
                         >
                           {cat}
                         </button>
@@ -480,7 +505,7 @@ const KYCPage = () => {
                         Years of Experience
                       </Label>
                       <select
-                        className="w-full h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#4A4A4A] rounded-2xl font-bold text-sm outline-none focus:border-primary/50 transition-colors"
+                        className="w-full h-14 px-5 bg-card border-2 border-border text-foreground rounded-2xl font-bold text-sm outline-none focus:border-primary/50 transition-colors"
                         value={formData.experience}
                         onChange={(e) =>
                           setFormData({
@@ -501,7 +526,7 @@ const KYCPage = () => {
                         Education Background
                       </Label>
                       <Input
-                        className="h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
+                        className="h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
                         placeholder="e.g. Master's in Applied Mathematics"
                         value={formData.education}
                         onChange={(e) =>
@@ -532,7 +557,7 @@ const KYCPage = () => {
                           </div>
                         </div>
                       ))}
-                      <label className="aspect-square rounded-3xl border-2 border-dashed border-[#EFEFEF] hover:border-primary flex flex-col items-center justify-center cursor-pointer transition-all bg-muted/10">
+                      <label className="aspect-square rounded-3xl border-2 border-dashed border-border hover:border-primary flex flex-col items-center justify-center cursor-pointer transition-all bg-muted/10">
                         {isUploading === "certification" ? (
                           <Loader2 className="w-6 h-6 animate-spin text-primary" />
                         ) : (
@@ -557,10 +582,11 @@ const KYCPage = () => {
                   <Button
                     variant="outline"
                     onClick={prevStep}
-                    className="flex-1 h-16 rounded-2xl border-2 border-[#EFEFEF] bg-white text-[#1A1A1A] font-black uppercase tracking-widest hover:bg-[#F9F9F9] hover:border-[#EAEAEA] transition-all"
+                    className="flex-1 h-16 rounded-2xl border-2 border-border bg-card text-foreground font-black uppercase tracking-widest hover:bg-muted transition-all"
                   >
                     <ArrowLeft className="mr-3 w-5 h-5" /> Back
                   </Button>
+
                   <Button
                     onClick={nextStep}
                     disabled={!formData.education}
@@ -600,7 +626,7 @@ const KYCPage = () => {
                       About Me / Personal Bio
                     </Label>
                     <textarea
-                      className="w-full h-40 p-6 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-[32px] font-bold text-sm resize-none"
+                      className="w-full h-40 p-6 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-[32px] font-bold text-sm resize-none"
                       placeholder="Share your passion, teaching style, and goals..."
                       value={formData.aboutMe}
                       onChange={(e) =>
@@ -670,10 +696,11 @@ const KYCPage = () => {
                   <Button
                     variant="outline"
                     onClick={prevStep}
-                    className="flex-1 h-16 rounded-2xl border-2 border-[#EFEFEF] bg-white text-[#1A1A1A] font-black uppercase tracking-widest hover:bg-[#F9F9F9] hover:border-[#EAEAEA] transition-all"
+                    className="flex-1 h-16 rounded-2xl border-2 border-border bg-card text-foreground font-black uppercase tracking-widest hover:bg-muted transition-all"
                   >
                     <ArrowLeft className="mr-3 w-5 h-5" /> Back
                   </Button>
+
                   <Button
                     onClick={nextStep}
                     disabled={!formData.aboutMe || !formData.photoUrl}
@@ -717,7 +744,9 @@ const KYCPage = () => {
                       </Label>
                       <div className="flex items-center gap-4 h-14 px-5 rounded-2xl bg-transparent border-2 border-primary/50">
                         <Clock className="text-primary w-5 h-5" />
-                        <span className="font-bold text-sm text-[#1A1A1A]">{formData.timezone}</span>
+                        <span className="font-bold text-sm text-foreground">
+                          {formData.timezone}
+                        </span>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -725,7 +754,7 @@ const KYCPage = () => {
                         Lesson Timezone (Primary Target)
                       </Label>
                       <select
-                        className="w-full h-14 px-5 bg-white border-2 border-[#EFEFEF] text-[#1A1A1A] outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm"
+                        className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm"
                         value={formData.lessonTimezone}
                         onChange={(e) =>
                           setFormData({
@@ -744,15 +773,16 @@ const KYCPage = () => {
 
                   <div className="space-y-8 min-w-0">
                     <div className="space-y-4">
-                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1 text-[#1A1A1A]">
+                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1 text-foreground">
                         Business Hours
                       </Label>
+
                       <p className="text-xs text-muted-foreground ml-1 mb-4">
                         Control your active tutoring hours for different times
                         of the day
                       </p>
 
-                      <div className="flex flex-col border-2 border-[#EFEFEF] rounded-3xl bg-white overflow-hidden shadow-sm divide-y divide-[#EFEFEF]">
+                      <div className="flex flex-col border-2 border-border rounded-3xl bg-card overflow-hidden shadow-sm divide-y divide-border">
                         {[
                           "Monday",
                           "Tuesday",
@@ -804,7 +834,7 @@ const KYCPage = () => {
                                     />
                                   </div>
                                   <span
-                                    className={`text-sm font-bold w-24 ${isSelected ? "text-[#1A1A1A]" : "text-[#1A1A1A] opacity-40"}`}
+                                    className={`text-sm font-bold w-24 ${isSelected ? "text-foreground" : "text-muted-foreground"}`}
                                   >
                                     {day}
                                   </span>
@@ -834,7 +864,7 @@ const KYCPage = () => {
                                           availability: newAvailability,
                                         });
                                       }}
-                                      className="bg-transparent text-sm font-bold text-[#1A1A1A] outline-none w-full"
+                                      className="bg-transparent text-sm font-bold text-foreground outline-none w-full"
                                     />
                                   </div>
                                   <div className="flex items-center gap-2 sm:gap-3 bg-[#F9F9F9] px-3 py-2 sm:py-1.5 rounded-xl border border-transparent hover:border-[#EFEFEF] transition-all flex-1 sm:flex-none w-full sm:w-auto min-w-0">
@@ -858,7 +888,7 @@ const KYCPage = () => {
                                           availability: newAvailability,
                                         });
                                       }}
-                                      className="bg-transparent text-sm font-bold text-[#1A1A1A] outline-none w-full"
+                                      className="bg-transparent text-sm font-bold text-foreground outline-none w-full"
                                     />
                                   </div>
                                 </div>
@@ -888,10 +918,11 @@ const KYCPage = () => {
                   <Button
                     variant="outline"
                     onClick={prevStep}
-                    className="flex-1 h-16 rounded-2xl border-2 border-[#EFEFEF] bg-white text-[#1A1A1A] font-black uppercase tracking-widest hover:bg-[#F9F9F9] hover:border-[#EAEAEA] transition-all"
+                    className="flex-1 h-16 rounded-2xl border-2 border-border bg-card text-foreground font-black uppercase tracking-widest hover:bg-muted transition-all"
                   >
                     <ArrowLeft className="mr-3 w-5 h-5" /> Back
                   </Button>
+
                   <Button
                     onClick={nextStep}
                     className="flex-[2] h-16 rounded-2xl bg-primary text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20"
@@ -914,7 +945,8 @@ const KYCPage = () => {
                 className="space-y-10"
               >
                 <div className="flex items-center gap-4">
-                  <Fingerprint className="w-12 h-12 p-3 rounded-2xl bg-red-50 text-red-500" />
+                  <Fingerprint className="w-12 h-12 p-3 rounded-2xl bg-red-500/10 text-red-500" />
+
                   <div>
                     <h2 className="text-2xl font-black">
                       Identity Verification
@@ -932,7 +964,7 @@ const KYCPage = () => {
                         ID Type
                       </Label>
                       <select
-                        className="w-full h-14 px-4 bg-muted/30 border-none rounded-2xl font-bold text-sm"
+                        className="w-full h-14 px-4 bg-card border-2 border-border text-foreground rounded-2xl font-bold text-sm appearance-none"
                         value={formData.idType}
                         onChange={(e) =>
                           setFormData({ ...formData, idType: e.target.value })
@@ -948,7 +980,7 @@ const KYCPage = () => {
                         ID Number
                       </Label>
                       <Input
-                        className="h-14 px-4 bg-muted/30 border-none rounded-2xl font-bold"
+                        className="h-14 px-4 bg-card border-2 border-border text-foreground rounded-2xl font-bold"
                         value={formData.idNumber}
                         onChange={(e) =>
                           setFormData({ ...formData, idNumber: e.target.value })
@@ -961,7 +993,7 @@ const KYCPage = () => {
                       <Label className="text-[10px] font-black uppercase tracking-widest block mb-4 text-primary">
                         Selfie Verification
                       </Label>
-                      <div className="relative aspect-square max-w-[120px] mx-auto rounded-full border-2 border-dashed border-primary/40 flex items-center justify-center overflow-hidden transition-all bg-white group-hover:border-primary">
+                      <div className="relative aspect-square max-w-[120px] mx-auto rounded-full border-2 border-dashed border-primary/40 flex items-center justify-center overflow-hidden transition-all bg-card group-hover:border-primary">
                         {formData.selfieUrl ? (
                           <img
                             src={formData.selfieUrl}
@@ -998,7 +1030,7 @@ const KYCPage = () => {
                       return (
                         <div key={t} className="space-y-2">
                           <div
-                            className={`relative flex flex-col items-center justify-center aspect-[16/6] rounded-2xl border-2 border-dashed transition-all overflow-hidden ${url ? "border-green-500 bg-green-50/20" : "border-muted hover:border-primary/50"}`}
+                            className={`relative flex flex-col items-center justify-center aspect-[16/6] rounded-2xl border-2 border-dashed transition-all overflow-hidden ${url ? "border-green-500 bg-green-500/10" : "border-border hover:border-primary/50"}`}
                           >
                             <input
                               type="file"
@@ -1078,7 +1110,7 @@ const KYCPage = () => {
                       Bank Name
                     </Label>
                     <Input
-                      className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                      className="h-14 px-5 bg-card border-2 border-border text-foreground rounded-2xl font-bold"
                       value={formData.bankAccount.bankName}
                       onChange={(e) =>
                         setFormData({
@@ -1097,7 +1129,7 @@ const KYCPage = () => {
                       Account Holder Name
                     </Label>
                     <Input
-                      className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                      className="h-14 px-5 bg-card border-2 border-border text-foreground rounded-2xl font-bold"
                       value={formData.bankAccount.accountHolderName}
                       onChange={(e) =>
                         setFormData({
@@ -1116,7 +1148,7 @@ const KYCPage = () => {
                       Account Number
                     </Label>
                     <Input
-                      className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                      className="h-14 px-5 bg-card border-2 border-border text-foreground rounded-2xl font-bold"
                       value={formData.bankAccount.accountNumber}
                       onChange={(e) =>
                         setFormData({
@@ -1135,7 +1167,7 @@ const KYCPage = () => {
                       Routing Number / SWIFT
                     </Label>
                     <Input
-                      className="h-14 px-5 bg-muted/30 border-none rounded-2xl font-bold"
+                      className="h-14 px-5 bg-card border-2 border-border text-foreground rounded-2xl font-bold"
                       value={formData.bankAccount.routingNumber}
                       onChange={(e) =>
                         setFormData({
@@ -1160,7 +1192,7 @@ const KYCPage = () => {
                       !formData.bankAccount.accountNumber ||
                       !formData.bankAccount.accountHolderName
                     }
-                    className="w-full h-20 rounded-[32px] bg-foreground text-background font-black uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.01] transition-all group disabled:opacity-50 disabled:grayscale"
+                    className="w-full h-20 rounded-[32px] bg-primary text-primary-foreground font-black uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.01] transition-all group disabled:opacity-50 disabled:grayscale"
                   >
                     {loading ? (
                       <Loader2 className="w-6 h-6 animate-spin" />

@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import SignatureCanvas from "react-signature-canvas";
+
 import {
   Building2,
   User,
@@ -30,6 +32,7 @@ const IndependentContractPage = () => {
   const [user, setUser] = useState<any>(null);
   const [isUSPerson, setIsUSPerson] = useState<boolean | null>(null);
   const sigCanvas = useRef<SignatureCanvas>(null);
+  const { resolvedTheme } = useTheme();
 
   const router = useRouter();
   const token = useAuthStore((state) => state.accessToken);
@@ -115,7 +118,7 @@ const IndependentContractPage = () => {
 
   // Same visual design as before...
   return (
-    <div className="min-h-screen bg-[#FDFCFD] text-[#1A1A1A] font-sans selection:bg-primary/20">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20">
       {/* Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] rounded-full bg-primary/5 blur-[120px]" />
@@ -124,7 +127,7 @@ const IndependentContractPage = () => {
 
       <div className="relative flex flex-col lg:flex-row min-h-screen">
         {/* Left Panel: Progress & Context */}
-        <div className="lg:w-[400px] border-r border-[#EFEFEF] bg-white/50 backdrop-blur-xl p-8 lg:p-12 flex flex-col sticky top-0 h-fit lg:h-screen">
+        <div className="lg:w-[400px] border-r border-border bg-card/50 backdrop-blur-xl p-8 lg:p-12 flex flex-col sticky top-0 h-fit lg:h-screen">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -169,7 +172,7 @@ const IndependentContractPage = () => {
                 className={`flex gap-4 items-start transition-all duration-300 ${step === s.id ? "opacity-100" : "opacity-40 grayscale"}`}
               >
                 <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm border ${step === s.id ? "bg-primary text-white border-primary border-4 shadow-primary/20" : "bg-white text-muted-foreground border-border"}`}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm border ${step === s.id ? "bg-primary text-white border-primary border-4 shadow-primary/20" : "bg-card text-muted-foreground border-border"}`}
                 >
                   <s.icon className="w-5 h-5" />
                 </div>
@@ -202,7 +205,7 @@ const IndependentContractPage = () => {
                 exit={{ opacity: 0, y: -30 }}
                 className="max-w-3xl mx-auto space-y-12"
               >
-                <div className="prose prose-sm font-serif text-[15px] leading-relaxed text-[#2D2D2D] bg-white p-10 lg:p-16 rounded-[40px] shadow-2xl shadow-black/[0.03] border border-[#F2F2F2]">
+                <div className="prose prose-sm font-serif text-[15px] leading-relaxed text-foreground bg-card p-10 lg:p-16 rounded-[40px] shadow-2xl shadow-black/[0.03] border border-border">
                   <h2 className="text-2xl font-black font-sans text-center mb-12 tracking-tighter uppercase">
                     Independent Contractor Agreement
                   </h2>
@@ -283,7 +286,7 @@ const IndependentContractPage = () => {
                       key={opt.label}
                       whileHover={{ y: -5 }}
                       onClick={() => setIsUSPerson(opt.val)}
-                      className={`p-8 rounded-[32px] border-2 text-left transition-all duration-300 ${isUSPerson === opt.val ? "border-primary bg-primary/[0.02] shadow-xl shadow-primary/10" : "border-[#EFEFEF] bg-white hover:border-primary/50"}`}
+                      className={`p-8 rounded-[32px] border-2 text-left transition-all duration-300 ${isUSPerson === opt.val ? "border-primary bg-primary/[0.02] shadow-xl shadow-primary/10" : "border-border bg-card hover:border-primary/50"}`}
                     >
                       <div
                         className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 border-2 transition-all duration-300 ${isUSPerson === opt.val ? "bg-primary text-white border-primary" : "bg-transparent text-primary border-primary"}`}
@@ -301,7 +304,7 @@ const IndependentContractPage = () => {
                   <Button
                     variant="outline"
                     onClick={() => setStep(1)}
-                    className="h-14 px-8 rounded-2xl border-2 border-[#EFEFEF] bg-white text-[#1A1A1A] font-black uppercase tracking-widest text-[10px] hover:bg-[#F9F9F9] hover:border-[#EAEAEA] transition-all"
+                    className="h-14 px-8 rounded-2xl border-2 border-border bg-card text-foreground font-black uppercase tracking-widest text-[10px] hover:bg-muted transition-all"
                   >
                     <ChevronLeft className="mr-1 w-4 h-4" /> Back
                   </Button>
@@ -335,15 +338,16 @@ const IndependentContractPage = () => {
                 </div>
 
                 <div className="relative group">
-                  <div className="bg-white rounded-[40px] p-2 border-2 border-[#EFEFEF] shadow-2xl shadow-black/5 overflow-hidden transition-all duration-500 group-hover:border-primary/20">
-                    <div className="bg-[#F9F9F9] rounded-[34px] border border-dashed border-[#DEDEDE] relative">
+                  <div className="bg-card rounded-[40px] p-2 border-2 border-border shadow-2xl shadow-black/5 overflow-hidden transition-all duration-500 group-hover:border-primary/20">
+                    <div className="bg-muted/30 rounded-[34px] border border-dashed border-border relative">
                       <SignatureCanvas
                         ref={sigCanvas}
-                        penColor="black"
+                        penColor={resolvedTheme === "dark" ? "white" : "black"}
                         canvasProps={{
                           className: "w-full h-72 cursor-crosshair",
                         }}
                       />
+
                       <button
                         onClick={() => sigCanvas.current?.clear()}
                         className="absolute top-6 right-6 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all opacity-0 group-hover:opacity-100"
@@ -352,7 +356,7 @@ const IndependentContractPage = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full bg-white border border-border shadow-sm text-[9px] font-black uppercase tracking-tighter text-muted-foreground whitespace-nowrap">
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full bg-card border border-border shadow-sm text-[9px] font-black uppercase tracking-tighter text-muted-foreground whitespace-nowrap">
                     Please sign within the dashed area
                   </div>
                 </div>
@@ -361,7 +365,7 @@ const IndependentContractPage = () => {
                   <Button
                     variant="outline"
                     onClick={() => setStep(2)}
-                    className="h-14 px-8 rounded-2xl border-[#EFEFEF] text-xs font-black uppercase tracking-widest hover:bg-muted transition-all"
+                    className="h-14 px-8 rounded-2xl border-border bg-card text-foreground text-xs font-black uppercase tracking-widest hover:bg-muted transition-all"
                   >
                     <ChevronLeft className="mr-2 w-4 h-4" /> Back
                   </Button>
