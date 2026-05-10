@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { getName, getNames } from "country-list";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -236,8 +237,30 @@ const KYCPage = () => {
     }
   };
 
-  const nextStep = () => setStep((s) => s + 1);
-  const prevStep = () => setStep((s) => s - 1);
+  const stepCardRef = useRef<HTMLDivElement>(null);
+
+  const focusFirstInput = useCallback(() => {
+    setTimeout(() => {
+      const card = stepCardRef.current;
+      if (!card) return;
+      const first = card.querySelector<HTMLElement>(
+        "input:not([type=file]):not([type=hidden]), select, textarea"
+      );
+      first?.focus();
+    }, 200);
+  }, []);
+
+  const nextStep = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setStep((s) => s + 1);
+    focusFirstInput();
+  };
+
+  const prevStep = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setStep((s) => s - 1);
+    focusFirstInput();
+  };
 
   const steps = [
     { title: "Personal", icon: User },
@@ -319,7 +342,14 @@ const KYCPage = () => {
           </div>
         </div>
 
-        <div className="bg-card rounded-[44px] border border-border/50 shadow-2xl shadow-black/5 p-8 lg:p-14 overflow-hidden">
+        <div ref={stepCardRef} className="bg-card rounded-[44px] border border-border/50 shadow-2xl shadow-black/5 p-8 lg:p-14 overflow-hidden">
+          <style>{`
+            .kyc-select option:checked,
+            .kyc-select option:hover {
+              background-color: #FFD6E0 !important;
+              color: #9D174D !important;
+            }
+          `}</style>
           <AnimatePresence mode="wait">
             {/* STEP 1: PERSONAL */}
             {step === 1 && (
@@ -373,17 +403,22 @@ const KYCPage = () => {
                       Country
                     </Label>
                     <select
-                      className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm appearance-none"
+                      className="kyc-select w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-[#E91E8C] focus:ring-2 focus:ring-[#FFD6E0]/50 focus:bg-[#FFF5F8] transition-colors rounded-2xl font-bold text-sm appearance-none cursor-pointer hover:border-[#F48FB1]"
                       value={formData.country}
                       onChange={(e) =>
                         setFormData({ ...formData, country: e.target.value })
                       }
                     >
-                      <option>United States</option>
-                      <option>United Kingdom</option>
-                      <option>Canada</option>
-                      <option>Australia</option>
-                      <option>Germany</option>
+                      <option value="United States">🇺🇸 United States</option>
+                      <option disabled>──────────────────</option>
+                      {getNames()
+                        .filter((c) => c !== "United States")
+                        .sort()
+                        .map((country) => (
+                          <option key={country} value={country}>
+                            {country}
+                          </option>
+                        ))}
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -391,16 +426,38 @@ const KYCPage = () => {
                       Default Timezone
                     </Label>
                     <select
-                      className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm appearance-none"
+                      className="kyc-select w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-[#E91E8C] focus:ring-2 focus:ring-[#FFD6E0]/50 focus:bg-[#FFF5F8] transition-colors rounded-2xl font-bold text-sm appearance-none cursor-pointer hover:border-[#F48FB1]"
                       value={formData.timezone}
                       onChange={(e) =>
                         setFormData({ ...formData, timezone: e.target.value })
                       }
                     >
+                      <option>UTC-12 (IDLW)</option>
+                      <option>UTC-11 (SST)</option>
+                      <option>UTC-10 (HST)</option>
+                      <option>UTC-9 (AKST)</option>
+                      <option>UTC-8 (PST)</option>
+                      <option>UTC-7 (MST)</option>
+                      <option>UTC-6 (CST)</option>
                       <option>UTC-5 (EST)</option>
+                      <option>UTC-4 (AST)</option>
+                      <option>UTC-3 (ART)</option>
+                      <option>UTC-2 (GST)</option>
+                      <option>UTC-1 (AZOT)</option>
                       <option>UTC+0 (GMT)</option>
                       <option>UTC+1 (CET)</option>
+                      <option>UTC+2 (EET)</option>
+                      <option>UTC+3 (MSK)</option>
+                      <option>UTC+4 (GST)</option>
+                      <option>UTC+5 (PKT)</option>
+                      <option>UTC+5:30 (IST)</option>
+                      <option>UTC+6 (BST)</option>
+                      <option>UTC+7 (ICT)</option>
                       <option>UTC+8 (SGT)</option>
+                      <option>UTC+9 (JST)</option>
+                      <option>UTC+10 (AEST)</option>
+                      <option>UTC+11 (AEDT)</option>
+                      <option>UTC+12 (NZST)</option>
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -505,7 +562,7 @@ const KYCPage = () => {
                         Years of Experience
                       </Label>
                       <select
-                        className="w-full h-14 px-5 bg-card border-2 border-border text-foreground rounded-2xl font-bold text-sm outline-none focus:border-primary/50 transition-colors"
+                        className="kyc-select w-full h-14 px-5 bg-card border-2 border-border text-foreground rounded-2xl font-bold text-sm outline-none focus:border-[#E91E8C] focus:ring-2 focus:ring-[#FFD6E0]/50 focus:bg-[#FFF5F8] transition-colors cursor-pointer hover:border-[#F48FB1]"
                         value={formData.experience}
                         onChange={(e) =>
                           setFormData({
@@ -754,7 +811,7 @@ const KYCPage = () => {
                         Lesson Timezone (Primary Target)
                       </Label>
                       <select
-                        className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm"
+                        className="kyc-select w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-[#E91E8C] focus:ring-2 focus:ring-[#FFD6E0]/50 focus:bg-[#FFF5F8] transition-colors rounded-2xl font-bold text-sm cursor-pointer hover:border-[#F48FB1]"
                         value={formData.lessonTimezone}
                         onChange={(e) =>
                           setFormData({
@@ -763,10 +820,32 @@ const KYCPage = () => {
                           })
                         }
                       >
+                        <option>UTC-12 (IDLW)</option>
+                        <option>UTC-11 (SST)</option>
+                        <option>UTC-10 (HST)</option>
+                        <option>UTC-9 (AKST)</option>
+                        <option>UTC-8 (PST)</option>
+                        <option>UTC-7 (MST)</option>
+                        <option>UTC-6 (CST)</option>
                         <option>UTC-5 (EST)</option>
+                        <option>UTC-4 (AST)</option>
+                        <option>UTC-3 (ART)</option>
+                        <option>UTC-2 (GST)</option>
+                        <option>UTC-1 (AZOT)</option>
                         <option>UTC+0 (GMT)</option>
                         <option>UTC+1 (CET)</option>
+                        <option>UTC+2 (EET)</option>
+                        <option>UTC+3 (MSK)</option>
+                        <option>UTC+4 (GST)</option>
+                        <option>UTC+5 (PKT)</option>
+                        <option>UTC+5:30 (IST)</option>
+                        <option>UTC+6 (BST)</option>
+                        <option>UTC+7 (ICT)</option>
                         <option>UTC+8 (SGT)</option>
+                        <option>UTC+9 (JST)</option>
+                        <option>UTC+10 (AEST)</option>
+                        <option>UTC+11 (AEDT)</option>
+                        <option>UTC+12 (NZST)</option>
                       </select>
                     </div>
                   </div>
@@ -964,7 +1043,7 @@ const KYCPage = () => {
                         ID Type
                       </Label>
                       <select
-                        className="w-full h-14 px-4 bg-card border-2 border-border text-foreground rounded-2xl font-bold text-sm appearance-none"
+                        className="kyc-select w-full h-14 px-4 bg-card border-2 border-border text-foreground rounded-2xl font-bold text-sm appearance-none outline-none focus:border-[#E91E8C] focus:ring-2 focus:ring-[#FFD6E0]/50 focus:bg-[#FFF5F8] transition-colors cursor-pointer hover:border-[#F48FB1]"
                         value={formData.idType}
                         onChange={(e) =>
                           setFormData({ ...formData, idType: e.target.value })
