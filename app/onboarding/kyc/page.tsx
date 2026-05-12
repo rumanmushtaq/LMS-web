@@ -1,11 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { getName, getNames } from "country-list";
+import ISO6391 from "iso-639-1";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Badge } from "@/components/ui/badge";
+import { X, Check } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   FileUp,
   CheckCircle2,
@@ -236,8 +261,30 @@ const KYCPage = () => {
     }
   };
 
-  const nextStep = () => setStep((s) => s + 1);
-  const prevStep = () => setStep((s) => s - 1);
+  const stepCardRef = useRef<HTMLDivElement>(null);
+
+  const focusFirstInput = useCallback(() => {
+    setTimeout(() => {
+      const card = stepCardRef.current;
+      if (!card) return;
+      const first = card.querySelector<HTMLElement>(
+        "input:not([type=file]):not([type=hidden]), select, textarea",
+      );
+      first?.focus();
+    }, 200);
+  }, []);
+
+  const nextStep = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setStep((s) => s + 1);
+    focusFirstInput();
+  };
+
+  const prevStep = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setStep((s) => s - 1);
+    focusFirstInput();
+  };
 
   const steps = [
     { title: "Personal", icon: User },
@@ -319,7 +366,10 @@ const KYCPage = () => {
           </div>
         </div>
 
-        <div className="bg-card rounded-[44px] border border-border/50 shadow-2xl shadow-black/5 p-8 lg:p-14 overflow-hidden">
+        <div
+          ref={stepCardRef}
+          className="bg-card rounded-[44px] border border-border/50 shadow-2xl shadow-black/5 p-8 lg:p-14 overflow-hidden"
+        >
           <AnimatePresence mode="wait">
             {/* STEP 1: PERSONAL */}
             {step === 1 && (
@@ -372,66 +422,344 @@ const KYCPage = () => {
                     <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
                       Country
                     </Label>
-                    <select
-                      className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm appearance-none"
+                    <Select
                       value={formData.country}
-                      onChange={(e) =>
-                        setFormData({ ...formData, country: e.target.value })
+                      onValueChange={(val) =>
+                        setFormData({ ...formData, country: val })
                       }
                     >
-                      <option>United States</option>
-                      <option>United Kingdom</option>
-                      <option>Canada</option>
-                      <option>Australia</option>
-                      <option>Germany</option>
-                    </select>
+                      <SelectTrigger className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm cursor-pointer hover:border-border/80 focus:ring-0 focus:ring-offset-0">
+                        <SelectValue placeholder="Select Country" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px] border-border rounded-xl">
+                        <SelectItem
+                          value="United States"
+                          className="font-bold cursor-pointer"
+                        >
+                          🇺🇸 United States
+                        </SelectItem>
+                        {getNames()
+                          .filter((c) => c !== "United States")
+                          .sort()
+                          .map((country) => (
+                            <SelectItem
+                              key={country}
+                              value={country}
+                              className="font-medium cursor-pointer"
+                            >
+                              {country}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
                       Default Timezone
                     </Label>
-                    <select
-                      className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm appearance-none"
+                    <Select
                       value={formData.timezone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, timezone: e.target.value })
+                      onValueChange={(val) =>
+                        setFormData({ ...formData, timezone: val })
                       }
                     >
-                      <option>UTC-5 (EST)</option>
-                      <option>UTC+0 (GMT)</option>
-                      <option>UTC+1 (CET)</option>
-                      <option>UTC+8 (SGT)</option>
-                    </select>
+                      <SelectTrigger className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm cursor-pointer hover:border-border/80 focus:ring-0 focus:ring-offset-0">
+                        <SelectValue placeholder="Select Timezone" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px] border-border rounded-xl">
+                        <SelectItem
+                          value="UTC-12 (IDLW)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC-12 (IDLW)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC-11 (SST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC-11 (SST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC-10 (HST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC-10 (HST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC-9 (AKST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC-9 (AKST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC-8 (PST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC-8 (PST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC-7 (MST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC-7 (MST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC-6 (CST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC-6 (CST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC-5 (EST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC-5 (EST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC-4 (AST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC-4 (AST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC-3 (ART)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC-3 (ART)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC-2 (GST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC-2 (GST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC-1 (AZOT)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC-1 (AZOT)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+0 (GMT)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+0 (GMT)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+1 (CET)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+1 (CET)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+2 (EET)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+2 (EET)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+3 (MSK)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+3 (MSK)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+4 (GST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+4 (GST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+5 (PKT)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+5 (PKT)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+5:30 (IST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+5:30 (IST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+6 (BST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+6 (BST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+7 (ICT)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+7 (ICT)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+8 (SGT)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+8 (SGT)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+9 (JST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+9 (JST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+10 (AEST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+10 (AEST)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+11 (AEDT)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+11 (AEDT)
+                        </SelectItem>
+                        <SelectItem
+                          value="UTC+12 (NZST)"
+                          className="font-medium cursor-pointer"
+                        >
+                          UTC+12 (NZST)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
                       Native Language
                     </Label>
-                    <Input
-                      className="h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
+                    <Select
                       value={formData.nativeLanguage}
-                      onChange={(e) =>
+                      onValueChange={(val) =>
                         setFormData({
                           ...formData,
-                          nativeLanguage: e.target.value,
+                          nativeLanguage: val,
                         })
                       }
-                    />
+                    >
+                      <SelectTrigger className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm cursor-pointer hover:border-border/80 focus:ring-0 focus:ring-offset-0">
+                        <SelectValue placeholder="Select Native Language" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px] border-border rounded-xl">
+                        {ISO6391.getAllNames()
+                          .sort()
+                          .map((lang) => (
+                            <SelectItem
+                              key={lang}
+                              value={lang}
+                              className="font-medium cursor-pointer"
+                            >
+                              {lang}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
                       Other Spoken Languages
                     </Label>
-                    <Input
-                      className="h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold"
-                      placeholder="e.g. Spanish, French (comma separated)"
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          spokenLanguages: e.target.value.split(","),
-                        })
-                      }
-                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full h-auto min-h-14 px-4 py-2 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm cursor-pointer hover:border-border/80 focus:ring-0 focus:ring-offset-0 justify-start"
+                        >
+                          <div className="flex flex-wrap gap-2 items-center w-full">
+                            {formData.spokenLanguages.length > 0 ? (
+                              formData.spokenLanguages.map((lang) => (
+                                <Badge
+                                  key={lang}
+                                  variant="secondary"
+                                  className="rounded-lg px-2 py-1 bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-bold text-[10px] uppercase tracking-wider"
+                                >
+                                  {lang}
+                                  <span
+                                    role="button"
+                                    aria-label="Remove language"
+                                    tabIndex={0}
+                                    className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:text-primary/70 transition-colors cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        spokenLanguages:
+                                          prev.spokenLanguages.filter(
+                                            (l) => l !== lang,
+                                          ),
+                                      }));
+                                    }}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </span>
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground font-medium text-sm">
+                                Select languages...
+                              </span>
+                            )}
+                          </div>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-full sm:w-[400px] p-0 border-border rounded-xl"
+                        align="start"
+                      >
+                        <Command>
+                          <CommandInput
+                            placeholder="Search language..."
+                            className="h-11 outline-none border-none ring-0 focus:ring-0"
+                          />
+                          <CommandList className="max-h-[300px]">
+                            <CommandEmpty>No language found.</CommandEmpty>
+                            <CommandGroup>
+                              {ISO6391.getAllNames()
+                                .sort()
+                                .map((lang) => {
+                                  const isSelected =
+                                    formData.spokenLanguages.includes(lang);
+                                  return (
+                                    <CommandItem
+                                      key={lang}
+                                      value={lang}
+                                      onSelect={() => {
+                                        if (isSelected) {
+                                          setFormData((prev) => ({
+                                            ...prev,
+                                            spokenLanguages:
+                                              prev.spokenLanguages.filter(
+                                                (l) => l !== lang,
+                                              ),
+                                          }));
+                                        } else {
+                                          setFormData((prev) => ({
+                                            ...prev,
+                                            spokenLanguages: [
+                                              ...prev.spokenLanguages,
+                                              lang,
+                                            ],
+                                          }));
+                                        }
+                                      }}
+                                      className="font-medium cursor-pointer flex items-center justify-between hover:bg-muted/50"
+                                    >
+                                      {lang}
+                                      {isSelected && (
+                                        <Check className="h-4 w-4 text-primary" />
+                                      )}
+                                    </CommandItem>
+                                  );
+                                })}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
 
@@ -504,22 +832,51 @@ const KYCPage = () => {
                       <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
                         Years of Experience
                       </Label>
-                      <select
-                        className="w-full h-14 px-5 bg-card border-2 border-border text-foreground rounded-2xl font-bold text-sm outline-none focus:border-primary/50 transition-colors"
+                      <Select
                         value={formData.experience}
-                        onChange={(e) =>
+                        onValueChange={(val) =>
                           setFormData({
                             ...formData,
-                            experience: e.target.value,
+                            experience: val,
                           })
                         }
                       >
-                        <option>Less than 1 year</option>
-                        <option>1-3 Years</option>
-                        <option>3-5 Years</option>
-                        <option>5-10 Years</option>
-                        <option>10+ Years</option>
-                      </select>
+                        <SelectTrigger className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm cursor-pointer hover:border-border/80 focus:ring-0 focus:ring-offset-0">
+                          <SelectValue placeholder="Years of Experience" />
+                        </SelectTrigger>
+                        <SelectContent className="border-border rounded-xl">
+                          <SelectItem
+                            value="Less than 1 year"
+                            className="font-medium cursor-pointer"
+                          >
+                            Less than 1 year
+                          </SelectItem>
+                          <SelectItem
+                            value="1-3 Years"
+                            className="font-medium cursor-pointer"
+                          >
+                            1-3 Years
+                          </SelectItem>
+                          <SelectItem
+                            value="3-5 Years"
+                            className="font-medium cursor-pointer"
+                          >
+                            3-5 Years
+                          </SelectItem>
+                          <SelectItem
+                            value="5-10 Years"
+                            className="font-medium cursor-pointer"
+                          >
+                            5-10 Years
+                          </SelectItem>
+                          <SelectItem
+                            value="10+ Years"
+                            className="font-medium cursor-pointer"
+                          >
+                            10+ Years
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
@@ -753,21 +1110,177 @@ const KYCPage = () => {
                       <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
                         Lesson Timezone (Primary Target)
                       </Label>
-                      <select
-                        className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm"
+                      <Select
                         value={formData.lessonTimezone}
-                        onChange={(e) =>
+                        onValueChange={(val) =>
                           setFormData({
                             ...formData,
-                            lessonTimezone: e.target.value,
+                            lessonTimezone: val,
                           })
                         }
                       >
-                        <option>UTC-5 (EST)</option>
-                        <option>UTC+0 (GMT)</option>
-                        <option>UTC+1 (CET)</option>
-                        <option>UTC+8 (SGT)</option>
-                      </select>
+                        <SelectTrigger className="w-full h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm cursor-pointer hover:border-border/80 focus:ring-0 focus:ring-offset-0">
+                          <SelectValue placeholder="Lesson Timezone" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px] border-border rounded-xl">
+                          <SelectItem
+                            value="UTC-12 (IDLW)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC-12 (IDLW)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC-11 (SST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC-11 (SST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC-10 (HST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC-10 (HST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC-9 (AKST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC-9 (AKST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC-8 (PST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC-8 (PST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC-7 (MST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC-7 (MST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC-6 (CST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC-6 (CST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC-5 (EST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC-5 (EST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC-4 (AST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC-4 (AST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC-3 (ART)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC-3 (ART)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC-2 (GST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC-2 (GST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC-1 (AZOT)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC-1 (AZOT)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+0 (GMT)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+0 (GMT)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+1 (CET)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+1 (CET)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+2 (EET)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+2 (EET)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+3 (MSK)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+3 (MSK)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+4 (GST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+4 (GST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+5 (PKT)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+5 (PKT)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+5:30 (IST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+5:30 (IST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+6 (BST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+6 (BST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+7 (ICT)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+7 (ICT)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+8 (SGT)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+8 (SGT)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+9 (JST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+9 (JST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+10 (AEST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+10 (AEST)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+11 (AEDT)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+11 (AEDT)
+                          </SelectItem>
+                          <SelectItem
+                            value="UTC+12 (NZST)"
+                            className="font-medium cursor-pointer"
+                          >
+                            UTC+12 (NZST)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
@@ -963,17 +1476,36 @@ const KYCPage = () => {
                       <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
                         ID Type
                       </Label>
-                      <select
-                        className="w-full h-14 px-4 bg-card border-2 border-border text-foreground rounded-2xl font-bold text-sm appearance-none"
+                      <Select
                         value={formData.idType}
-                        onChange={(e) =>
-                          setFormData({ ...formData, idType: e.target.value })
+                        onValueChange={(val) =>
+                          setFormData({ ...formData, idType: val })
                         }
                       >
-                        <option>Passport</option>
-                        <option>Driver License</option>
-                        <option>National ID</option>
-                      </select>
+                        <SelectTrigger className="w-full h-14 px-4 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold text-sm cursor-pointer hover:border-border/80 focus:ring-0 focus:ring-offset-0">
+                          <SelectValue placeholder="Select ID Type" />
+                        </SelectTrigger>
+                        <SelectContent className="border-border rounded-xl">
+                          <SelectItem
+                            value="Passport"
+                            className="font-medium cursor-pointer"
+                          >
+                            Passport
+                          </SelectItem>
+                          <SelectItem
+                            value="Driver License"
+                            className="font-medium cursor-pointer"
+                          >
+                            Driver License
+                          </SelectItem>
+                          <SelectItem
+                            value="National ID"
+                            className="font-medium cursor-pointer"
+                          >
+                            National ID
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
