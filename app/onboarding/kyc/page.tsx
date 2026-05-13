@@ -1356,7 +1356,7 @@ const KYCPage = () => {
 
                               {isSelected ? (
                                 <div className="flex flex-col sm:flex-row items-center gap-3 lg:gap-6 flex-1 lg:justify-end animate-in fade-in zoom-in duration-300 w-full lg:w-auto overflow-hidden">
-                                  <div className="flex items-center gap-2 sm:gap-3 bg-[#F9F9F9] px-3 py-2 sm:py-1.5 rounded-xl border border-transparent hover:border-[#EFEFEF] transition-all flex-1 sm:flex-none w-full sm:w-auto min-w-0">
+                                  <div className="flex items-center gap-2 sm:gap-3 bg-muted/30 px-3 py-2 sm:py-1.5 rounded-xl border border-transparent hover:border-border transition-all flex-1 sm:flex-none w-full sm:w-auto min-w-0">
                                     <span className="text-xs font-bold text-muted-foreground shrink-0">
                                       From
                                     </span>
@@ -1380,7 +1380,7 @@ const KYCPage = () => {
                                       className="bg-transparent text-sm font-bold text-foreground outline-none w-full"
                                     />
                                   </div>
-                                  <div className="flex items-center gap-2 sm:gap-3 bg-[#F9F9F9] px-3 py-2 sm:py-1.5 rounded-xl border border-transparent hover:border-[#EFEFEF] transition-all flex-1 sm:flex-none w-full sm:w-auto min-w-0">
+                                  <div className="flex items-center gap-2 sm:gap-3 bg-muted/30 px-3 py-2 sm:py-1.5 rounded-xl border border-transparent hover:border-border transition-all flex-1 sm:flex-none w-full sm:w-auto min-w-0">
                                     <span className="text-xs font-bold text-muted-foreground shrink-0">
                                       To
                                     </span>

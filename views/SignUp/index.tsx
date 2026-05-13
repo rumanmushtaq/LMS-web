@@ -93,7 +93,6 @@ const SignupForm = () => {
       {/* Form */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-
           {/* First Name & Last Name */}
           <div className="grid grid-cols-2 gap-4">
             <FormField
@@ -239,7 +238,7 @@ const SignupForm = () => {
           />
 
           {/* Terms and Conditions - Commented out */}
-        <div className="flex">
+          <div className="flex">
             <FormField
               control={form.control}
               name="terms"
@@ -255,16 +254,14 @@ const SignupForm = () => {
                     className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
                   <label htmlFor="terms" className="text-sm cursor-pointer">
-                    I agree with {" "}
+                    I agree with{" "}
                     <Link
                       href="/forgot-password"
                       className="text-sm text-primary hover:underline font-medium"
                     >
                       Terms of Service
-                    </Link>
-                    {" "}
-                    and
-                    {" "}
+                    </Link>{" "}
+                    and{" "}
                     <Link
                       href="/forgot-password"
                       className="text-sm text-primary hover:underline font-medium"

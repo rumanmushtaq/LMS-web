@@ -24,7 +24,7 @@ const JoinUs = () => {
               on Mentoring.
             </p>
             <Link href="/signup?role=tutor">
-              <Button className="bg-[#4138a0] hover:bg-[#4138a0]/90 text-white rounded-xl px-8 py-6 text-lg font-bold group/btn shadow-lg shadow-indigo-200 mt-4">
+              <Button className="bg-brand-purple hover:bg-brand-purple/90 text-white rounded-xl px-8 py-6 text-lg font-bold group/btn shadow-lg shadow-indigo-200 mt-4">
                 Apply Now
                 <MoveRight className="w-5 h-5 ml-2 group-hover/btn:translate-x-1 transition-transform" />
               </Button>
@@ -32,7 +32,7 @@ const JoinUs = () => {
           </div>
           <div className="relative w-full max-w-[320px] aspect-square shrink-0">
             {/* Yellow Circle Graphic */}
-            <div className="absolute inset-0 bg-[#ffc107] rounded-[60px] scale-90 translate-y-4" />
+            <div className="absolute inset-0 bg-brand-gold rounded-[60px] scale-90 translate-y-4" />
             <div className="relative w-full h-full">
               <Image
                 src="/images/Instructor Image.svg"
@@ -60,7 +60,7 @@ const JoinUs = () => {
               resources
             </p>
             <Link href="/signup?role=student">
-              <Button className="bg-[#ff4e50] hover:bg-[#ff4e50]/90 text-white rounded-xl px-8 py-6 text-lg font-bold group/btn shadow-lg shadow-red-200 mt-4">
+              <Button className="bg-brand-cyan hover:bg-brand-cyan/90 text-white rounded-xl px-8 py-6 text-lg font-bold group/btn shadow-lg shadow-red-200 mt-4">
                 Enroll Now
                 <MoveRight className="w-5 h-5 ml-2 group-hover/btn:translate-x-1 transition-transform" />
               </Button>
@@ -68,7 +68,7 @@ const JoinUs = () => {
           </div>
           <div className="relative w-full max-w-[320px] aspect-square shrink-0">
             {/* Purple Circle Graphic */}
-            <div className="absolute inset-0 bg-[#6c56f6] rounded-[60px] scale-90 translate-y-4" />
+            <div className="absolute inset-0 bg-brand-purple rounded-[60px] scale-90 translate-y-4" />
             <div className="relative w-full h-full">
               <Image
                 src="/images/Student Image.svg"

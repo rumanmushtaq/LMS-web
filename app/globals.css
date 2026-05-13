@@ -1,4 +1,3 @@
-
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -44,9 +43,22 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Custom Panels */
+  /* Panels */
   --color-panel-left: var(--panel-left);
   --color-panel-left-circle: var(--panel-left-circle);
+
+  /* Footer */
+  --color-footer: var(--footer-background);
+  --color-footer-foreground: var(--footer-foreground);
+  --color-footer-heading: var(--footer-heading);
+  --color-footer-input: var(--footer-input);
+  --color-footer-input-border: var(--footer-input-border);
+  --color-footer-bottom: var(--footer-bottom);
+
+  /* Brand */
+  --color-brand-purple: var(--brand-purple);
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-gold: var(--brand-gold);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -54,102 +66,209 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* =========================================================
+   LIGHT THEME (Professional Vibrant)
+========================================================= */
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.6rem;
 
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.2 0.03 260);
+  /* Backgrounds */
+  --background: oklch(0.99 0.005 260); /* Clean cool white */
+  --foreground: oklch(0.25 0.03 273); /* Deep academic purple text */
 
+  /* Cards */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.03 260);
+  --card-foreground: oklch(0.25 0.03 273);
 
+  /* Popovers */
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.03 260);
+  --popover-foreground: oklch(0.25 0.03 273);
 
-  --primary: oklch(0.65 0.22 10); /* pink/red tone */
+  /* Primary Deep Academic Purple */
+  --primary: oklch(0.35 0.08 275);
   --primary-foreground: oklch(1 0 0);
 
-  --secondary: oklch(0.97 0.03 10);
-  --secondary-foreground: oklch(0.65 0.22 10);
+  /* Secondary Achievement Cyan */
+  --secondary: oklch(0.96 0.01 210);
+  --secondary-foreground: oklch(0.35 0.08 275);
 
-  --muted: oklch(0.95 0.01 260);
-  --muted-foreground: oklch(0.55 0.02 260);
+  /* Muted */
+  --muted: oklch(0.97 0.005 275);
+  --muted-foreground: oklch(0.5 0.02 275);
 
-  --accent: oklch(0.97 0.03 10);
-  --accent-foreground: oklch(0.6 0.22 10);
+  /* Accent (Cyan Highlight) */
+  --accent: oklch(0.7 0.15 210);
+  --accent-foreground: oklch(1 0 0);
 
-  --destructive: oklch(0.62 0.25 25);
+  /* Destructive */
+  --destructive: oklch(0.6 0.2 20);
   --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.92 0.01 260);
-  --input: oklch(0.92 0.01 260);
-  --ring: oklch(0.65 0.22 10);
+  /* Borders */
+  --border: oklch(0.93 0.01 273);
+  --input: oklch(0.93 0.01 273);
+  --ring: oklch(0.45 0.22 300 / 50%);
 
   /* Sidebar */
-  --sidebar-background: oklch(0.98 0 0);
-  --sidebar-foreground: oklch(0.3 0.02 260);
-  --sidebar-primary: oklch(0.2 0.03 260);
+  --sidebar-background: oklch(0.985 0.005 273);
+  --sidebar-foreground: oklch(0.3 0.04 273);
+  --sidebar-primary: oklch(0.45 0.22 300);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.95 0.01 260);
-  --sidebar-accent-foreground: oklch(0.2 0.03 260);
-  --sidebar-border: oklch(0.92 0.01 260);
-  --sidebar-ring: oklch(0.65 0.22 10);
+  --sidebar-accent: oklch(0.96 0.01 0);
+  --sidebar-accent-foreground: oklch(0.45 0.22 300);
+  --sidebar-border: oklch(0.93 0.01 273);
+  --sidebar-ring: oklch(0.65 0.24 0);
 
-  --panel-left: oklch(0.97 0.02 10);
-  --panel-left-circle: oklch(0.92 0.04 10);
+  /* Panels */
+  --panel-left: oklch(0.98 0.01 273);
+  --panel-left-circle: oklch(0.94 0.03 300);
+
+  /* Footer */
+  --footer-background: oklch(0.2 0.03 273);
+  --footer-foreground: oklch(0.9 0.01 273);
+  --footer-heading: oklch(1 0 0);
+  --footer-input: oklch(0.25 0.02 273);
+  --footer-input-border: oklch(0.3 0.02 273);
+  --footer-bottom: oklch(0.15 0.02 273);
+
+  /* Brand (Varona Bird) */
+  --brand-purple: oklch(0.35 0.08 275);
+  --brand-cyan: oklch(0.7 0.15 210);
+  --brand-gold: oklch(0.85 0.18 85);
+
+  --primary-rgb: 59, 53, 97; 
 }
 
+/* =========================================================
+   DARK THEME (Professional Neutral Dark)
+========================================================= */
 
 .dark {
-  --background: oklch(0.15 0.02 260);
+  /* Background (Professional Neutral Dark) */
+  --background: oklch(0.12 0.005 273);
   --foreground: oklch(0.98 0 0);
 
-  --card: oklch(0.18 0.02 260);
+  /* Cards */
+  --card: oklch(0.16 0.005 273);
   --card-foreground: oklch(0.98 0 0);
 
-  --popover: oklch(0.18 0.02 260);
+  /* Popovers */
+  --popover: oklch(0.16 0.005 273);
   --popover-foreground: oklch(0.98 0 0);
 
-  --primary: oklch(0.65 0.22 10);
-  --primary-foreground: oklch(1 0 0);
+  /* Primary (Luminous Cyan for Dark Mode) */
+  --primary: oklch(0.7 0.15 210);
+  --primary-foreground: oklch(0.12 0 0);
 
-  --secondary: oklch(0.28 0.02 260);
-  --secondary-foreground: oklch(0.98 0 0);
+  /* Secondary */
+  --secondary: oklch(0.18 0.01 275);
+  --secondary-foreground: oklch(0.98 0.005 210);
 
-  --muted: oklch(0.28 0.02 260);
-  --muted-foreground: oklch(0.7 0.02 260);
+  /* Muted */
+  --muted: oklch(0.18 0.01 210);
+  --muted-foreground: oklch(0.65 0.015 210);
 
-  --accent: oklch(0.28 0.02 260);
-  --accent-foreground: oklch(0.98 0 0);
+  /* Accent (Brand Purple) */
+  --accent: oklch(0.6 0.15 300);
+  --accent-foreground: oklch(1 0 0);
 
-  --destructive: oklch(0.7 0.2 25);
-  --destructive-foreground: oklch(0.98 0 0);
+  /* Destructive */
+  --destructive: oklch(0.5 0.15 20);
+  --destructive-foreground: oklch(1 0 0);
 
+  /* Borders */
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.6 0.02 260);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.6 0.18 300 / 40%);
 
-  --sidebar-background: oklch(0.2 0.02 260);
+  /* Sidebar */
+  --sidebar-background: oklch(0.13 0.005 273);
   --sidebar-foreground: oklch(0.98 0 0);
-  --sidebar-primary: oklch(0.6 0.24 280);
+  --sidebar-primary: oklch(0.6 0.18 300);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.28 0.02 260);
+  --sidebar-accent: oklch(0.16 0.005 273);
   --sidebar-accent-foreground: oklch(0.98 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.6 0.02 260);
+  --sidebar-ring: oklch(0.68 0.22 0);
 
-  --panel-left: oklch(0.2 0.02 260);
-  --panel-left-circle: oklch(0.25 0.02 260);
+  /* Panels */
+  --panel-left: oklch(0.13 0.005 273);
+  --panel-left-circle: oklch(0.18 0.025 300);
+
+  /* Footer */
+  --footer-background: oklch(0.08 0.015 273);
+  --footer-foreground: oklch(0.82 0.01 273);
+  --footer-heading: oklch(1 0 0);
+  --footer-input: oklch(0.12 0.015 273);
+  --footer-input-border: oklch(0.18 0.015 273);
+  --footer-bottom: oklch(0.06 0.01 273);
+
+  /* Brand (Varona Bird) */
+  --brand-purple: oklch(0.6 0.15 300);
+  --brand-cyan: oklch(0.75 0.12 210);
+  --brand-gold: oklch(0.85 0.18 85);
+
+  --primary-rgb: 120, 200, 240; 
 }
 
+/* =========================================================
+   BASE
+========================================================= */
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    min-height: 100vh;
+  }
+}
+
+/* =========================================================
+   UTILITIES
+========================================================= */
+
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .dark .glass {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .bg-academic {
+    background-image: 
+      linear-gradient(rgba(var(--primary-rgb), 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--primary-rgb), 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .text-brand-gradient {
+    background: linear-gradient(
+      135deg,
+      oklch(0.7 0.15 210),
+      oklch(0.35 0.08 275)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .bg-logo-gradient {
+    background: linear-gradient(
+      135deg,
+      oklch(0.7 0.15 210),
+      oklch(0.35 0.08 275)
+    );
+    color: white;
   }
 }

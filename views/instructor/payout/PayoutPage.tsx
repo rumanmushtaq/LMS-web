@@ -174,7 +174,7 @@ export default function PayoutPage() {
               disabled={
                 saving || !bankAccount.bankName || !bankAccount.accountNumber
               }
-              className="h-14 px-10 rounded-2xl bg-[#FF4667] hover:bg-[#E63E5C] text-white font-bold shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02] flex items-center gap-2"
+              className="h-14 px-10 rounded-2xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] flex items-center gap-2"
             >
               {saving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

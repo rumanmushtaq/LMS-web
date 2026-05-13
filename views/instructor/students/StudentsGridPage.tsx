@@ -29,13 +29,13 @@ export default function StudentsGridPage() {
           </h1>
           <nav className="flex items-center justify-center gap-2 text-[14px] text-muted-foreground">
             <Link href="/" className="hover:text-foreground">Home</Link>
-            <span className="h-1 w-2 bg-[#FF4667] rounded-full mx-1"></span>
+            <span className="h-1 w-2 bg-[var(--primary)] rounded-full mx-1"></span>
             <span className="text-foreground font-medium">Students Grid</span>
           </nav>
         </div>
       </section>
 
-      <section className="bg-gradient-to-br from-[#4b35b0] to-[#25186b] py-8 rounded-b-[40px] px-8 relative overflow-hidden mb-8">
+      <section className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary)] py-8 rounded-b-[40px] px-8 relative overflow-hidden mb-8">
          <div className="absolute top-0 right-0 h-full w-1/2 opacity-20 pointer-events-none">
            <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-white">
              <circle cx="200" cy="200" r="150" fill="currentColor" />
@@ -52,8 +52,8 @@ export default function StudentsGridPage() {
              </div>
            </div>
            <div className="flex gap-4 mt-6 md:mt-0">
-             <button className="bg-white text-[#4b35b0] font-semibold px-6 py-2.5 rounded-full hover:bg-white/90">Add New Course</button>
-             <button className="bg-[#FF4667] text-white font-semibold px-6 py-2.5 rounded-full hover:bg-[#FF4667]/90">Student Dashboard</button>
+             <button className="bg-white text-[var(--primary)] font-semibold px-6 py-2.5 rounded-full hover:bg-white/90">Add New Course</button>
+             <button className="bg-[var(--primary)] text-white font-semibold px-6 py-2.5 rounded-full hover:bg-[var(--primary)]/90">Student Dashboard</button>
            </div>
          </div>
       </section>
@@ -67,7 +67,7 @@ export default function StudentsGridPage() {
                <button className="p-2 text-muted-foreground"><ListIcon className="w-4 h-4" /></button>
              </div>
              <div className="relative">
-               <input type="text" placeholder="Search" className="border border-border/50 rounded-lg pl-10 pr-4 py-2 w-[240px] bg-card text-sm focus:outline-none focus:ring-2 ring-[#FF4667]/50" />
+               <input type="text" placeholder="Search" className="border border-border/50 rounded-lg pl-10 pr-4 py-2 w-[240px] bg-card text-sm focus:outline-none focus:ring-2 ring-[var(--primary)]/50" />
                <SearchIcon className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
              </div>
           </div>
@@ -75,7 +75,7 @@ export default function StudentsGridPage() {
 
         {loading ? (
           <div className="flex items-center justify-center min-h-[300px] bg-card rounded-2xl border border-border/60">
-            <Loader2 className="h-10 w-10 animate-spin text-[#FF4667]" />
+            <Loader2 className="h-10 w-10 animate-spin text-[var(--primary)]" />
           </div>
         ) : error ? (
           <div className="flex items-center justify-center min-h-[300px] text-destructive">
@@ -101,17 +101,17 @@ export default function StudentsGridPage() {
                     <h3 className="font-bold text-lg text-foreground">{student.fullName}</h3>
                     <button className="text-muted-foreground hover:text-foreground"><MessageSquareIcon className="w-4 h-4" /></button>
                   </div>
-                  <div className="flex items-center text-sm text-[#FF4667] mb-4">
+                  <div className="flex items-center text-sm text-[var(--primary)] mb-4">
                     <MapPin className="w-4 h-4 mr-1" />
                     <span>{student.location || "Unknown"}</span>
                   </div>
                   <div className="flex items-center justify-between pt-4 border-t border-border/50">
                      <div className="flex items-center text-sm text-muted-foreground">
-                       <CalendarIcon className="w-4 h-4 mr-2 text-[#4b35b0]" />
+                       <CalendarIcon className="w-4 h-4 mr-2 text-[var(--primary)]" />
                        {new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(student.joinDate))}
                      </div>
                      <div className="flex items-center text-sm font-medium text-foreground">
-                       <BookIcon className="w-4 h-4 mr-2 text-[#FF4667]" /> {student.courseCount} Courses
+                       <BookIcon className="w-4 h-4 mr-2 text-[var(--primary)]" /> {student.courseCount} Courses
                      </div>
                   </div>
                 </div>

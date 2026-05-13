@@ -71,7 +71,7 @@ export default function EditProfilePage() {
     return (
       <StudentLayout>
         <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-10 w-10 animate-spin text-[#FF4667]" />
+          <Loader2 className="h-10 w-10 animate-spin text-[var(--primary)]" />
         </div>
       </StudentLayout>
     );
@@ -91,11 +91,11 @@ export default function EditProfilePage() {
             >
               <Home className="h-3.5 w-3.5" /> Home
             </Link>
-            <ChevronRight className="h-3.5 w-3.5 text-[#FF4667]" />
+            <ChevronRight className="h-3.5 w-3.5 text-[var(--primary)]" />
             <Link href="/student/profile" className="hover:text-foreground">
               My Profile
             </Link>
-            <ChevronRight className="h-3.5 w-3.5 text-[#FF4667]" />
+            <ChevronRight className="h-3.5 w-3.5 text-[var(--primary)]" />
             <span className="text-foreground font-medium">Edit Profile</span>
           </nav>
         </div>
@@ -125,7 +125,7 @@ export default function EditProfilePage() {
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="w-full h-11 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[#FF4667]/20 focus:border-[#FF4667]"
+                className="w-full h-11 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)]"
                 required
               />
             </div>
@@ -138,7 +138,7 @@ export default function EditProfilePage() {
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="w-full h-11 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[#FF4667]/20 focus:border-[#FF4667]"
+                className="w-full h-11 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)]"
                 required
               />
             </div>
@@ -152,7 +152,7 @@ export default function EditProfilePage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+1234567890"
-                className="w-full h-11 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[#FF4667]/20 focus:border-[#FF4667]"
+                className="w-full h-11 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)]"
               />
             </div>
 
@@ -163,7 +163,7 @@ export default function EditProfilePage() {
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                className="w-full h-11 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[#FF4667]/20 focus:border-[#FF4667] appearance-none"
+                className="w-full h-11 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] appearance-none"
               >
                 <option value="">Select Gender</option>
                 <option value="male">Male</option>
@@ -181,7 +181,7 @@ export default function EditProfilePage() {
                 value={dob}
                 onChange={(e) => setDob(e.target.value)}
                 max={new Date().toISOString().split("T")[0]}
-                className="w-full h-11 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[#FF4667]/20 focus:border-[#FF4667]"
+                className="w-full h-11 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)]"
               />
             </div>
 
@@ -193,7 +193,7 @@ export default function EditProfilePage() {
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 rows={4}
-                className="w-full p-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[#FF4667]/20 focus:border-[#FF4667] resize-none"
+                className="w-full p-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] resize-none"
                 placeholder="Tell us about yourself..."
               />
             </div>
@@ -210,7 +210,7 @@ export default function EditProfilePage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FF4667] hover:bg-[#E63E5C] text-white text-[14px] font-bold shadow-md shadow-pink-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-[var(--primary)] hover:bg-[var(--primary)] text-white text-[14px] font-bold shadow-md shadow-primary/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {saving ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

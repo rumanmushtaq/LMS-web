@@ -73,7 +73,7 @@ const Header = () => {
           />
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center">
             Dreams
-            <span className="text-[#FF4667] text-[10px] font-bold self-start mt-1.5 ml-0.5">
+            <span className="text-[var(--primary)] text-[10px] font-bold self-start mt-1.5 ml-0.5">
               LMS
             </span>
           </h1>
@@ -87,7 +87,7 @@ const Header = () => {
                 href={link.href}
                 className={cn(
                   "flex items-center gap-1.5 text-[15px] font-semibold transition-colors hover:text-primary",
-                  isActive(link.href) ? "text-[#FF4667]" : "text-foreground/80",
+                  isActive(link.href) ? "text-[var(--primary)]" : "text-foreground/80",
                 )}
               >
                 {link.name}
@@ -171,7 +171,7 @@ const Header = () => {
                   </Button>
                 </Link>
                 <Link href="/signup">
-                  <Button className="h-11 px-8 rounded-full font-bold bg-[#FF4667] hover:bg-[#E63E5C] text-white shadow-lg shadow-pink-500/20">
+                  <Button className="h-11 px-8 rounded-full font-bold bg-[var(--primary)] hover:bg-[var(--primary)] text-white shadow-lg shadow-primary/20">
                     Register
                   </Button>
                 </Link>
@@ -205,7 +205,7 @@ const Header = () => {
                 href={link.href}
                 className={cn(
                   "text-lg font-semibold py-2 transition-colors",
-                  isActive(link.href) ? "text-[#FF4667]" : "text-foreground",
+                  isActive(link.href) ? "text-[var(--primary)]" : "text-foreground",
                 )}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -269,7 +269,7 @@ const Header = () => {
                     className="w-full"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <Button className="h-12 w-full rounded-full font-bold bg-[#FF4667] text-white">
+                    <Button className="h-12 w-full rounded-full font-bold bg-[var(--primary)] text-white">
                       Register
                     </Button>
                   </Link>
