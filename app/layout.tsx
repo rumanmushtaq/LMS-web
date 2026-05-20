@@ -4,6 +4,7 @@ import "./globals.css";
 import Footer from "@/views/footer/footerPage";
 import Header from "@/views/header/headerPage";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import QueryProvider from "@/components/providers/QueryProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
@@ -36,10 +37,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>
-          <Header />
-          {children}
-          <Footer />
-          <Toaster />
+          <QueryProvider>
+            <Header />
+            {children}
+            <Footer />
+            <Toaster />
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

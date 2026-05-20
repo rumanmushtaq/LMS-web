@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useThemeStore } from "@/store/theme";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 const Header = () => {
   const pathname = usePathname();
@@ -50,12 +51,14 @@ const Header = () => {
         ]
       : []),
     { name: "Instructors", href: "/instructors", hasDropdown: false },
+    { name: "Shop", href: "/shop", hasDropdown: false },
     { name: "Blog", href: "/blog", hasDropdown: false },
     { name: "Contact us", href: "/contact", hasDropdown: false },
   ];
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
+    if (href === "/shop" && pathname.startsWith("/product")) return true;
     return pathname.startsWith(href);
   };
 
@@ -81,22 +84,37 @@ const Header = () => {
 
         {/* Center: Navigation (Desktop) */}
         <nav className="hidden lg:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <div key={link.name} className="group relative">
-              <Link
-                href={link.href}
-                className={cn(
-                  "flex items-center gap-1.5 text-[15px] font-semibold transition-colors hover:text-primary",
-                  isActive(link.href) ? "text-[var(--primary)]" : "text-foreground/80",
-                )}
-              >
-                {link.name}
-                {link.hasDropdown && (
-                  <ChevronDown className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />
-                )}
-              </Link>
-            </div>
-          ))}
+          {navLinks.map((link) => {
+            const active = isActive(link.href);
+            return (
+              <div key={link.name} className="group relative">
+                <Link
+                  href={link.href}
+                  className={cn(
+                    "flex items-center gap-1.5 text-[15px] relative font-semibold transition-colors hover:text-[var(--primary)] py-1",
+                    active ? "text-[var(--primary)]" : "text-foreground/80",
+                  )}
+                >
+                  {link.name}
+                  {link.hasDropdown && (
+                    <ChevronDown className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                  )}
+                  {active && (
+                    <motion.div
+                      layoutId="header-active-tab-underline"
+                      className="absolute left-0 right-0 -bottom-[8px] h-[3px] rounded-full bg-[var(--primary)]"
+                      initial={false}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 35,
+                      }}
+                    />
+                  )}
+                </Link>
+              </div>
+            );
+          })}
         </nav>
 
         {/* Right: Actions */}
@@ -205,7 +223,9 @@ const Header = () => {
                 href={link.href}
                 className={cn(
                   "text-lg font-semibold py-2 transition-colors",
-                  isActive(link.href) ? "text-[var(--primary)]" : "text-foreground",
+                  isActive(link.href)
+                    ? "text-[var(--primary)]"
+                    : "text-foreground",
                 )}
                 onClick={() => setIsMenuOpen(false)}
               >

@@ -33,6 +33,13 @@ const apiEndpoints = {
     TAX_FORM: "/api/v1/tutors/onboarding/tax-form",
     KYC: "/api/v1/tutors/onboarding/kyc",
   },
+  Shop: {
+    PRODUCTS: "/api/v1/shop/products",
+    PRODUCT_DETAILS: "/api/v1/shop/products/:id",
+    CHECKOUT: "/api/v1/shop/checkout",
+    CONFIRM_PAYMENT: "/api/v1/shop/confirm-payment",
+    MY_ORDERS: "/api/v1/shop/my-orders",
+  },
 };
 
 export default apiEndpoints;

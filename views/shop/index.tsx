@@ -1,53 +1,65 @@
-import HeroBanner from '@/components/molecules/shop/hero-section';
-import ProductCard from '@/components/molecules/shop/product-list'
+"use client";
+
+import HeroBanner from "@/components/molecules/shop/hero-section";
+import ProductCard from "@/components/molecules/shop/product-list";
+import useShop from "./useShop";
 
 const Index = () => {
-  const products = [
-    {
-      id: "classic-black",
-      image: "/images/tshirt-black.png",
-      title: "Classic Black T-Shirt",
-      description: "Comfortable cotton black T-shirt.",
-      sizes: ["S", "M", "L", "XL"],
-      price: "$19.99",
-    },
-    {
-      id: "stylish-red",
-      image: "/images/tshirt-red.png",
-      title: "Stylish Red T-Shirt",
-      description: "Bright red T-shirt with soft fabric.",
-      sizes: ["S", "M", "L", "XL"],
-      price: "$21.99",
-    },
-    {
-      id: "classic-white",
-      image: "/images/tshirt-white.png",
-      title: "Classic White T-Shirt",
-      description: "Comfortable and lightweight white T-shirt.",
-      sizes: ["S", "M", "L", "XL"],
-      price: "$18.99",
-    },
-    {
-      id: "classic-white-splash",
-      image: "/images/tshirt-white2.png",
-      title: "Splash White T-Shirt",
-      description: "Colorful splash design on premium white fabric.",
-      sizes: ["S", "M", "L", "XL"],
-      price: "$18.99",
-    },
-  ];
+  const { products, loading, error } = useShop();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <HeroBanner />
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex items-center justify-center h-64">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <HeroBanner />
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center text-red-500 py-12">
+            <p className="text-xl font-semibold">Error loading products</p>
+            <p>{error}</p>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <HeroBanner />
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...products, ...products, ...products, ...products]?.map((product, index) => (
-            <ProductCard key={`${product.id}-${index}`} {...product} />
-          ))}
-        </div>
+        {products?.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-xl text-muted-foreground">No products found.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {products?.map((product) => (
+              <ProductCard
+                key={product._id}
+                id={product._id}
+                image={product.images[0] || ""}
+                title={product.title}
+                description={product.description}
+                sizes={product.sizes}
+                price={`$${product.price.toFixed(2)}`}
+              />
+            ))}
+          </div>
+        )}
       </section>
     </div>
-  )
-}
+  );
+};
 
-export default Index
+export default Index;

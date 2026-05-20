@@ -3,272 +3,305 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, Star, ShoppingCart, Heart } from "lucide-react";
+import {
+  ChevronLeft,
+  Star,
+  ShoppingBag,
+  Heart,
+  Minus,
+  Plus,
+  CheckCircle2,
+  Info,
+  ShieldCheck,
+  Truck,
+} from "lucide-react";
 import { useState } from "react";
-
-const allProducts: Record<
-  string,
-  {
-    image: string;
-    title: string;
-    description: string;
-    longDescription: string;
-    sizes: string[];
-    price: string;
-    rating: number;
-    reviews: number;
-    material: string;
-    care: string[];
-  }
-> = {
-  "classic-black": {
-    image: "/images/tshirt-black.png",
-    title: "Classic Black T-Shirt",
-    description: "Comfortable cotton black T-shirt.",
-    longDescription:
-      "Our signature Classic Black T-Shirt features premium Varona Academy artwork with vibrant colors that pop against the deep black fabric.",
-    sizes: ["S", "M", "L", "XL"],
-    price: "$19.99",
-    rating: 4.8,
-    reviews: 124,
-    material: "100% Ring-Spun Cotton",
-    care: ["Machine wash cold", "Tumble dry low", "Do not bleach"],
-  },
-
-  "stylish-red": {
-    image: "/images/tshirt-red.png",
-    title: "Stylish Red T-Shirt",
-    description: "Bright red T-shirt with soft fabric.",
-    longDescription:
-      "Stand out from the crowd with this bold Stylish Red T-Shirt.",
-    sizes: ["S", "M", "L", "XL"],
-    price: "$21.99",
-    rating: 4.9,
-    reviews: 89,
-    material: "60% Cotton, 40% Polyester",
-    care: ["Machine wash cold", "Tumble dry low", "Do not bleach"],
-  },
-
-  "classic-white": {
-    image: "/images/tshirt-white.png",
-    title: "Classic White T-Shirt",
-    description: "Comfortable and lightweight white T-shirt.",
-    longDescription:
-      "Clean, crisp, and classic — our White T-Shirt is a wardrobe essential.",
-    sizes: ["S", "M", "L", "XL"],
-    price: "$18.99",
-    rating: 4.7,
-    reviews: 156,
-    material: "100% Combed Cotton",
-    care: ["Machine wash cold", "Tumble dry low"],
-  },
-
-  "classic-white-splash": {
-    image: "/images/tshirt-white2.png",
-    title: "Splash White T-Shirt",
-    description: "Colorful splash design on premium white fabric.",
-    longDescription: "Unleash your creativity with the Splash White T-Shirt.",
-    sizes: ["S", "M", "L", "XL"],
-    price: "$18.99",
-    rating: 4.9,
-    reviews: 67,
-    material: "100% Organic Cotton",
-    care: ["Machine wash cold", "Hang dry recommended"],
-  },
-};
+import { useQuery } from "@tanstack/react-query";
+import productsService from "@/services/products";
 
 export default function ProductDetail() {
   const params = useParams();
-  const id = params?.slug as string;
-  const product = id ? allProducts[id] : null;
+  const id = params?.slug as string; // Next.js dynamic route param
+
+  const {
+    data: product,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["product", id],
+    queryFn: () => productsService.getProductById(id),
+    enabled: !!id,
+  });
 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [liked, setLiked] = useState(false);
 
-  if (!product) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <h2 className="text-2xl font-bold">Product not found</h2>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-muted-foreground animate-pulse font-display">
+            Loading product excellence...
+          </p>
+        </div>
       </div>
     );
   }
 
-  const fullStars = Math.floor(product.rating);
-
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Back Button */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
+  if (error || !product) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 text-center">
+        <div className="bg-destructive/10 p-6 rounded-full mb-6">
+          <Info className="w-12 h-12 text-destructive" />
+        </div>
+        <h2 className="text-3xl font-display font-black mb-2">
+          Product Not Found
+        </h2>
+        <p className="text-muted-foreground mb-8 max-w-md">
+          We couldn't find the product you're looking for. It might have been
+          moved or is no longer available.
+        </p>
         <Link
           href="/shop"
-          className="inline-flex items-center gap-1 text-sm hover:text-foreground"
+          className="bg-primary text-white px-8 py-3 rounded-full font-bold hover:shadow-lg transition-all"
         >
-          <ChevronLeft className="w-4 h-4" />
           Back to Shop
         </Link>
       </div>
+    );
+  }
 
-      {/* Product Section */}
-      <div className="max-w-7xl mx-auto px-4 pb-16">
-        <div className="grid lg:grid-cols-2 gap-10">
-          {/* Image */}
-          <div className="bg-secondary/30 rounded-xl p-8 border flex justify-center">
-            <Image
-              src={product.image}
-              alt={product.title}
-              width={500}
-              height={500}
-              className="object-contain"
-            />
+  return (
+    <div className="min-h-screen bg-background pb-20">
+      {/* Dynamic Header/Breadcrumb */}
+      <div className="bg-muted/30 border-b border-border/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <Link
+            href="/shop"
+            className="group inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors"
+          >
+            <div className="w-8 h-8 rounded-full border border-border group-hover:border-primary/50 flex items-center justify-center bg-background group-hover:bg-primary/5 transition-all">
+              <ChevronLeft className="w-4 h-4" />
+            </div>
+            Back to Shop
+          </Link>
+          <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">
+            <span>Shop</span>
+            <span className="opacity-30">/</span>
+            <span className="text-primary/70">{product.title}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
+          {/* Visual Gallery Section */}
+          <div className="space-y-6">
+            <div className="relative aspect-[4/5] bg-muted/20 rounded-3xl overflow-hidden border border-border/50 group">
+              <Image
+                src={product.images?.[0] || "/images/placeholder.png"}
+                alt={product.title}
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                priority
+              />
+              <div className="absolute top-6 right-6">
+                <button
+                  onClick={() => setLiked((prev) => !prev)}
+                  className={`w-12 h-12 rounded-full backdrop-blur-md flex items-center justify-center shadow-lg transition-all border ${
+                    liked
+                      ? "bg-red-500 border-red-500 text-white"
+                      : "bg-white/80 border-white/20 text-gray-400 hover:text-red-500"
+                  }`}
+                >
+                  <Heart className={`w-6 h-6 ${liked ? "fill-current" : ""}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Additional Info Cards */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-card border border-border/50 p-4 rounded-2xl flex flex-col items-center text-center gap-2">
+                <Truck className="w-5 h-5 text-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-tight">
+                  Fast delivery
+                </span>
+              </div>
+              <div className="bg-card border border-border/50 p-4 rounded-2xl flex flex-col items-center text-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-tight">
+                  Secure Pay
+                </span>
+              </div>
+              <div className="bg-card border border-border/50 p-4 rounded-2xl flex flex-col items-center text-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-tight">
+                  Pure Quality
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Product Info */}
-          <div className="space-y-6">
-            <h1 className="text-3xl font-bold">{product.title}</h1>
-
-            {/* Rating */}
-            <div className="flex items-center gap-3">
-              <div className="flex">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-4 h-4 ${
-                      i < fullStars
-                        ? "fill-amber-400 text-amber-400"
-                        : "text-gray-300"
-                    }`}
-                  />
-                ))}
+          {/* Product Details Section */}
+          <div className="flex flex-col py-2">
+            <div className="space-y-2 mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="bg-brand-gold/10 text-brand-gold px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border border-brand-gold/20">
+                  Top Choice
+                </div>
+                <div className="flex items-center gap-1 text-xs font-bold text-muted-foreground">
+                  <Star className="w-3 h-3 fill-brand-gold text-brand-gold" />
+                  <span>4.9 (120+ Reviews)</span>
+                </div>
               </div>
-
-              <span className="text-sm">
-                {product.rating} ({product.reviews} reviews)
-              </span>
+              <h1 className="text-4xl sm:text-5xl font-display font-black text-foreground drop-shadow-sm leading-[1.1]">
+                {product.title}
+              </h1>
             </div>
 
-            <p className="text-muted-foreground">{product.longDescription}</p>
+            <div className="text-3xl font-display font-black text-primary mb-8">
+              ${product.price.toFixed(2)}
+            </div>
 
-            <div className="text-3xl font-bold">{product.price}</div>
+            <div
+              className="prose prose-sm max-w-none text-muted-foreground mb-10 font-body leading-relaxed border-l-2 border-primary/20 pl-6 py-2"
+              dangerouslySetInnerHTML={{ __html: product.description }}
+            />
 
-            {/* Size Selection */}
-            <div>
-              <p className="font-semibold mb-2">Select Size</p>
-              <div className="flex gap-2">
-                {product.sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`w-12 h-12 border rounded-lg ${
-                      selectedSize === size
-                        ? "bg-black text-white"
-                        : "hover:border-gray-500"
-                    }`}
-                  >
-                    {size}
+            <div className="space-y-10">
+              {/* Size Selection */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-foreground">
+                    Select Size
+                  </h3>
+                  <button className="text-[10px] font-bold text-primary underline underline-offset-4 uppercase">
+                    Size Guide
                   </button>
-                ))}
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`min-w-[56px] h-14 flex items-center justify-center px-4 font-display font-black text-sm border-2 rounded-2xl transition-all ${
+                        selectedSize === size
+                          ? "bg-primary border-primary text-white shadow-lg shadow-primary/20"
+                          : "bg-background border-border hover:border-primary/50 text-muted-foreground hover:text-primary"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Quantity */}
-            <div>
-              <p className="font-semibold mb-2">Quantity</p>
+              {/* Quantity & Actions */}
+              <div className="space-y-6 pt-6 border-t border-border/50">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex items-center bg-muted/30 rounded-2xl p-1 border border-border/50 w-full sm:w-auto self-start">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-12 h-12 flex items-center justify-center hover:bg-background rounded-xl transition-colors text-muted-foreground"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="w-12 text-center font-display font-black text-lg">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="w-12 h-12 flex items-center justify-center hover:bg-background rounded-xl transition-colors text-muted-foreground"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
 
-              <div className="flex items-center border rounded-lg w-fit">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10"
-                >
-                  -
-                </button>
+                  <button
+                    onClick={() => setShowModal(true)}
+                    className="flex-1 bg-primary text-white h-14 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all"
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    Add to Collection
+                  </button>
+                </div>
 
-                <span className="w-12 text-center">{quantity}</span>
-
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10"
-                >
-                  +
-                </button>
+                <p className="text-[10px] text-center sm:text-left font-bold text-muted-foreground/60 uppercase tracking-tighter">
+                  Free shipping on orders over $100 • 30-day elegant returns
+                </p>
               </div>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowModal(true)}
-                className="flex-1 bg-primary text-white py-3 rounded-lg flex items-center justify-center gap-2"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                But Now
-              </button>
-
-              {/* Wishlist Button */}
-              <button
-                onClick={() => setLiked((prev) => !prev)}
-                className="w-14 h-14 border rounded-lg flex items-center justify-center hover:bg-gray-100 transition"
-                aria-label="Add to wishlist"
-              >
-                <Heart
-                  className={`w-5 h-5 transition ${
-                    liked ? "fill-red-500 text-red-500" : "text-gray-400"
-                  }`}
-                />
-              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modern Purchase Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-[500px] rounded-xl shadow-xl p-6 relative">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-xl flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+          <div className="bg-card w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-border/50 p-8 sm:p-12 relative animate-in zoom-in-95 duration-300">
             <button
               onClick={() => setShowModal(false)}
-              className="absolute right-4 top-4 text-gray-500"
+              className="absolute right-8 top-8 w-10 h-10 flex items-center justify-center rounded-full bg-muted/50 text-muted-foreground hover:bg-destructive hover:text-white transition-all"
             >
               ✕
             </button>
 
-            <h2 className="text-xl font-bold text-center mb-4">
-              COMPLETE YOUR PURCHASE SECURELY
-            </h2>
+            <div className="text-center mb-10">
+              <div className="bg-primary/10 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <ShoppingBag className="w-8 h-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-display font-black uppercase tracking-tight mb-2">
+                Secure Checkout
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Complete your acquisition of the {product.title}
+              </p>
+            </div>
 
             <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Full Name"
-                className="w-full border p-2 rounded-md"
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground pl-1">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full bg-muted/20 border-border/50 border-2 px-4 py-3 rounded-xl focus:border-primary outline-none transition-all font-bold text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground pl-1">
+                    Phone
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full bg-muted/20 border-border/50 border-2 px-4 py-3 rounded-xl focus:border-primary outline-none transition-all font-bold text-sm"
+                  />
+                </div>
+              </div>
 
-              <input
-                type="email"
-                placeholder="Email"
-                className="w-full border p-2 rounded-md"
-              />
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground pl-1">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  className="w-full bg-muted/20 border-border/50 border-2 px-4 py-3 rounded-xl focus:border-primary outline-none transition-all font-bold text-sm"
+                />
+              </div>
 
-              <input
-                type="text"
-                placeholder="Phone Number"
-                className="w-full border p-2 rounded-md"
-              />
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground pl-1">
+                  Shipping Destination
+                </label>
+                <textarea className="w-full bg-muted/20 border-border/50 border-2 px-4 py-3 rounded-xl focus:border-primary outline-none transition-all font-bold text-sm min-h-[100px]" />
+              </div>
 
-              <input
-                type="text"
-                placeholder="Shipping Address"
-                className="w-full border p-2 rounded-md"
-              />
-
-              <textarea
-                placeholder="Additional Notes"
-                className="w-full border p-2 rounded-md"
-              />
-
-              <button className="w-full bg-primary text-white py-3 rounded-lg">
-                Submit Order
+              <button className="w-full bg-primary text-white h-16 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all mt-4">
+                Confirm & Pay
               </button>
             </div>
           </div>

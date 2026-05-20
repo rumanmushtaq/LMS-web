@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import InstructorsPage from "@/views/instructors/InstructorsPage";
 
 export const metadata: Metadata = {
@@ -8,5 +9,15 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <InstructorsPage />;
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
+      <InstructorsPage />
+    </Suspense>
+  );
 }

@@ -8,6 +8,7 @@ export interface InstructorProfile {
   fullName: string;
   email: string;
   avatar: string | null;
+  photoUrl?: string | null;
   title: string | null;
   bio: string | null;
   specialties: string[];
@@ -38,6 +39,7 @@ export interface InstructorFilterOption {
   _id: string;
   fullName: string;
   count: number;
+  photoUrl?: string;
 }
 
 export interface FilterOptionsResponse {
@@ -89,6 +91,8 @@ class InstructorsService {
     const { data } = await HTTP_CLIENT.get(apiEndpoints.Instructors.LIST, {
       params: queryParams,
     });
+    // The backend wraps everything in { success: true, data: ... }
+    // data?.data extracts the actual payload (InstructorListResponse)
     return data?.data ?? data;
   }
 
