@@ -66,20 +66,15 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background shadow-sm">
       <div className="container mx-auto flex h-20 items-center justify-between px-6">
         {/* Left: Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link href="/" className="flex items-center group">
           <Image
-            src="/images/lms-logo.png"
+            src="/images/logo-image.png"
             alt="Dreams LMS"
-            width={40}
-            height={40}
-            className="h-10 w-auto transition-transform group-hover:scale-105"
+            width={140}
+            height={56}
+            className="h-14 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+            priority
           />
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center">
-            Dreams
-            <span className="text-[var(--primary)] text-[10px] font-bold self-start mt-1.5 ml-0.5">
-              LMS
-            </span>
-          </h1>
         </Link>
 
         {/* Center: Navigation (Desktop) */}
