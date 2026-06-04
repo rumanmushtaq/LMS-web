@@ -103,6 +103,13 @@ class InstructorsService {
     return data?.data ?? data;
   }
 
+  async getInstructorById(id: string): Promise<InstructorProfile> {
+    const { data } = await HTTP_CLIENT.get(
+      `${apiEndpoints.Instructors.LIST}/${id}`,
+    );
+    return data?.data ?? data;
+  }
+
   async getMyStudents(
     params: {
       page?: number;
