@@ -160,16 +160,16 @@ const Footer = () => {
               Terms & Conditions
             </Link>
             <span className="hidden sm:inline">|</span>
-            <Link href="#" className="hover:text-primary transition-colors">
+            <Link href="/privacy-policy" className="hover:text-primary transition-colors">
               Privacy Policy
             </Link>
           </div>
 
           <div className="flex gap-3 sm:gap-4">
-            <Link href="#" className="hover:text-primary transition-colors">
+            <Link href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
               <Facebook className="w-4 h-4 sm:w-5 sm:h-5" />
             </Link>
-            <Link href="#" className="hover:text-primary transition-colors">
+            <Link href="https://www.instagram.com/varonaacademy/?igsh=MTc0a3RsMHdvdXBsZQ%3D%3D&utm_source=qr#" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
               <Instagram className="w-4 h-4 sm:w-5 sm:h-5" />
             </Link>
             <Link href="#" className="hover:text-primary transition-colors">

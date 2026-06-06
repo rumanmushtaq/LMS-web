@@ -50,9 +50,13 @@ const Header = () => {
           },
         ]
       : []),
+    {
+      name: "Become a Tutor",
+      href: "/become-a-tutor",
+      hasDropdown: false,
+    },
     { name: "Instructors", href: "/instructors", hasDropdown: false },
     { name: "Shop", href: "/shop", hasDropdown: false },
-    { name: "Blog", href: "/blog", hasDropdown: false },
     { name: "Contact us", href: "/contact", hasDropdown: false },
   ];
 
@@ -78,23 +82,29 @@ const Header = () => {
         </Link>
 
         {/* Center: Navigation (Desktop) */}
-        <nav className="hidden lg:flex items-center gap-8">
+        <nav className="hidden lg:flex items-center gap-5">
           {navLinks.map((link) => {
             const active = isActive(link.href);
+            const highlighted = (link as any).isHighlighted;
             return (
               <div key={link.name} className="group relative">
                 <Link
                   href={link.href}
                   className={cn(
-                    "flex items-center gap-1.5 text-[15px] relative font-semibold transition-colors hover:text-[var(--primary)] py-1",
-                    active ? "text-[var(--primary)]" : "text-foreground/80",
+                    "flex items-center gap-1.5 text-[15px] relative font-semibold transition-all py-1",
+                    highlighted
+                      ? "text-white bg-[var(--primary)] px-4 py-2 rounded-full hover:bg-[var(--primary)]/90 hover:scale-105 shadow-lg shadow-primary/20"
+                      : cn(
+                          "hover:text-[var(--primary)]",
+                          active ? "text-[var(--primary)]" : "text-foreground/80",
+                        ),
                   )}
                 >
                   {link.name}
                   {link.hasDropdown && (
                     <ChevronDown className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                   )}
-                  {active && (
+                  {!highlighted && active && (
                     <motion.div
                       layoutId="header-active-tab-underline"
                       className="absolute left-0 right-0 -bottom-[8px] h-[3px] rounded-full bg-[var(--primary)]"
@@ -176,16 +186,8 @@ const Header = () => {
             ) : (
               <>
                 <Link href="/login">
-                  <Button
-                    variant="outline"
-                    className="h-11 px-8 rounded-full font-bold border-border/60 hover:bg-muted bg-muted/30"
-                  >
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/signup">
                   <Button className="h-11 px-8 rounded-full font-bold bg-[var(--primary)] hover:bg-[var(--primary)] text-white shadow-lg shadow-primary/20">
-                    Register
+                    Sign In
                   </Button>
                 </Link>
               </>
@@ -272,20 +274,8 @@ const Header = () => {
                     className="w-full"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <Button
-                      variant="outline"
-                      className="h-12 w-full rounded-full font-bold"
-                    >
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className="w-full"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
                     <Button className="h-12 w-full rounded-full font-bold bg-[var(--primary)] text-white">
-                      Register
+                      Sign In
                     </Button>
                   </Link>
                 </>

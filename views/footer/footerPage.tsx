@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, MapPin, Phone, Send } from "lucide-react";
+import { Mail, MapPin, Phone, Send, Facebook, Instagram } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -183,13 +183,22 @@ const Footer = () => {
         <div className="container mx-auto flex flex-col items-center justify-between gap-5 px-6 md:flex-row">
           <p>© 2025 DreamsLMS. All rights reserved.</p>
           <div className="flex items-center gap-8">
-            <Link href="#" className="hover:text-white transition-colors">
+            <Link href="/terms-and-conditions" className="hover:text-white transition-colors">
               Terms & Conditions
             </Link>
             <span className="text-white/20">|</span>
-            <Link href="#" className="hover:text-white transition-colors">
+            <Link href="/privacy-policy" className="hover:text-white transition-colors">
               Privacy Policy
             </Link>
+            <span className="text-white/20 hidden md:inline">|</span>
+            <div className="flex items-center gap-4">
+              <Link href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                <Facebook className="h-4 w-4" />
+              </Link>
+              <Link href="https://www.instagram.com/varonaacademy/?igsh=MTc0a3RsMHdvdXBsZQ%3D%3D&utm_source=qr#" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                <Instagram className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>

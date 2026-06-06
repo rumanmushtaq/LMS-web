@@ -57,7 +57,7 @@ const CategorySearch = () => {
               <SelectValue placeholder="Category" />
             </div>
           </SelectTrigger>
-          <SelectContent className="rounded-2xl border-border/50 shadow-xl min-w-[200px]">
+          <SelectContent position="popper" className="rounded-2xl border-border/50 shadow-xl min-w-[200px] mt-2">
             <SelectItem
               value="All Categories"
               className="cursor-pointer font-medium h-10 rounded-xl"

@@ -23,6 +23,47 @@ export interface InstructorProfile {
   createdAt: string;
 }
 
+export interface EducationItem {
+  degree: string;
+  institution: string;
+  period: string;
+}
+
+export interface ExperienceItem {
+  role: string;
+  company: string;
+  period: string;
+}
+
+export interface SocialLinks {
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+  youtube?: string;
+  linkedin?: string;
+}
+
+export interface CourseItem {
+  _id: string;
+  title: string;
+  price: number;
+  averageRating: number;
+  image?: string;
+  category?: string;
+  reviewCount?: number;
+}
+
+export interface InstructorDetailData extends InstructorProfile {
+  aboutMe: string | null;
+  education: EducationItem[];
+  experience: ExperienceItem[];
+  certifications: string[];
+  social: SocialLinks;
+  phone: string | null;
+  address: string | null;
+  courses?: CourseItem[];
+}
+
 export interface InstructorsListResponse {
   data: InstructorProfile[];
   totalCount: number;
@@ -103,13 +144,6 @@ class InstructorsService {
     return data?.data ?? data;
   }
 
-  async getInstructorById(id: string): Promise<InstructorProfile> {
-    const { data } = await HTTP_CLIENT.get(
-      `${apiEndpoints.Instructors.LIST}/${id}`,
-    );
-    return data?.data ?? data;
-  }
-
   async getMyStudents(
     params: {
       page?: number;
@@ -123,6 +157,11 @@ class InstructorsService {
         params,
       },
     );
+    return data?.data ?? data;
+  }
+
+  async getInstructorById(id: string): Promise<InstructorDetailData> {
+    const { data } = await HTTP_CLIENT.get(`/api/v1/instructors/${id}`);
     return data?.data ?? data;
   }
 }

@@ -40,6 +40,9 @@ const apiEndpoints = {
     CONFIRM_PAYMENT: "/api/v1/shop/confirm-payment",
     MY_ORDERS: "/api/v1/shop/my-orders",
   },
+  Categories: {
+    LIST: "/api/v1/categories",
+  },
 };
 
 export default apiEndpoints;

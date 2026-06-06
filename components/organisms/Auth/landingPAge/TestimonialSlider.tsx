@@ -3,54 +3,10 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Star } from "lucide-react";
-
-const TESTIMONIALS = [
-  {
-    name: "Jenny Wilson",
-    role: "Mandarin with Sarah",
-    text: "Varona Acedamy made it easy to connect with native English tutors. My speaking confidence improved a lot in just 5 lessons.",
-    image: "/images/avatar-1.jpg",
-    rating: 5,
-  },
-  {
-    name: "Darrell Steward",
-    role: "Mandarin with Sarah",
-    text: "As a beginner in yoga, I was nervous at first. But my instructor was patient and supportive. Now I love attending my online sessions.",
-    image: "/images/avatar-2.jpg",
-    rating: 4,
-  },
-  {
-    name: "Annette Black",
-    role: "Mandarin with Sarah",
-    text: "I took art classes and within 2 months I felt confident about my painting skills. The tutors here are professionals and super friendly!",
-    image: "/images/avatar-3.jpg",
-    rating: 4,
-  },
-  {
-    name: "Mina T.",
-    role: "Mandarin with Sarah",
-    text: "The platform is smooth and the tutors are top-class. I loved how I could schedule lessons at my convenience.",
-    image: "/images/avatar-4.jpg",
-    rating: 5,
-  },
-  {
-    name: "Theresa Webb",
-    role: "Mandarin with Sarah",
-    text: "Varona Acedamy gave me the confidence to finally pursue my dream of learning guitar. My tutor is patient and really understands how to teach beginners like me.",
-    image: "/images/avatar-1.jpg",
-    rating: 5,
-  },
-  {
-    name: "Busola Dakolo",
-    role: "Mandarin with Sarah",
-    text: "Varona Acedamy gave me the confidence to finally pursue my dream of learning guitar. My tutor is patient and really understands how to teach beginners like me.",
-    image: "/images/avatar-2.jpg",
-    rating: 4,
-  },
-];
+import { TESTIMONIALS } from "@/constants/testimonials";
 
 const TestimonialSlider = () => {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -119,7 +75,7 @@ const TestimonialSlider = () => {
         {/* Desktop slider */}
         <div className="relative h-[450px] w-full mx-auto hidden md:block overflow-hidden">
           <div className="flex justify-center items-center h-full w-full relative max-w-[1400px] mx-auto perspective-1000">
-            {TESTIMONIALS.map((item, index) => {
+            {TESTIMONIALS?.map((item, index) => {
               const { className } = getCardStyles(index);
               return (
                 <div

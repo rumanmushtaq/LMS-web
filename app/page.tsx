@@ -7,27 +7,88 @@ import CourseCard from "@/components/molecules/shop/course-card";
 import JoinUs from "@/components/organisms/Auth/landingPAge/JoinUs";
 import FAQSection from "@/components/organisms/Auth/landingPAge/FAQSection";
 import LanguageTutorsSection from "@/components/organisms/Auth/landingPAge/LanguageTutorsSection";
+import WorldTutorsSection from "@/components/organisms/Auth/landingPAge/WorldTutorsSection";
 import HowItWorks from "@/components/organisms/Auth/landingPAge/HowItWorks";
 import { CheckCircle, Star, Loader2 } from "lucide-react";
 import Image from "next/image";
 import instructorsService, {
   InstructorProfile as IInstructor,
 } from "@/services/instructors";
+import categoriesService from "@/services/categories";
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("All Categories");
   const [categories, setCategories] = useState<string[]>(["All Categories"]);
+  const [topCategories, setTopCategories] = useState<{ name: string; count: number; image?: string }[]>([]);
   const [instructors, setInstructors] = useState<IInstructor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Helper to match category name to a visual emoji icon
+  const getCategoryIcon = (name: string): string => {
+    const iconMap: Record<string, string> = {
+      "Management": "📊",
+      "IT & Softwares": "💻",
+      "IT & Software": "💻",
+      "Software": "💻",
+      "Marketing": "🎯",
+      "Productivity": "⚡",
+      "Lifestyles": "🏠",
+      "Lifestyle": "🏠",
+      "Design": "🎨",
+      "Academic": "🎓",
+      "Academics": "🎓",
+      "Development": "🚀",
+      "Business": "💼",
+      "Finance": "💵",
+      "Photography": "📷",
+      "Music": "🎵",
+      "Health & Fitness": "🏃",
+      "Languages": "🗣️",
+      "Language": "🗣️",
+    };
+
+    const normalized = name.trim();
+    if (iconMap[normalized]) return iconMap[normalized];
+    
+    // Check substring matches
+    for (const key of Object.keys(iconMap)) {
+      if (normalized.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(normalized.toLowerCase())) {
+        return iconMap[key];
+      }
+    }
+    
+    // Deterministic fallback
+    const defaults = ["📚", "🎓", "✏️", "💡", "🏫", "🌟"];
+    const index = Math.abs(name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)) % defaults.length;
+    return defaults[index];
+  };
 
   // Fetch available categories on mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await instructorsService.getFilterOptions();
-        if (response.categories) {
-          const names = response.categories.map((c) => c.name);
+        const [filterRes, categoriesRes] = await Promise.all([
+          instructorsService.getFilterOptions(),
+          categoriesService.getCategories(),
+        ]);
+
+        if (filterRes.categories) {
+          const names = filterRes.categories.map((c) => c.name);
           setCategories(["All Categories", ...names]);
+        }
+
+        if (categoriesRes) {
+          const mapped = categoriesRes.map((cat) => {
+            const match = filterRes.categories?.find(
+              (c) => c.name.toLowerCase().trim() === cat.title.toLowerCase().trim()
+            );
+            return {
+              name: cat.title,
+              count: match ? match.count : 0,
+              image: cat.image,
+            };
+          });
+          setTopCategories(mapped);
         }
       } catch (error) {
         console.error("Failed to fetch categories:", error);
@@ -83,27 +144,38 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 w-full">
-          {[
-            { name: "Management", courses: 156, icon: "📊" },
-            { name: "IT & Softwares", courses: 214, icon: "💻" },
-            { name: "Marketing", courses: 174, icon: "🎯" },
-            { name: "Productivity", courses: 126, icon: "⚡" },
-            { name: "Lifestyles", courses: 214, icon: "🏠" },
-            { name: "Design", courses: 161, icon: "🎨" },
-          ].map((cat, i) => (
+          {(topCategories.length > 0
+            ? topCategories
+            : [
+                { name: "Management", count: 156 },
+                { name: "IT & Softwares", count: 214 },
+                { name: "Marketing", count: 174 },
+                { name: "Productivity", count: 126 },
+                { name: "Lifestyles", count: 214 },
+                { name: "Design", count: 161 },
+              ]
+          ).map((cat, i) => (
             <div
               key={i}
               className="group p-8 rounded-[40px] border border-border/50 bg-card hover:bg-primary transition-all duration-500 text-center space-y-4 cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/20 flex flex-col items-center justify-center"
             >
               <div className="w-16 h-16 rounded-3xl bg-primary/10 group-hover:bg-white/20 flex items-center justify-center text-3xl transition-colors">
-                {cat.icon}
+                {cat.image ? (
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-10 h-10 object-contain transition-all duration-300 group-hover:scale-110"
+                  />
+                ) : (
+                  getCategoryIcon(cat.name)
+                )}
               </div>
               <div className="text-center">
                 <h3 className="font-bold text-lg group-hover:text-white transition-colors">
                   {cat.name}
                 </h3>
                 <p className="text-sm text-muted-foreground group-hover:text-white/80 transition-colors">
-                  {cat.courses} Courses
+                  {cat.count} {cat.count === 1 ? "Course" : "Courses"}
                 </p>
               </div>
             </div>
@@ -119,6 +191,8 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <WorldTutorsSection />
 
       {/* OUR BENEFITS SECTION */}
       <section className="py-24 bg-muted/50 relative overflow-hidden flex flex-col items-center">
