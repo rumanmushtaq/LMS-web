@@ -24,7 +24,7 @@ export function useInstructorDetail(id: string): UseInstructorDetailReturn {
     setLoading(true);
     setError(null);
     try {
-      const data = await instructorsService.getInstructorById(id);
+      const data = await instructorsService.getInstructorBySlugOrId(id);
       setInstructor(data);
     } catch (err: unknown) {
       const msg =

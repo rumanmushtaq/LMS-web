@@ -3,6 +3,7 @@ import apiEndpoints from "@/utils/apiConfig";
 
 export interface InstructorProfile {
   _id: string;
+  slug?: string;
   firstName: string;
   lastName: string;
   fullName: string;
@@ -160,8 +161,8 @@ class InstructorsService {
     return data?.data ?? data;
   }
 
-  async getInstructorById(id: string): Promise<InstructorDetailData> {
-    const { data } = await HTTP_CLIENT.get(`/api/v1/instructors/${id}`);
+  async getInstructorBySlugOrId(slugOrId: string): Promise<InstructorDetailData> {
+    const { data } = await HTTP_CLIENT.get(`/api/v1/instructors/${slugOrId}`);
     return data?.data ?? data;
   }
 }

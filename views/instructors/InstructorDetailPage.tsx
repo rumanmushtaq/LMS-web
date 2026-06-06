@@ -6,11 +6,6 @@ import Link from "next/link";
 import {
   BookOpen,
   Users,
-  Facebook,
-  Instagram,
-  Twitter,
-  Youtube,
-  Linkedin,
   Mail,
   MapPin,
   Phone,
@@ -19,43 +14,52 @@ import {
   Briefcase,
 } from "lucide-react";
 
+import { useInstructorDetail } from "./hooks/useInstructorDetail";
+import {
+  socialLinks,
+  education,
+  experience,
+  certBadges,
+} from "@/constants/instructorConstants";
+
 interface InstructorDetailPageProps {
-  instructorId: string;
+  instructorSlug: string;
 }
 
-const socialLinks = [
-  { Icon: Facebook,  hover: "#1877f2", label: "Facebook"  },
-  { Icon: Instagram, hover: "#e1306c", label: "Instagram" },
-  { Icon: Twitter,   hover: "#0f1419", label: "Twitter"   },
-  { Icon: Youtube,   hover: "#ff0000", label: "YouTube"   },
-  { Icon: Linkedin,  hover: "#0a66c2", label: "LinkedIn"  },
-];
+export default function InstructorDetailPage({ instructorSlug }: InstructorDetailPageProps) {
+  const { instructor: data, loading, error } = useInstructorDetail(instructorSlug);
 
-const education = [
-  { degree: "BCA – Bachelor of Computer Applications", meta: "International University  ·  2004 – 2010" },
-  { degree: "MCA – Master of Computer Application",   meta: "International University  ·  2010 – 2012" },
-  { degree: "Design Communication Visual",            meta: "International University  ·  2012 – 2015" },
-];
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading profile...</div>;
+  }
 
-const experience = [
-  { title: "Web Design & Development Team Leader", meta: "Creative Agency  ·  2013 – 2016"          },
-  { title: "Project Manager",                       meta: "Jobcy Technology Pvt. Ltd.  ·  Present"  },
-];
+  if (error || !data) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-red-500">{error || "Not found"}</div>;
+  }
 
-const certBadges = [
-  { src: "/cert_badge_1.png", bg: "#fff"     },
-  { src: "/cert_badge_2.png", bg: "#1e293b"  },
-  { src: "/cert_badge_1.png", bg: "#0ea5e9"  },
-  { src: "/cert_badge_2.png", bg: "#fff"     },
-];
+  const {
+    fullName,
+    title,
+    rating,
+    reviewCount,
+    aboutMe,
+    lessonCount,
+    studentCount,
+    avatar,
+    hourlyRate,
+    createdAt
+  } = data;
 
-const contactItems = [
-  { Icon: Mail,   label: "Email",   value: "jennywilson@example.com"              },
-  { Icon: MapPin, label: "Address", value: "877 Ferry Street, Huntsville, Alabama" },
-  { Icon: Phone,  label: "Phone",   value: "+1 (452) 125-6789"                    },
-];
+  console.log("data", data);
 
-export default function InstructorDetailPage({ instructorId }: InstructorDetailPageProps) {
+  const joinDate = new Date(createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  // Use backend data or fall back to the static arrays defined above if empty
+  const activeEducation = data.education?.length ? data.education : education;
+  const activeExperience = data.experience?.length ? data.experience : experience;
+  const activeCertifications = data.certifications?.length ? data.certifications : certBadges.map(() => "Certification"); // simplification for now, will handle below properly
+  const activeSocial = data.social || {};
+
   return (
     <div
       className="min-h-screen"
@@ -126,13 +130,17 @@ export default function InstructorDetailPage({ instructorId }: InstructorDetailP
             >
               {/* Avatar */}
               <div className="relative shrink-0" style={{ width: "100%", maxWidth: 220 }}>
-                <div className="relative w-full md:w-[220px] h-[220px] overflow-hidden" style={{ background: "#3d5f66" }}>
-                  <Image
-                    src="/avatar_rolands.png"
-                    alt="Rolands Granger"
-                    fill
-                    className="object-cover object-top"
-                  />
+                <div className="relative w-full md:w-[220px] h-[220px] overflow-hidden bg-gray-100 flex items-center justify-center">
+                  {avatar ? (
+                    <Image
+                      src={avatar}
+                      alt={fullName}
+                      fill
+                      className="object-cover object-top"
+                    />
+                  ) : (
+                    <span className="text-4xl text-gray-400">{fullName.charAt(0)}</span>
+                  )}
                   {/* gradient overlay bottom */}
                   <div
                     className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
@@ -162,36 +170,36 @@ export default function InstructorDetailPage({ instructorId }: InstructorDetailP
               {/* Info */}
               <div className="flex flex-1 flex-col min-w-0 px-2 py-5 pr-6">
                 <h2 style={{ fontSize: 21, fontWeight: 800, letterSpacing: "-0.022em", color: "#0d1117", lineHeight: 1.2, marginBottom: 6 }}>
-                  Rolands Granger
+                  {fullName}
                 </h2>
 
                 {/* Title + Rating row */}
                 <div className="flex flex-wrap items-center gap-2 mb-4" style={{ fontSize: 13 }}>
-                  <span
-                    style={{
-                      background: "linear-gradient(90deg, #fff0f0, #ffe4e4)",
-                      color: "#c23b2e",
-                      fontWeight: 600,
-                      fontSize: 12,
-                      padding: "2px 10px",
-                      borderRadius: 20,
-                      border: "1px solid #fecaca",
-                    }}
-                  >
-                    Developer
-                  </span>
-                  <span style={{ width: 4, height: 4, borderRadius: "50%", background: "#d1d5db", flexShrink: 0, display: "inline-block" }} />
+                  {title && (
+                    <span
+                      style={{
+                        background: "linear-gradient(90deg, #fff0f0, #ffe4e4)",
+                        color: "#c23b2e",
+                        fontWeight: 600,
+                        fontSize: 12,
+                        padding: "2px 10px",
+                        borderRadius: 20,
+                        border: "1px solid #fecaca",
+                      }}
+                    >
+                      {title}
+                    </span>
+                  )}
+                  {title && <span style={{ width: 4, height: 4, borderRadius: "50%", background: "#d1d5db", flexShrink: 0, display: "inline-block" }} />}
                   <span className="flex items-center gap-1">
                     <Star style={{ width: 13, height: 13, color: "#f59e0b", fill: "#f59e0b" }} />
-                    <strong style={{ color: "#1f2937", fontWeight: 700, fontSize: 13 }}>4.9</strong>
-                    <span style={{ color: "#9ca3af", fontSize: 12.5 }}>(200 Reviews)</span>
+                    <strong style={{ color: "#1f2937", fontWeight: 700, fontSize: 13 }}>{rating.toFixed(1)}</strong>
+                    <span style={{ color: "#9ca3af", fontSize: 12.5 }}>({reviewCount} Reviews)</span>
                   </span>
                 </div>
 
                 <p style={{ color: "#4b5563", fontSize: 13.5, lineHeight: 1.78, letterSpacing: "0.004em", marginBottom: 0 }}>
-                  I am a web developer with a vast array of knowledge in many different
-                  front end and back end languages, responsive frameworks, databases,
-                  and best code practices.
+                  {aboutMe || "This instructor has not added an 'About Me' section yet."}
                 </p>
 
                 {/* Stats + Socials */}
@@ -203,49 +211,56 @@ export default function InstructorDetailPage({ instructorId }: InstructorDetailP
                   <div className="flex items-center gap-5">
                     <div className="flex items-center gap-1.5">
                       <BookOpen style={{ width: 14, height: 14, color: "#f66962" }} />
-                      <strong style={{ fontSize: 13, fontWeight: 700, color: "#1f2937" }}>12+</strong>
+                      <strong style={{ fontSize: 13, fontWeight: 700, color: "#1f2937" }}>{lessonCount}</strong>
                       <span style={{ fontSize: 12.5, color: "#9ca3af" }}>Lessons</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Users style={{ width: 14, height: 14, color: "#f66962" }} />
-                      <strong style={{ fontSize: 13, fontWeight: 700, color: "#1f2937" }}>50</strong>
+                      <strong style={{ fontSize: 13, fontWeight: 700, color: "#1f2937" }}>{studentCount}</strong>
                       <span style={{ fontSize: 12.5, color: "#9ca3af" }}>Students</span>
                     </div>
                   </div>
 
                   {/* Social Icons */}
                   <div className="flex items-center gap-1.5">
-                    {socialLinks.map(({ Icon, hover, label }, i) => (
-                      <Link
-                        key={i}
-                        href="#"
-                        aria-label={label}
-                        className="flex items-center justify-center transition-all duration-200"
-                        style={{
-                          width: 30, height: 30,
-                          borderRadius: 7,
-                          background: "#f3f4f6",
-                          color: "#6b7280",
-                          border: "1px solid transparent",
-                        }}
-                        onMouseEnter={e => {
-                          const el = e.currentTarget as HTMLAnchorElement;
-                          el.style.background = hover;
-                          el.style.color = "#fff";
-                          el.style.transform = "translateY(-1px)";
-                          el.style.boxShadow = `0 4px 12px ${hover}40`;
-                        }}
-                        onMouseLeave={e => {
-                          const el = e.currentTarget as HTMLAnchorElement;
-                          el.style.background = "#f3f4f6";
-                          el.style.color = "#6b7280";
-                          el.style.transform = "none";
-                          el.style.boxShadow = "none";
-                        }}
-                      >
-                        <Icon style={{ width: 12.5, height: 12.5 }} />
-                      </Link>
-                    ))}
+                    {socialLinks.map(({ Icon, hover, label }, i) => {
+                      const linkKey = label.toLowerCase() as keyof typeof activeSocial;
+                      const url = activeSocial[linkKey];
+                      if (!url) return null;
+                      
+                      return (
+                        <Link
+                          key={i}
+                          href={url}
+                          target="_blank"
+                          aria-label={label}
+                          className="flex items-center justify-center transition-all duration-200"
+                          style={{
+                            width: 30, height: 30,
+                            borderRadius: 7,
+                            background: "#f3f4f6",
+                            color: "#6b7280",
+                            border: "1px solid transparent",
+                          }}
+                          onMouseEnter={e => {
+                            const el = e.currentTarget as HTMLAnchorElement;
+                            el.style.background = hover;
+                            el.style.color = "#fff";
+                            el.style.transform = "translateY(-1px)";
+                            el.style.boxShadow = `0 4px 12px ${hover}40`;
+                          }}
+                          onMouseLeave={e => {
+                            const el = e.currentTarget as HTMLAnchorElement;
+                            el.style.background = "#f3f4f6";
+                            el.style.color = "#6b7280";
+                            el.style.transform = "none";
+                            el.style.boxShadow = "none";
+                          }}
+                        >
+                          <Icon style={{ width: 12.5, height: 12.5 }} />
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -263,10 +278,7 @@ export default function InstructorDetailPage({ instructorId }: InstructorDetailP
             >
               <SectionHeading>About Me</SectionHeading>
               <p style={{ color: "#4b5563", fontSize: 14, lineHeight: 1.8, letterSpacing: "0.004em", marginBottom: 16 }}>
-                Very well thought out and articulate communication. Clear milestones,
-                deadlines and fast work. Patience. Infinite patience. No shortcuts.
-                Even if the client is being careless. Some quick example text to build
-                on the card title and bulk the card&apos;s content Moltin gives you platform.
+                {aboutMe || "This instructor has not added an 'About Me' section yet."}
               </p>
               <button
                 className="transition-colors duration-150"
@@ -298,7 +310,7 @@ export default function InstructorDetailPage({ instructorId }: InstructorDetailP
             >
               <SectionHeading>Education</SectionHeading>
               <div style={{ position: "relative", paddingLeft: 20, borderLeft: "2px solid #e5e7eb", marginLeft: 6, display: "flex", flexDirection: "column", gap: 24 }}>
-                {education.map(({ degree, meta }, i) => (
+                {activeEducation?.map(({ degree, institution, period, meta }: any, i) => (
                   <div key={i} style={{ position: "relative" }}>
                     {/* Timeline dot */}
                     <span
@@ -318,7 +330,9 @@ export default function InstructorDetailPage({ instructorId }: InstructorDetailP
                     <h4 style={{ fontSize: 13.5, fontWeight: 600, color: "#111827", letterSpacing: "-0.005em", lineHeight: 1.35, marginBottom: 3 }}>
                       {degree}
                     </h4>
-                    <p style={{ fontSize: 12.5, color: "#9ca3af", letterSpacing: "0.005em" }}>{meta}</p>
+                    <p style={{ fontSize: 12.5, color: "#9ca3af", letterSpacing: "0.005em" }}>
+                      {meta || `${institution}  ·  ${period}`}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -336,7 +350,7 @@ export default function InstructorDetailPage({ instructorId }: InstructorDetailP
             >
               <SectionHeading>Experience</SectionHeading>
               <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                {experience.map(({ title, meta }, i) => (
+                {activeExperience.map(({ title, role, company, period, meta }: any, i) => (
                   <div key={i} className="flex gap-4 items-start">
                     <div
                       style={{
@@ -352,9 +366,11 @@ export default function InstructorDetailPage({ instructorId }: InstructorDetailP
                     </div>
                     <div style={{ paddingTop: 2 }}>
                       <h4 style={{ fontSize: 13.5, fontWeight: 600, color: "#111827", letterSpacing: "-0.005em", lineHeight: 1.35, marginBottom: 3 }}>
-                        {title}
+                        {title || role}
                       </h4>
-                      <p style={{ fontSize: 12.5, color: "#9ca3af", letterSpacing: "0.005em" }}>{meta}</p>
+                      <p style={{ fontSize: 12.5, color: "#9ca3af", letterSpacing: "0.005em" }}>
+                        {meta || `${company}  ·  ${period}`}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -417,10 +433,99 @@ export default function InstructorDetailPage({ instructorId }: InstructorDetailP
                 padding: "22px 24px",
               }}
             >
-              <SectionHeading>Contact Details</SectionHeading>
+              <SectionHeading>Contact & Additional Info</SectionHeading>
               <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                {contactItems.map(({ Icon, label, value }, i) => (
-                  <div key={i} className="flex gap-3.5 items-start">
+                
+                <div className="flex gap-3.5 items-start">
+                  <div
+                    style={{
+                      width: 40, height: 40, flexShrink: 0,
+                      background: "linear-gradient(135deg, #1e2230, #2d3452)",
+                      borderRadius: "50%",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      boxShadow: "0 2px 8px rgba(30,34,48,0.22)",
+                    }}
+                  >
+                    <Mail style={{ width: 15, height: 15, color: "#fff" }} />
+                  </div>
+                  <div style={{ paddingTop: 1 }}>
+                    <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", letterSpacing: "-0.005em", marginBottom: 2 }}>
+                      Email
+                    </h4>
+                    <p style={{ fontSize: 12.5, color: "#6b7280", lineHeight: 1.55, letterSpacing: "0.005em" }}>
+                      {data.email}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3.5 items-start">
+                  <div
+                    style={{
+                      width: 40, height: 40, flexShrink: 0,
+                      background: "linear-gradient(135deg, #1e2230, #2d3452)",
+                      borderRadius: "50%",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      boxShadow: "0 2px 8px rgba(30,34,48,0.22)",
+                    }}
+                  >
+                    <MapPin style={{ width: 15, height: 15, color: "#fff" }} />
+                  </div>
+                  <div style={{ paddingTop: 1 }}>
+                    <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", letterSpacing: "-0.005em", marginBottom: 2 }}>
+                      Address
+                    </h4>
+                    <p style={{ fontSize: 12.5, color: "#6b7280", lineHeight: 1.55, letterSpacing: "0.005em" }}>
+                      {data.address || "Not provided"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3.5 items-start">
+                  <div
+                    style={{
+                      width: 40, height: 40, flexShrink: 0,
+                      background: "linear-gradient(135deg, #1e2230, #2d3452)",
+                      borderRadius: "50%",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      boxShadow: "0 2px 8px rgba(30,34,48,0.22)",
+                    }}
+                  >
+                    <Phone style={{ width: 15, height: 15, color: "#fff" }} />
+                  </div>
+                  <div style={{ paddingTop: 1 }}>
+                    <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", letterSpacing: "-0.005em", marginBottom: 2 }}>
+                      Phone
+                    </h4>
+                    <p style={{ fontSize: 12.5, color: "#6b7280", lineHeight: 1.55, letterSpacing: "0.005em" }}>
+                      {data.phone || "Not provided"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3.5 items-start">
+                  <div
+                    style={{
+                      width: 40, height: 40, flexShrink: 0,
+                      background: "linear-gradient(135deg, #1e2230, #2d3452)",
+                      borderRadius: "50%",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      boxShadow: "0 2px 8px rgba(30,34,48,0.22)",
+                    }}
+                  >
+                    <Star style={{ width: 15, height: 15, color: "#fff" }} />
+                  </div>
+                  <div style={{ paddingTop: 1 }}>
+                    <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", letterSpacing: "-0.005em", marginBottom: 2 }}>
+                      Joined Date
+                    </h4>
+                    <p style={{ fontSize: 12.5, color: "#6b7280", lineHeight: 1.55, letterSpacing: "0.005em" }}>
+                      {joinDate}
+                    </p>
+                  </div>
+                </div>
+
+                {hourlyRate !== null && hourlyRate > 0 && (
+                  <div className="flex gap-3.5 items-start">
                     <div
                       style={{
                         width: 40, height: 40, flexShrink: 0,
@@ -430,18 +535,19 @@ export default function InstructorDetailPage({ instructorId }: InstructorDetailP
                         boxShadow: "0 2px 8px rgba(30,34,48,0.22)",
                       }}
                     >
-                      <Icon style={{ width: 15, height: 15, color: "#fff" }} />
+                      <span className="text-white font-bold">$</span>
                     </div>
                     <div style={{ paddingTop: 1 }}>
                       <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", letterSpacing: "-0.005em", marginBottom: 2 }}>
-                        {label}
+                        Hourly Rate
                       </h4>
                       <p style={{ fontSize: 12.5, color: "#6b7280", lineHeight: 1.55, letterSpacing: "0.005em" }}>
-                        {value}
+                        ${hourlyRate}/hour
                       </p>
                     </div>
                   </div>
-                ))}
+                )}
+                
               </div>
             </div>
 
