@@ -28,6 +28,7 @@ export default function InstructorGridCard({
     reviewCount,
     lessonCount,
     totalDurationMinutes,
+    photoUrl,
   } = instructor;
 
   return (
@@ -35,9 +36,9 @@ export default function InstructorGridCard({
       {/* Avatar section */}
       <div className="relative overflow-hidden bg-muted aspect-[4/3]">
         <Link href={`/instructors/${_id}`}>
-          {avatar ? (
+          {avatar || photoUrl ? (
             <Image
-              src={avatar}
+              src={avatar || (photoUrl as string)}
               alt={fullName}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"

@@ -39,7 +39,7 @@ function VerifyEmailContent() {
           // Use a small delay so user can see the success message
           setTimeout(() => {
             if (res.user.role === "tutor") {
-              router.push("/independent-contract");
+              router.push("/onboarding/tax-forms");
             }
           }, 2000);
         }

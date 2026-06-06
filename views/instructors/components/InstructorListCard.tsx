@@ -40,9 +40,9 @@ export default function InstructorListCard({
       <div className="relative flex-shrink-0">
         <Link href={`/instructors/${_id}`}>
           <div className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-xl overflow-hidden bg-muted ring-2 ring-border/30 group-hover:ring-[var(--primary)]/30 transition-all">
-            {avatar ? (
+            {avatar || instructor.photoUrl ? (
               <Image
-                src={avatar}
+                src={avatar || (instructor.photoUrl as string)}
                 alt={fullName}
                 fill
                 className="object-cover"

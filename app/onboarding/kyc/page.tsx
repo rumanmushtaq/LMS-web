@@ -115,7 +115,26 @@ const KYCPage = () => {
     },
   });
 
+  const [videoSource, setVideoSource] = useState<'upload' | 'link'>('upload');
   const [isUploading, setIsUploading] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (formData.introVideoUrl) {
+      if (
+        formData.introVideoUrl.includes("tutor-videos") ||
+        formData.introVideoUrl.includes("kyc-documents")
+      ) {
+        setVideoSource("upload");
+      } else if (formData.introVideoUrl.startsWith("http")) {
+        setVideoSource("link");
+      }
+    }
+  }, [formData.introVideoUrl]);
+
+  const handleVideoSourceChange = (source: 'upload' | 'link') => {
+    setVideoSource(source);
+    setFormData((prev) => ({ ...prev, introVideoUrl: "" }));
+  };
 
   const router = useRouter();
   const token = useAuthStore((state) => state.accessToken);
@@ -1020,30 +1039,93 @@ const KYCPage = () => {
                       <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
                         Intro Video (1-2 mins)
                       </Label>
-                      <label className="relative aspect-video rounded-3xl border-2 border-dashed border-muted hover:border-primary flex flex-col items-center justify-center cursor-pointer bg-muted/10 transition-all">
-                        {formData.introVideoUrl ? (
-                          <BadgeCheck className="w-12 h-12 text-green-500" />
-                        ) : isUploading === "video" ? (
-                          <Loader2 className="animate-spin text-primary" />
-                        ) : (
-                          <>
-                            <Video className="w-10 h-10 text-muted-foreground mb-3" />
-                            <span className="text-[9px] font-black uppercase text-muted-foreground">
-                              Upload Video
-                            </span>
-                          </>
-                        )}
-                        <input
-                          type="file"
-                          className="hidden"
-                          onChange={(e) => handleFileUpload(e, "video")}
-                          accept="video/*"
-                        />
-                      </label>
-                      {formData.introVideoUrl && (
-                        <p className="text-[9px] text-green-600 font-bold uppercase tracking-widest text-center">
-                          Video Uploaded Successfully
-                        </p>
+                      
+                      {/* Video source toggle tabs */}
+                      <div className="flex gap-2 p-1 rounded-2xl bg-muted/30 border border-border max-w-[320px]">
+                        <button
+                          type="button"
+                          onClick={() => handleVideoSourceChange("upload")}
+                          className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${
+                            videoSource === "upload"
+                              ? "bg-primary text-white shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          Upload Video
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleVideoSourceChange("link")}
+                          className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${
+                            videoSource === "link"
+                              ? "bg-primary text-white shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          Video Link
+                        </button>
+                      </div>
+
+                      {videoSource === "upload" ? (
+                        <div className="space-y-4">
+                          <label className="relative aspect-video rounded-3xl border-2 border-dashed border-muted hover:border-primary flex flex-col items-center justify-center cursor-pointer bg-muted/10 transition-all">
+                            {formData.introVideoUrl && (formData.introVideoUrl.includes("tutor-videos") || formData.introVideoUrl.includes("kyc-documents")) ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <BadgeCheck className="w-12 h-12 text-green-500" />
+                                <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest">
+                                  Video Uploaded Successfully
+                                </span>
+                              </div>
+                            ) : isUploading === "video" ? (
+                              <Loader2 className="animate-spin text-primary" />
+                            ) : (
+                              <>
+                                <Video className="w-10 h-10 text-muted-foreground mb-3" />
+                                <span className="text-[9px] font-black uppercase text-muted-foreground">
+                                  Upload Video File
+                                </span>
+                              </>
+                            )}
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={(e) => handleFileUpload(e, "video")}
+                              accept="video/*"
+                            />
+                          </label>
+                          {formData.introVideoUrl && (formData.introVideoUrl.includes("tutor-videos") || formData.introVideoUrl.includes("kyc-documents")) && (
+                            <div className="flex justify-center">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setFormData(p => ({ ...p, introVideoUrl: "" }))}
+                                className="h-9 px-4 rounded-xl border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 font-bold text-xs"
+                              >
+                                Remove Uploaded Video
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="relative">
+                            <Input
+                              type="url"
+                              className="h-14 px-5 bg-card border-2 border-border text-foreground outline-none focus:border-primary/50 transition-colors rounded-2xl font-bold placeholder:text-muted-foreground/60"
+                              placeholder="Paste Video URL (e.g. YouTube, Vimeo, S3 link)"
+                              value={formData.introVideoUrl && !(formData.introVideoUrl.includes("tutor-videos") || formData.introVideoUrl.includes("kyc-documents")) ? formData.introVideoUrl : ""}
+                              onChange={(e) =>
+                                setFormData({ ...formData, introVideoUrl: e.target.value })
+                              }
+                            />
+                          </div>
+                          {formData.introVideoUrl && !(formData.introVideoUrl.includes("tutor-videos") || formData.introVideoUrl.includes("kyc-documents")) && (
+                            <p className="text-[10px] text-green-600 font-bold uppercase tracking-widest text-center">
+                              ✓ Video Link Added
+                            </p>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

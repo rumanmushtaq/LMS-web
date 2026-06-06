@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { Home, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import instructorsService, {
@@ -18,6 +19,10 @@ type ViewMode = "list" | "grid";
 const PAGE_SIZE = 9;
 
 export default function InstructorsPage() {
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get("search") || "";
+  const initialCategory = searchParams.get("category");
+
   // Data state
   const [instructors, setInstructors] = useState<InstructorProfile[]>([]);
   const [filterOptions, setFilterOptions] =
@@ -30,16 +35,33 @@ export default function InstructorsPage() {
   // UI state
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [currentPage, setCurrentPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [sortBy, setSortBy] = useState("newlyPublished");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    initialCategory ? [initialCategory] : [],
+  );
   const [selectedInstructors, setSelectedInstructors] = useState<string[]>([]);
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
 
   // Debounce search
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
+
+  // Sync state with URL params
+  useEffect(() => {
+    const s = searchParams.get("search") || "";
+    const c = searchParams.get("category");
+
+    setSearch(s);
+    setDebouncedSearch(s);
+    if (c) {
+      setSelectedCategories([c]);
+    } else {
+      setSelectedCategories([]);
+    }
+    setCurrentPage(1);
+  }, [searchParams]);
 
   // Load filter options once
   useEffect(() => {
