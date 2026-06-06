@@ -64,7 +64,7 @@ export default function InstructorToolbar({
           className={cn(
             "p-1.5 rounded-md transition-all",
             viewMode === "grid"
-              ? "bg-[#FF4667] text-white shadow-sm"
+              ? "bg-[var(--primary)] text-white shadow-sm"
               : "text-muted-foreground hover:text-foreground",
           )}
         >
@@ -76,7 +76,7 @@ export default function InstructorToolbar({
           className={cn(
             "p-1.5 rounded-md transition-all",
             viewMode === "list"
-              ? "bg-[#FF4667] text-white shadow-sm"
+              ? "bg-[var(--primary)] text-white shadow-sm"
               : "text-muted-foreground hover:text-foreground",
           )}
         >
@@ -89,7 +89,7 @@ export default function InstructorToolbar({
         <select
           value={sortBy}
           onChange={(e) => onSortChange(e.target.value)}
-          className="appearance-none h-9 pl-3 pr-8 rounded-lg border border-border bg-background text-[14px] text-foreground font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4667]/30 focus:border-[#FF4667] transition-colors"
+          className="appearance-none h-9 pl-3 pr-8 rounded-lg border border-border bg-background text-[14px] text-foreground font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-colors"
         >
           {SORT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -108,7 +108,7 @@ export default function InstructorToolbar({
           placeholder="Search..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="h-9 w-48 pl-9 pr-3 rounded-lg border border-border bg-background text-[14px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FF4667]/30 focus:border-[#FF4667] transition-colors"
+          className="h-9 w-48 pl-9 pr-3 rounded-lg border border-border bg-background text-[14px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-colors"
         />
       </div>
     </div>

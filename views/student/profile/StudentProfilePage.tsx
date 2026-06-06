@@ -32,7 +32,7 @@ export default function StudentProfilePage() {
     return (
       <StudentLayout>
         <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-10 w-10 animate-spin text-[#FF4667]" />
+          <Loader2 className="h-10 w-10 animate-spin text-[var(--primary)]" />
         </div>
       </StudentLayout>
     );
@@ -85,7 +85,7 @@ export default function StudentProfilePage() {
               <Home className="h-3.5 w-3.5" />
               Home
             </Link>
-            <ChevronRight className="h-3.5 w-3.5 text-[#FF4667]" />
+            <ChevronRight className="h-3.5 w-3.5 text-[var(--primary)]" />
             <span className="text-foreground font-medium">My Profile</span>
           </nav>
         </div>
@@ -131,7 +131,7 @@ export default function StudentProfilePage() {
                 Become an Instructor
               </button>
             </Link>
-            <button className="px-5 py-2.5 rounded-full bg-[#FF4667] text-white text-sm font-bold shadow hover:bg-[#E63E5C] transition whitespace-nowrap">
+            <button className="px-5 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-bold shadow hover:bg-[var(--primary)] transition whitespace-nowrap">
               Instructor Dashboard
             </button>
           </div>

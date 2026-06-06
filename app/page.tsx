@@ -1,78 +1,129 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import HeroSlider from "@/components/organisms/Auth/landingPAge/hero-Banner";
-import InstructorProfile from "@/components/organisms/Auth/landingPAge/instructor-Profile";
+import TestimonialSlider from "@/components/organisms/Auth/landingPAge/TestimonialSlider";
 import CourseCard from "@/components/molecules/shop/course-card";
 import JoinUs from "@/components/organisms/Auth/landingPAge/JoinUs";
 import FAQSection from "@/components/organisms/Auth/landingPAge/FAQSection";
-import { CheckCircle, Star } from "lucide-react";
+import LanguageTutorsSection from "@/components/organisms/Auth/landingPAge/LanguageTutorsSection";
+import WorldTutorsSection from "@/components/organisms/Auth/landingPAge/WorldTutorsSection";
+import HowItWorks from "@/components/organisms/Auth/landingPAge/HowItWorks";
+import { CheckCircle, Star, Loader2 } from "lucide-react";
 import Image from "next/image";
-
-const allInstructors = [
-  {
-    title: "Information About UI/UX Design Degree",
-    cat: "UI/UX Design",
-    price: "$120",
-    stars: 4.9,
-    rev: 200,
-    img: "/images/course-1.jpg",
-    badge: "Xd",
-  },
-  {
-    title: "The Complete Business and Management Course",
-    cat: "General",
-    price: "$168",
-    stars: 5.0,
-    rev: 210,
-    img: "/images/course-2.jpg",
-    badge: "N",
-  },
-  {
-    title: "Learn & Create ReactJS Tech Fundamentals Apps",
-    cat: "Development",
-    price: "$147",
-    stars: 5.0,
-    rev: 154,
-    img: "/images/course-3.jpg",
-    badge: "ReactJS",
-  },
-  {
-    title: "Build Creative Arts & media Course Completed",
-    cat: "Graphic Design",
-    price: "$190",
-    stars: 4.9,
-    rev: 178,
-    img: "/images/course-4.jpg",
-    badge: "Mentor",
-  },
-  {
-    title: "Mastering Modern Web Frameworks and Tools",
-    cat: "Framework",
-    price: "$155",
-    stars: 4.8,
-    rev: 120,
-    img: "/images/course-1.jpg",
-    badge: "NextJS",
-  },
-];
-
-const categories = [
-  "All Categories",
-  "Development",
-  "UI/UX Design",
-  "Graphic Design",
-  "Framework",
-  "General",
-];
+import instructorsService, {
+  InstructorProfile as IInstructor,
+} from "@/services/instructors";
+import categoriesService from "@/services/categories";
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("All Categories");
+  const [categories, setCategories] = useState<string[]>(["All Categories"]);
+  const [topCategories, setTopCategories] = useState<{ name: string; count: number; image?: string }[]>([]);
+  const [instructors, setInstructors] = useState<IInstructor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredInstructors =
-    activeCategory === "All Categories"
-      ? allInstructors
-      : allInstructors.filter((ins) => ins.cat === activeCategory);
+  // Helper to match category name to a visual emoji icon
+  const getCategoryIcon = (name: string): string => {
+    const iconMap: Record<string, string> = {
+      "Management": "📊",
+      "IT & Softwares": "💻",
+      "IT & Software": "💻",
+      "Software": "💻",
+      "Marketing": "🎯",
+      "Productivity": "⚡",
+      "Lifestyles": "🏠",
+      "Lifestyle": "🏠",
+      "Design": "🎨",
+      "Academic": "🎓",
+      "Academics": "🎓",
+      "Development": "🚀",
+      "Business": "💼",
+      "Finance": "💵",
+      "Photography": "📷",
+      "Music": "🎵",
+      "Health & Fitness": "🏃",
+      "Languages": "🗣️",
+      "Language": "🗣️",
+    };
+
+    const normalized = name.trim();
+    if (iconMap[normalized]) return iconMap[normalized];
+    
+    // Check substring matches
+    for (const key of Object.keys(iconMap)) {
+      if (normalized.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(normalized.toLowerCase())) {
+        return iconMap[key];
+      }
+    }
+    
+    // Deterministic fallback
+    const defaults = ["📚", "🎓", "✏️", "💡", "🏫", "🌟"];
+    const index = Math.abs(name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)) % defaults.length;
+    return defaults[index];
+  };
+
+  // Fetch available categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const [filterRes, categoriesRes] = await Promise.all([
+          instructorsService.getFilterOptions(),
+          categoriesService.getCategories(),
+        ]);
+
+        if (filterRes.categories) {
+          const names = filterRes.categories.map((c) => c.name);
+          setCategories(["All Categories", ...names]);
+        }
+
+        if (categoriesRes) {
+          const mapped = categoriesRes.map((cat) => {
+            const match = filterRes.categories?.find(
+              (c) => c.name.toLowerCase().trim() === cat.title.toLowerCase().trim()
+            );
+            return {
+              name: cat.title,
+              count: match ? match.count : 0,
+              image: cat.image,
+            };
+          });
+          setTopCategories(mapped);
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch instructors when category changes
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      setIsLoading(true);
+      try {
+        const params =
+          activeCategory === "All Categories"
+            ? {}
+            : { category: activeCategory };
+        const response = await instructorsService.getInstructors(params);
+        const rawData = Array.isArray(response)
+          ? response
+          : response.data || [];
+        setInstructors(
+          rawData.map((inst: any) => ({
+            ...inst,
+            avatar: inst.avatar || inst.photoUrl,
+          })),
+        );
+      } catch (error) {
+        console.error("Failed to fetch instructors:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchInstructors();
+  }, [activeCategory]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,27 +144,38 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 w-full">
-          {[
-            { name: "Management", courses: 156, icon: "📊" },
-            { name: "IT & Softwares", courses: 214, icon: "💻" },
-            { name: "Marketing", courses: 174, icon: "🎯" },
-            { name: "Productivity", courses: 126, icon: "⚡" },
-            { name: "Lifestyles", courses: 214, icon: "🏠" },
-            { name: "Design", courses: 161, icon: "🎨" },
-          ].map((cat, i) => (
+          {(topCategories.length > 0
+            ? topCategories
+            : [
+                { name: "Management", count: 156 },
+                { name: "IT & Softwares", count: 214 },
+                { name: "Marketing", count: 174 },
+                { name: "Productivity", count: 126 },
+                { name: "Lifestyles", count: 214 },
+                { name: "Design", count: 161 },
+              ]
+          ).map((cat, i) => (
             <div
               key={i}
               className="group p-8 rounded-[40px] border border-border/50 bg-card hover:bg-primary transition-all duration-500 text-center space-y-4 cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/20 flex flex-col items-center justify-center"
             >
               <div className="w-16 h-16 rounded-3xl bg-primary/10 group-hover:bg-white/20 flex items-center justify-center text-3xl transition-colors">
-                {cat.icon}
+                {cat.image ? (
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-10 h-10 object-contain transition-all duration-300 group-hover:scale-110"
+                  />
+                ) : (
+                  getCategoryIcon(cat.name)
+                )}
               </div>
               <div className="text-center">
                 <h3 className="font-bold text-lg group-hover:text-white transition-colors">
                   {cat.name}
                 </h3>
                 <p className="text-sm text-muted-foreground group-hover:text-white/80 transition-colors">
-                  {cat.courses} Courses
+                  {cat.count} {cat.count === 1 ? "Course" : "Courses"}
                 </p>
               </div>
             </div>
@@ -129,6 +191,8 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <WorldTutorsSection />
 
       {/* OUR BENEFITS SECTION */}
       <section className="py-24 bg-muted/50 relative overflow-hidden flex flex-col items-center">
@@ -184,6 +248,8 @@ export default function Home() {
         </div>
       </section>
 
+
+
       {/* FEATURED COURSES SECTION -> INSTRUCTOR OR TUTOR */}
       <section className="py-24 container mx-auto px-4 flex flex-col items-center">
         <div className="text-center space-y-4 mb-16 max-w-3xl">
@@ -215,31 +281,46 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
-          {filteredInstructors.map((course, i) => (
-            <CourseCard
-              key={i}
-              image={course.img}
-              category={course.cat}
-              title={course.title}
-              price={course.price}
-              rating={course.stars}
-              reviews={course.rev}
-              badge={course.badge}
-              instructor={{
-                name: "Brenda Slaton",
-                avatar: "/images/avatar-1.jpg",
-              }}
-            />
-          ))}
-        </div>
-
-        {filteredInstructors.length === 0 && (
-          <div className="py-20 text-center">
-            <p className="text-muted-foreground text-lg">
-              No instructors found in this category.
+        {isLoading ? (
+          <div className="py-20 flex flex-col items-center gap-4">
+            <Loader2 className="w-12 h-12 text-primary animate-spin" />
+            <p className="text-muted-foreground font-medium">
+              Loading expert instructors...
             </p>
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
+              {instructors.map((instructor, i) => (
+                <CourseCard
+                  key={i}
+                  image={instructor.avatar || "/images/course-1.jpg"}
+                  category={instructor.categories[0] || "General"}
+                  title={instructor.title || instructor.fullName}
+                  price={
+                    instructor.hourlyRate
+                      ? `$${instructor.hourlyRate}/hr`
+                      : "Free"
+                  }
+                  rating={instructor.rating}
+                  reviews={instructor.reviewCount}
+                  badge={instructor.level || "Tutor"}
+                  instructor={{
+                    name: instructor.fullName,
+                    avatar: instructor.avatar || "/images/avatar-1.jpg",
+                  }}
+                />
+              ))}
+            </div>
+
+            {instructors.length === 0 && (
+              <div className="py-20 text-center">
+                <p className="text-muted-foreground text-lg">
+                  No instructors found in this category.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </section>
 
@@ -358,10 +439,12 @@ export default function Home() {
       </section>
 
       <JoinUs />
+      <HowItWorks />
       <FAQSection />
+      <LanguageTutorsSection />
 
       <div className="flex justify-center w-full">
-        <InstructorProfile />
+        <TestimonialSlider />
       </div>
     </div>
   );

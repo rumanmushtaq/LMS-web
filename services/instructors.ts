@@ -8,6 +8,7 @@ export interface InstructorProfile {
   fullName: string;
   email: string;
   avatar: string | null;
+  photoUrl?: string | null;
   title: string | null;
   bio: string | null;
   specialties: string[];
@@ -20,6 +21,47 @@ export interface InstructorProfile {
   studentCount: number;
   hourlyRate: number | null;
   createdAt: string;
+}
+
+export interface EducationItem {
+  degree: string;
+  institution: string;
+  period: string;
+}
+
+export interface ExperienceItem {
+  role: string;
+  company: string;
+  period: string;
+}
+
+export interface SocialLinks {
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+  youtube?: string;
+  linkedin?: string;
+}
+
+export interface CourseItem {
+  _id: string;
+  title: string;
+  price: number;
+  averageRating: number;
+  image?: string;
+  category?: string;
+  reviewCount?: number;
+}
+
+export interface InstructorDetailData extends InstructorProfile {
+  aboutMe: string | null;
+  education: EducationItem[];
+  experience: ExperienceItem[];
+  certifications: string[];
+  social: SocialLinks;
+  phone: string | null;
+  address: string | null;
+  courses?: CourseItem[];
 }
 
 export interface InstructorsListResponse {
@@ -38,6 +80,7 @@ export interface InstructorFilterOption {
   _id: string;
   fullName: string;
   count: number;
+  photoUrl?: string;
 }
 
 export interface FilterOptionsResponse {
@@ -89,6 +132,8 @@ class InstructorsService {
     const { data } = await HTTP_CLIENT.get(apiEndpoints.Instructors.LIST, {
       params: queryParams,
     });
+    // The backend wraps everything in { success: true, data: ... }
+    // data?.data extracts the actual payload (InstructorListResponse)
     return data?.data ?? data;
   }
 
@@ -112,6 +157,11 @@ class InstructorsService {
         params,
       },
     );
+    return data?.data ?? data;
+  }
+
+  async getInstructorById(id: string): Promise<InstructorDetailData> {
+    const { data } = await HTTP_CLIENT.get(`/api/v1/instructors/${id}`);
     return data?.data ?? data;
   }
 }

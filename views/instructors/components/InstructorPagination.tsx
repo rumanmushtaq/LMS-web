@@ -65,7 +65,7 @@ export default function InstructorPagination({
               className={cn(
                 "flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-semibold transition-all",
                 currentPage === p
-                  ? "bg-[#FF4667] text-white shadow-md shadow-pink-500/25"
+                  ? "bg-[var(--primary)] text-white shadow-md shadow-primary/25"
                   : "border border-border bg-background text-foreground hover:bg-muted",
               )}
             >

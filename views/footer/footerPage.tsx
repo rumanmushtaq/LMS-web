@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, MapPin, Phone, Send } from "lucide-react";
+import { Mail, MapPin, Phone, Send, Facebook, Instagram } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -23,7 +23,7 @@ const Footer = () => {
     <footer className="relative w-full overflow-hidden bg-background pt-16 border-t border-border/40">
       {/* Gradient Accents */}
       <div className="absolute top-0 left-0 h-64 w-64 bg-purple-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute top-0 right-0 h-64 w-64 bg-pink-500/10 blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 right-0 h-64 w-64 bg-primary/10 blur-[120px] pointer-events-none" />
 
       <div className="container mx-auto px-6 pb-16">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
@@ -39,7 +39,7 @@ const Footer = () => {
               />
               <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center">
                 Dreams
-                <span className="text-[#FF4667] text-[10px] font-bold self-start mt-1.5 ml-0.5">
+                <span className="text-[var(--primary)] text-[10px] font-bold self-start mt-1.5 ml-0.5">
                   LMS
                 </span>
               </h2>
@@ -136,7 +136,7 @@ const Footer = () => {
                   placeholder="Enter your email address"
                   className="h-13 w-full rounded-full border-border/60 bg-card pr-36 pl-6 text-sm focus-visible:ring-primary/20 focus-visible:border-primary shadow-sm"
                 />
-                <Button className="absolute right-1.5 h-10 rounded-full bg-[#4E3B9B] px-6 text-xs font-bold text-white hover:bg-[#3D2E7C] transition-all active:scale-95 shadow-lg shadow-purple-900/10">
+                <Button className="absolute right-1.5 h-10 rounded-full bg-[var(--primary)] px-6 text-xs font-bold text-white hover:bg-[var(--primary)] transition-all active:scale-95 shadow-lg shadow-purple-900/10">
                   <Send className="mr-2 h-3.5 w-3.5" /> Subscribe
                 </Button>
               </div>
@@ -158,7 +158,7 @@ const Footer = () => {
 
               <div className="flex items-center gap-4">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-pink-50 dark:bg-pink-900/20 shadow-sm border border-pink-100/50 dark:border-pink-800/30">
-                  <Mail className="h-5 w-5 text-pink-500" />
+                  <Mail className="h-5 w-5 text-primary" />
                 </div>
                 <p className="text-[15px] text-muted-foreground">
                   dreamslms@example.com
@@ -179,17 +179,26 @@ const Footer = () => {
       </div>
 
       {/* Bottom Footer */}
-      <div className="bg-[#2E236C] py-7 text-[13px] font-medium text-white/80">
+      <div className="bg-[var(--primary)] py-7 text-[13px] font-medium text-white/80">
         <div className="container mx-auto flex flex-col items-center justify-between gap-5 px-6 md:flex-row">
           <p>© 2025 DreamsLMS. All rights reserved.</p>
           <div className="flex items-center gap-8">
-            <Link href="#" className="hover:text-white transition-colors">
+            <Link href="/terms-and-conditions" className="hover:text-white transition-colors">
               Terms & Conditions
             </Link>
             <span className="text-white/20">|</span>
-            <Link href="#" className="hover:text-white transition-colors">
+            <Link href="/privacy-policy" className="hover:text-white transition-colors">
               Privacy Policy
             </Link>
+            <span className="text-white/20 hidden md:inline">|</span>
+            <div className="flex items-center gap-4">
+              <Link href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                <Facebook className="h-4 w-4" />
+              </Link>
+              <Link href="https://www.instagram.com/varonaacademy/?igsh=MTc0a3RsMHdvdXBsZQ%3D%3D&utm_source=qr#" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                <Instagram className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>

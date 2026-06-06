@@ -39,17 +39,17 @@ export default function InstructorListCard({
       {/* Avatar */}
       <div className="relative flex-shrink-0">
         <Link href={`/instructors/${_id}`}>
-          <div className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-xl overflow-hidden bg-muted ring-2 ring-border/30 group-hover:ring-[#FF4667]/30 transition-all">
-            {avatar ? (
+          <div className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-xl overflow-hidden bg-muted ring-2 ring-border/30 group-hover:ring-[var(--primary)]/30 transition-all">
+            {avatar || instructor.photoUrl ? (
               <Image
-                src={avatar}
+                src={avatar || (instructor.photoUrl as string)}
                 alt={fullName}
                 fill
                 className="object-cover"
                 sizes="128px"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#FF4667]/10 to-purple-500/10 text-3xl font-bold text-[#FF4667]">
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--primary)]/10 to-purple-500/10 text-3xl font-bold text-[var(--primary)]">
                 {fullName.charAt(0)}
               </div>
             )}
@@ -58,7 +58,7 @@ export default function InstructorListCard({
         {/* Wishlist button */}
         <button
           aria-label="Add to wishlist"
-          className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-background border border-border shadow-sm hover:bg-[#FF4667] hover:text-white hover:border-[#FF4667] transition-all"
+          className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-background border border-border shadow-sm hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] transition-all"
         >
           <Heart className="h-3.5 w-3.5" />
         </button>
@@ -71,7 +71,7 @@ export default function InstructorListCard({
           <div>
             <Link
               href={`/instructors/${_id}`}
-              className="text-[16px] font-bold text-foreground hover:text-[#FF4667] transition-colors line-clamp-1"
+              className="text-[16px] font-bold text-foreground hover:text-[var(--primary)] transition-colors line-clamp-1"
             >
               {fullName}
             </Link>
@@ -105,7 +105,7 @@ export default function InstructorListCard({
           {/* Stats */}
           <div className="flex items-center gap-4 text-[13px] text-muted-foreground">
             <span className="flex items-center gap-1.5">
-              <BookOpen className="h-3.5 w-3.5 text-[#FF4667]" />
+              <BookOpen className="h-3.5 w-3.5 text-[var(--primary)]" />
               <span className="font-medium text-foreground">
                 {lessonCount}+
               </span>{" "}
@@ -127,7 +127,7 @@ export default function InstructorListCard({
               {specialties.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="px-2.5 py-0.5 rounded-full text-[11px] font-medium border border-border bg-muted/50 text-foreground/70 hover:border-[#FF4667]/40 hover:text-[#FF4667] transition-colors cursor-default"
+                  className="px-2.5 py-0.5 rounded-full text-[11px] font-medium border border-border bg-muted/50 text-foreground/70 hover:border-[var(--primary)]/40 hover:text-[var(--primary)] transition-colors cursor-default"
                 >
                   {tag}
                 </span>

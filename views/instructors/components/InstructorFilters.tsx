@@ -90,7 +90,7 @@ export default function InstructorFilters({
         {hasActiveFilters && (
           <button
             onClick={onClear}
-            className="flex items-center gap-1 text-sm text-[#FF4667] hover:text-[#E63E5C] font-medium transition-colors"
+            className="flex items-center gap-1 text-sm text-[var(--primary)] hover:text-[var(--primary)] font-medium transition-colors"
           >
             <X className="h-3.5 w-3.5" />
             Clear
@@ -108,7 +108,7 @@ export default function InstructorFilters({
                 id={`cat-${cat.name}`}
                 checked={selectedCategories.includes(cat.name)}
                 onChange={() => onCategoryChange(cat.name)}
-                className="h-4 w-4 rounded border-border accent-[#FF4667] cursor-pointer"
+                className="h-4 w-4 rounded border-border accent-[var(--primary)] cursor-pointer"
               />
               <label
                 htmlFor={`cat-${cat.name}`}
@@ -123,7 +123,7 @@ export default function InstructorFilters({
         {categories.length > INITIAL_SHOW && (
           <button
             onClick={() => setShowAllCategories(!showAllCategories)}
-            className="mt-3 text-[13px] font-semibold text-[#FF4667] hover:text-[#E63E5C] transition-colors"
+            className="mt-3 text-[13px] font-semibold text-[var(--primary)] hover:text-[var(--primary)] transition-colors"
           >
             {showAllCategories ? "See Less" : "See More"}
           </button>
@@ -140,7 +140,7 @@ export default function InstructorFilters({
                 id={`inst-${inst._id}`}
                 checked={selectedInstructors.includes(inst._id)}
                 onChange={() => onInstructorChange(inst._id)}
-                className="h-4 w-4 rounded border-border accent-[#FF4667] cursor-pointer"
+                className="h-4 w-4 rounded border-border accent-[var(--primary)] cursor-pointer"
               />
               <label
                 htmlFor={`inst-${inst._id}`}
@@ -157,7 +157,7 @@ export default function InstructorFilters({
         {instructors.length > INITIAL_SHOW && (
           <button
             onClick={() => setShowAllInstructors(!showAllInstructors)}
-            className="mt-3 text-[13px] font-semibold text-[#FF4667] hover:text-[#E63E5C] transition-colors"
+            className="mt-3 text-[13px] font-semibold text-[var(--primary)] hover:text-[var(--primary)] transition-colors"
           >
             {showAllInstructors ? "See Less" : "See More"}
           </button>
@@ -183,10 +183,10 @@ export default function InstructorFilters({
             className={cn(
               "w-full h-1.5 rounded-full appearance-none cursor-pointer",
               "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4",
-              "[&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#FF4667]",
+              "[&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)]",
               "[&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white",
               "[&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer",
-              "bg-gradient-to-r from-[#FF4667] to-border",
+              "bg-gradient-to-r from-[var(--primary)] to-border",
             )}
           />
         </div>
@@ -210,7 +210,7 @@ export default function InstructorFilters({
                 id={`lv-${lv.name}`}
                 checked={selectedLevels.includes(lv.name)}
                 onChange={() => onLevelChange(lv.name)}
-                className="h-4 w-4 rounded border-border accent-[#FF4667] cursor-pointer"
+                className="h-4 w-4 rounded border-border accent-[var(--primary)] cursor-pointer"
               />
               <label
                 htmlFor={`lv-${lv.name}`}

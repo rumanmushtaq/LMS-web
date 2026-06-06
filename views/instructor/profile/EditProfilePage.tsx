@@ -78,7 +78,7 @@ export default function EditProfilePage() {
     return (
       <InstructorLayout>
         <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-10 w-10 animate-spin text-[#FF4667]" />
+          <Loader2 className="h-10 w-10 animate-spin text-[var(--primary)]" />
         </div>
       </InstructorLayout>
     );
@@ -98,11 +98,11 @@ export default function EditProfilePage() {
             >
               <Home className="h-3.5 w-3.5" /> Home
             </Link>
-            <ChevronRight className="h-3.5 w-3.5 text-[#FF4667]" />
+            <ChevronRight className="h-3.5 w-3.5 text-[var(--primary)]" />
             <Link href="/instructor/profile" className="hover:text-foreground">
               My Profile
             </Link>
-            <ChevronRight className="h-3.5 w-3.5 text-[#FF4667]" />
+            <ChevronRight className="h-3.5 w-3.5 text-[var(--primary)]" />
             <span className="text-foreground font-medium">Edit Profile</span>
           </nav>
         </div>

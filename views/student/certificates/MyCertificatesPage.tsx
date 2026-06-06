@@ -33,7 +33,7 @@ export default function MyCertificatesPage() {
             >
               <Home className="h-3.5 w-3.5" /> Home
             </Link>
-            <ChevronRight className="h-3.5 w-3.5 text-[#FF4667]" />
+            <ChevronRight className="h-3.5 w-3.5 text-[var(--primary)]" />
             <span className="text-foreground font-medium">My Certificates</span>
           </nav>
         </div>
@@ -48,7 +48,7 @@ export default function MyCertificatesPage() {
 
         {loading ? (
           <div className="flex items-center justify-center min-h-[300px] bg-card rounded-2xl border border-border/60 shadow-sm">
-            <Loader2 className="h-10 w-10 animate-spin text-[#FF4667]" />
+            <Loader2 className="h-10 w-10 animate-spin text-[var(--primary)]" />
           </div>
         ) : error ? (
           <div className="flex items-center justify-center min-h-[300px] bg-card rounded-2xl border border-border/60 shadow-sm text-destructive font-medium">

@@ -28,6 +28,7 @@ export default function InstructorGridCard({
     reviewCount,
     lessonCount,
     totalDurationMinutes,
+    photoUrl,
   } = instructor;
 
   return (
@@ -35,16 +36,16 @@ export default function InstructorGridCard({
       {/* Avatar section */}
       <div className="relative overflow-hidden bg-muted aspect-[4/3]">
         <Link href={`/instructors/${_id}`}>
-          {avatar ? (
+          {avatar || photoUrl ? (
             <Image
-              src={avatar}
+              src={avatar || (photoUrl as string)}
               alt={fullName}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"
               sizes="(max-width: 768px) 100vw, 33vw"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#FF4667]/15 to-purple-600/15 text-5xl font-bold text-[#FF4667]">
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--primary)]/15 to-purple-600/15 text-5xl font-bold text-[var(--primary)]">
               {fullName.charAt(0)}
             </div>
           )}
@@ -52,7 +53,7 @@ export default function InstructorGridCard({
         {/* Wishlist button */}
         <button
           aria-label="Add to wishlist"
-          className="absolute top-3 left-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/90 backdrop-blur-sm border border-border/40 shadow-sm hover:bg-[#FF4667] hover:text-white hover:border-[#FF4667] transition-all"
+          className="absolute top-3 left-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/90 backdrop-blur-sm border border-border/40 shadow-sm hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] transition-all"
         >
           <Heart className="h-4 w-4" />
         </button>
@@ -73,12 +74,12 @@ export default function InstructorGridCard({
       <div className="p-4">
         <Link
           href={`/instructors/${_id}`}
-          className="text-[15px] font-bold text-foreground hover:text-[#FF4667] transition-colors line-clamp-1 block"
+          className="text-[15px] font-bold text-foreground hover:text-[var(--primary)] transition-colors line-clamp-1 block"
         >
           {fullName}
         </Link>
         {title && (
-          <p className="text-[13px] text-[#FF4667] font-medium mt-0.5 line-clamp-1">
+          <p className="text-[13px] text-[var(--primary)] font-medium mt-0.5 line-clamp-1">
             {title}
           </p>
         )}
@@ -86,7 +87,7 @@ export default function InstructorGridCard({
         {/* Stats */}
         <div className="mt-3 flex items-center gap-4 text-[12px] text-muted-foreground border-t border-border/50 pt-3">
           <span className="flex items-center gap-1.5">
-            <BookOpen className="h-3.5 w-3.5 text-[#FF4667]" />
+            <BookOpen className="h-3.5 w-3.5 text-[var(--primary)]" />
             <span className="font-semibold text-foreground">
               {lessonCount}+
             </span>{" "}

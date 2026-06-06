@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { Home, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import instructorsService, {
@@ -18,6 +19,10 @@ type ViewMode = "list" | "grid";
 const PAGE_SIZE = 9;
 
 export default function InstructorsPage() {
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get("search") || "";
+  const initialCategory = searchParams.get("category");
+
   // Data state
   const [instructors, setInstructors] = useState<InstructorProfile[]>([]);
   const [filterOptions, setFilterOptions] =
@@ -30,16 +35,33 @@ export default function InstructorsPage() {
   // UI state
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [currentPage, setCurrentPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [sortBy, setSortBy] = useState("newlyPublished");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    initialCategory ? [initialCategory] : [],
+  );
   const [selectedInstructors, setSelectedInstructors] = useState<string[]>([]);
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
 
   // Debounce search
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
+
+  // Sync state with URL params
+  useEffect(() => {
+    const s = searchParams.get("search") || "";
+    const c = searchParams.get("category");
+
+    setSearch(s);
+    setDebouncedSearch(s);
+    if (c) {
+      setSelectedCategories([c]);
+    } else {
+      setSelectedCategories([]);
+    }
+    setCurrentPage(1);
+  }, [searchParams]);
 
   // Load filter options once
   useEffect(() => {
@@ -164,7 +186,7 @@ export default function InstructorsPage() {
               <Home className="h-3.5 w-3.5" />
               Home
             </Link>
-            <ChevronRight className="h-3.5 w-3.5 text-[#FF4667]" />
+            <ChevronRight className="h-3.5 w-3.5 text-[var(--primary)]" />
             <span className="text-foreground font-medium">Instructor List</span>
           </nav>
         </div>
@@ -216,14 +238,14 @@ export default function InstructorsPage() {
             {/* Content: loading / error / empty / list */}
             {loading ? (
               <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="h-10 w-10 animate-spin text-[#FF4667]" />
+                <Loader2 className="h-10 w-10 animate-spin text-[var(--primary)]" />
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
                 <p className="text-destructive font-medium">{error}</p>
                 <button
                   onClick={fetchInstructors}
-                  className="px-5 py-2 rounded-full bg-[#FF4667] text-white text-sm font-medium hover:bg-[#E63E5C] transition-colors"
+                  className="px-5 py-2 rounded-full bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary)] transition-colors"
                 >
                   Try Again
                 </button>
@@ -239,7 +261,7 @@ export default function InstructorsPage() {
                 </p>
                 <button
                   onClick={handleClear}
-                  className="mt-2 px-6 py-2 rounded-full bg-[#FF4667] text-white text-sm font-medium hover:bg-[#E63E5C] transition-colors"
+                  className="mt-2 px-6 py-2 rounded-full bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary)] transition-colors"
                 >
                   Clear Filters
                 </button>
