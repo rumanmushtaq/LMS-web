@@ -3,11 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Moon, ShoppingCart, Sun, Menu, X } from "lucide-react";
+import { ChevronDown, Moon, ShoppingCart, Sun, Menu, X, Bell, CheckCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useThemeStore } from "@/store/theme";
 import { useAuthStore } from "@/store/auth";
+import { useNotificationStore } from "@/store/notification";
+import { useChatStore } from "@/store/chat";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -18,9 +21,19 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const notifications = useNotificationStore((state) => state.notifications);
+  const markAsRead = useNotificationStore((state) => state.markAsRead);
+  const markAllAsRead = useNotificationStore((state) => state.markAllAsRead);
+  const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
+  const unreadCount = useNotificationStore((state) => state.unreadCount);
+  const openChat = useChatStore((state) => state.openChat);
+
   // Prevent hydration mismatch
   useEffect(() => {
     setMounted(true);
+    if (isAuthenticated()) {
+      fetchNotifications();
+    }
   }, []);
 
   const isAuthPage =
@@ -138,6 +151,65 @@ const Header = () => {
                 <Moon className="h-[1.2rem] w-[1.2rem]" />
               )}
             </Button>
+          )}
+
+          {/* Notifications */}
+          {isAuth && mounted && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className="relative cursor-pointer group">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted/50 transition-colors group-hover:bg-muted">
+                    <Bell className="h-5 w-5 text-foreground/70 group-hover:text-foreground" />
+                  </div>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-background">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-0">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <h4 className="font-semibold text-sm">Notifications</h4>
+                  {unreadCount > 0 && (
+                    <Button variant="ghost" size="sm" onClick={markAllAsRead} className="h-auto p-0 text-xs text-primary hover:bg-transparent">
+                      <CheckCheck className="mr-1 h-3 w-3" /> Mark all read
+                    </Button>
+                  )}
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">No notifications</div>
+                  ) : (
+                    <div className="flex flex-col">
+                      {notifications.map((notification) => (
+                        <div
+                          key={notification._id}
+                          className={cn("p-4 border-b last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors", !notification.read && "bg-primary/5")}
+                          onClick={() => {
+                            markAsRead(notification._id);
+                            if (notification.type === 'chat_message' && notification.senderId) {
+                              openChat(notification.senderId, "New Message");
+                            }
+                          }}
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-medium text-sm">{notification.title}</span>
+                            <span className="text-[10px] text-muted-foreground">{new Date(notification.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-2">{notification.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="p-2 border-t bg-muted/20">
+                  <Link href="/notifications" className="block w-full text-center text-sm font-medium text-primary hover:underline py-1 transition-all">
+                    View all notifications
+                  </Link>
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
 
           {/* Cart */}

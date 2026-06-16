@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff, Mail, ChevronRight } from "lucide-react";
+import { Eye, EyeOff, Mail, ChevronRight, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ import { useSearchParams } from "next/navigation";
 import useLogin from "./useLogin";
 
 const LoginForm = () => {
-  const { form, onSubmit, showPassword, setShowPassword, loading, error } =
+  const { form, onSubmit, showPassword, setShowPassword, error } =
     useLogin();
   const searchParams = useSearchParams();
   const messageParam = searchParams.get("message");
@@ -175,9 +175,10 @@ const LoginForm = () => {
           {/* Submit */}
           <Button
             type="submit"
-            className="w-full h-12 text-base font-semibold rounded-full gap-1"
+            className="w-full h-12 text-base font-semibold rounded-full gap-1 cursor-pointer"
+            disabled={form.formState.isSubmitting}
           >
-            Login <ChevronRight className="h-4 w-4" />
+            Login {form.formState.isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" />: <ChevronRight className="h-4 w-4" />} 
           </Button>
         </form>
       </Form>

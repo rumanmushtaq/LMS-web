@@ -21,13 +21,42 @@ import {
   experience,
   certBadges,
 } from "@/constants/instructorConstants";
+import { useChatStore } from "@/store/chat";
+import { useAuthStore } from "@/store/auth";
+import { MessageCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface InstructorDetailPageProps {
   instructorSlug: string;
 }
 
 export default function InstructorDetailPage({ instructorSlug }: InstructorDetailPageProps) {
+  const router = useRouter();
   const { instructor: data, loading, error } = useInstructorDetail(instructorSlug);
+  const { openChat } = useChatStore();
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated());
+  const [hydrated, setHydrated] = React.useState(false);
+
+  // Wait for Zustand to rehydrate from localStorage before checking auth.
+  // Without this, isAuthenticated() returns false on first render even for
+  // logged-in users, causing a spurious redirect.
+  React.useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (hydrated && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [hydrated, isAuthenticated, router]);
+
+  if (!hydrated || !isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-gray-400 text-sm">Loading...</div>
+      </div>
+    );
+  }
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading profile...</div>;
@@ -169,9 +198,18 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
 
               {/* Info */}
               <div className="flex flex-1 flex-col min-w-0 px-2 py-5 pr-6">
-                <h2 style={{ fontSize: 21, fontWeight: 800, letterSpacing: "-0.022em", color: "#0d1117", lineHeight: 1.2, marginBottom: 6 }}>
-                  {fullName}
-                </h2>
+                <div className="flex justify-between items-start mb-6">
+                  <h2 style={{ fontSize: 21, fontWeight: 800, letterSpacing: "-0.022em", color: "#0d1117", lineHeight: 1.2 }}>
+                    {fullName}
+                  </h2>
+                  <button
+                    onClick={() => openChat(data?._id, fullName)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f66962] text-white text-xs font-semibold rounded-lg hover:bg-[#e04d47] transition-colors"
+                  >
+                    <MessageCircle size={14} />
+                    Chat
+                  </button>
+                </div>
 
                 {/* Title + Rating row */}
                 <div className="flex flex-wrap items-center gap-2 mb-4" style={{ fontSize: 13 }}>

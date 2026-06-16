@@ -37,6 +37,10 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: null,
 
         login: (user, accessToken, refreshToken) => {
+
+          console.log("login", user, accessToken, refreshToken);
+
+          
           // Persist tokens in cookies so axios interceptor can read them
           Cookies.set("access_token", accessToken, { expires: 1 }); // 1 day
           Cookies.set("refresh_token", refreshToken, { expires: 7 }); // 7 days
