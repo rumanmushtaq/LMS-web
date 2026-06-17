@@ -43,6 +43,17 @@ const apiEndpoints = {
   Categories: {
     LIST: "/api/v1/categories",
   },
+  Chat: {
+    CONVERSATIONS: "/api/v1/chat/conversations",
+    MESSAGES: (id: string) => `/api/v1/chat/conversations/${id}/messages`,
+    BLOCK: (id: string) => `/api/v1/chat/conversations/${id}/block`,
+    FLAG_MESSAGE: (id: string) => `/api/v1/chat/messages/${id}/flag`,
+  },
+  Notifications: {
+    ALL: "/api/v1/notifications",
+    READ_ALL: "/api/v1/notifications/read-all",
+    READ_SINGLE: (id: string) => `/api/v1/notifications/${id}/read`,
+  },
 };
 
 export default apiEndpoints;

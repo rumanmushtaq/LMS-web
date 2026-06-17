@@ -21,6 +21,7 @@ export default function InstructorGridCard({
 }: InstructorGridCardProps) {
   const {
     _id,
+    slug,
     fullName,
     title,
     avatar,
@@ -31,11 +32,13 @@ export default function InstructorGridCard({
     photoUrl,
   } = instructor;
 
+  const targetUrl = `/instructors/${slug || _id}`;
+
   return (
     <div className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:shadow-xl hover:shadow-black/8 hover:border-border hover:-translate-y-1 transition-all duration-300">
       {/* Avatar section */}
       <div className="relative overflow-hidden bg-muted aspect-[4/3]">
-        <Link href={`/instructors/${_id}`}>
+        <Link href={targetUrl}>
           {avatar || photoUrl ? (
             <Image
               src={avatar || (photoUrl as string)}
@@ -73,7 +76,7 @@ export default function InstructorGridCard({
       {/* Content */}
       <div className="p-4">
         <Link
-          href={`/instructors/${_id}`}
+          href={targetUrl}
           className="text-[15px] font-bold text-foreground hover:text-[var(--primary)] transition-colors line-clamp-1 block"
         >
           {fullName}

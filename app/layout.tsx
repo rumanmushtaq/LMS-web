@@ -6,6 +6,7 @@ import Header from "@/views/header/headerPage";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { Toaster } from "@/components/ui/sonner";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default function RootLayout({
             {children}
             <Footer />
             <Toaster />
+            <ChatWidget />
           </QueryProvider>
         </ThemeProvider>
       </body>

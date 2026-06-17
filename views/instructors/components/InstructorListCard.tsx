@@ -22,6 +22,7 @@ export default function InstructorListCard({
 }: InstructorListCardProps) {
   const {
     _id,
+    slug,
     fullName,
     title,
     bio,
@@ -34,11 +35,13 @@ export default function InstructorListCard({
     specialties,
   } = instructor;
 
+  const targetUrl = `/instructors/${slug || _id}`;
+
   return (
     <div className="group flex gap-5 rounded-2xl border border-border/60 bg-card p-4 sm:p-5 hover:shadow-lg hover:shadow-black/5 hover:border-border transition-all duration-300">
       {/* Avatar */}
       <div className="relative flex-shrink-0">
-        <Link href={`/instructors/${_id}`}>
+        <Link href={targetUrl}>
           <div className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-xl overflow-hidden bg-muted ring-2 ring-border/30 group-hover:ring-[var(--primary)]/30 transition-all">
             {avatar || instructor.photoUrl ? (
               <Image
@@ -70,7 +73,7 @@ export default function InstructorListCard({
         <div className="flex items-start justify-between gap-2 flex-wrap">
           <div>
             <Link
-              href={`/instructors/${_id}`}
+              href={targetUrl}
               className="text-[16px] font-bold text-foreground hover:text-[var(--primary)] transition-colors line-clamp-1"
             >
               {fullName}
