@@ -85,31 +85,16 @@ export default function InstructorProfilePage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-gradient-to-r from-rose-50 via-white to-blue-50 dark:from-rose-950/20 dark:via-background dark:to-blue-950/20 border-b border-border/50">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,70,103,0.08),_transparent_60%)]" />
-        <div className="container mx-auto px-6 py-8 text-center relative">
-          <h1 className="text-3xl font-extrabold text-foreground tracking-tight mb-3">
-            Instructor Profile
-          </h1>
-          <nav className="flex items-center justify-center gap-2 text-[14px] text-muted-foreground">
-            <Link
-              href="/instructor/dashboard"
-              className="flex items-center gap-1 hover:text-foreground transition-colors"
-            >
-              <Home className="h-3.5 w-3.5" />
-              Home
-            </Link>
-            <ChevronRight className="h-3.5 w-3.5 text-[var(--primary)]" />
-            <span className="text-foreground font-medium">My Profile</span>
-          </nav>
-        </div>
-      </section>
-
       <InstructorLayout>
         <div className="space-y-6 pb-12">
           {/* Banner/Header */}
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-primary/90 to-primary border border-border/60 p-6 sm:p-8 shadow-lg shadow-primary/20 flex flex-col md:flex-row items-center gap-6">
-            <div className="relative h-24 w-24 sm:h-32 sm:w-32 rounded-2xl overflow-hidden bg-background border-4 border-primary-foreground/20 shrink-0">
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 border border-border/60 p-6 sm:p-8 shadow-sm flex flex-col md:flex-row items-center gap-6">
+            {/* Abstract circles decoration inside banner */}
+            <div className="absolute -top-24 -right-12 h-[400px] w-[400px] rounded-full bg-white/10 pointer-events-none" />
+            <div className="absolute -bottom-32 right-32 h-[350px] w-[350px] rounded-full bg-white/10 pointer-events-none" />
+            <div className="absolute top-20 right-64 h-48 w-48 rounded-full bg-white/5 pointer-events-none" />
+
+            <div className="relative h-24 w-24 sm:h-32 sm:w-32 rounded-2xl overflow-hidden bg-background border-4 border-primary-foreground/20 shrink-0 z-10">
               {kycData?.avatar ? (
                 <Image
                   src={kycData.avatar}
@@ -127,7 +112,7 @@ export default function InstructorProfilePage() {
               </div>
             </div>
 
-            <div className="flex-1 text-center md:text-left">
+            <div className="flex-1 text-center md:text-left z-10">
               <div className="flex items-center justify-center md:justify-start gap-3">
                 <h2 className="text-2xl sm:text-3xl font-bold text-primary-foreground">
                   {fullName}
@@ -161,7 +146,7 @@ export default function InstructorProfilePage() {
             </div>
 
             {isEditing && (
-              <div className="flex gap-3">
+              <div className="flex gap-3 z-10">
                 <Button
                   onClick={toggleEdit}
                   variant="ghost"
@@ -212,67 +197,90 @@ export default function InstructorProfilePage() {
               </div>
 
               <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <InputField
-                      label="First Name"
-                      name="firstName"
-                      control={control}
-                      isEditing={isEditing}
-                      defaultValue={firstName}
-                    />
-                    <InputField
-                      label="Last Name"
-                      name="lastName"
-                      control={control}
-                      isEditing={isEditing}
-                      defaultValue={lastName}
-                    />
-                    <div>
-                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">
-                        Email Address
-                      </label>
-                      <p className="text-sm font-semibold mt-1">{email}</p>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <InputField
+                    label="First Name"
+                    name="firstName"
+                    control={control}
+                    isEditing={isEditing}
+                    defaultValue={firstName}
+                  />
+                  <InputField
+                    label="Last Name"
+                    name="lastName"
+                    control={control}
+                    isEditing={isEditing}
+                    defaultValue={lastName}
+                  />
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">
+                      Registration Date
+                    </label>
+                    <p className="text-sm font-semibold mt-1">
+                      {createdAt
+                        ? new Date(createdAt).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })
+                        : "-"}
+                    </p>
                   </div>
 
-                  <div className="space-y-4">
-                    <InputField
-                      label="Phone Number"
-                      name="phone"
-                      control={control}
-                      isEditing={isEditing}
-                      defaultValue={kycData?.phone || "-"}
-                    />
-                    <SelectField
-                      label="Gender"
-                      name="gender"
-                      control={control}
-                      isEditing={isEditing}
-                      defaultValue={kycData?.gender || "-"}
-                      options={[
-                        { label: "Male", value: "male" },
-                        { label: "Female", value: "female" },
-                        { label: "Other", value: "other" },
-                      ]}
-                    />
-                    <div>
-                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">
-                        Registration Date
-                      </label>
-                      <p className="text-sm font-semibold mt-1">
-                        {createdAt
-                          ? new Date(createdAt).toLocaleDateString("en-GB", {
-                              day: "2-digit",
-                              month: "long",
-                              year: "numeric",
-                            })
-                          : "-"}
-                      </p>
-                    </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">
+                      User Name
+                    </label>
+                    <p className="text-sm font-semibold mt-1">{email.split("@")[0]}</p>
+                  </div>
+                  <InputField
+                    label="Phone Number"
+                    name="phone"
+                    control={control}
+                    isEditing={isEditing}
+                    defaultValue={kycData?.phone || "-"}
+                  />
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">
+                      Email Address
+                    </label>
+                    <p className="text-sm font-semibold mt-1">{email}</p>
                   </div>
 
-                  <div className="md:col-span-2">
+                  <SelectField
+                    label="Gender"
+                    name="gender"
+                    control={control}
+                    isEditing={isEditing}
+                    defaultValue={kycData?.gender || "-"}
+                    options={[
+                      { label: "Male", value: "male" },
+                      { label: "Female", value: "female" },
+                      { label: "Other", value: "other" },
+                    ]}
+                  />
+                  <InputField
+                    label="DOB"
+                    name="dob"
+                    control={control}
+                    isEditing={isEditing}
+                    defaultValue={kycData?.dob ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(kycData.dob)) : "-"}
+                  />
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">
+                      Age
+                    </label>
+                    <p className="text-sm font-semibold mt-1">
+                      {kycData?.dob
+                        ? String(new Date().getFullYear() - new Date(kycData.dob).getFullYear())
+                        : "-"}
+                    </p>
+                  </div>
+
+                  <div className="md:col-span-3">
                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 flex items-center gap-2 mb-2">
                       <BookOpen className="h-3.5 w-3.5" />
                       Professional Bio

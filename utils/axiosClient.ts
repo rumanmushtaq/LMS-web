@@ -6,10 +6,25 @@ import axios, {
 } from "axios";
 import Cookies from "js-cookie";
 import apiEndpoints from "./apiConfig";
+import { useAuthStore } from "@/store/auth";
 
 interface ErrorResponseData {
   message?: string; // Define the `message` property as optional
 }
+
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 export const HTTP_CLIENT_INSTANCE: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -20,7 +35,10 @@ export const setupAxios = () => {
   HTTP_CLIENT_INSTANCE.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
       // const authToken = store.getState()?.user?.accessToken;
-      const accessToken = Cookies.get("access_token");
+      let accessToken = Cookies.get("access_token");
+      if (!accessToken) {
+        accessToken = useAuthStore.getState().accessToken || undefined;
+      }
       const refreshToken = Cookies.get("refresh_token");
       const { LOGIN } = apiEndpoints.Auth;
       const publicEndpoints = [LOGIN];
@@ -28,7 +46,7 @@ export const setupAxios = () => {
       const isPublicEndpoint = publicEndpoints.some((endpoint) =>
         config.url?.includes(endpoint),
       );
-      if (accessToken && refreshToken && !isPublicEndpoint) {
+      if (accessToken && !isPublicEndpoint) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
       if (!(config.data instanceof FormData)) {
@@ -53,26 +71,90 @@ export const setupAxios = () => {
     },
     (error: AxiosError<ErrorResponseData>) => {
       // console.error("Response error: ", error); // Suppressed to prevent Next.js Error overlay
+      const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
       if (error.response) {
         const status = error.response.status;
         const message = error.response.data?.message || "An error occurred.";
         const isAuthRoute =
-          error.config?.url?.includes("/auth/login") ||
-          error.config?.url?.includes("/auth/signup") ||
-          error.config?.url?.includes("/auth/verify");
+          originalRequest.url?.includes("/auth/login") ||
+          originalRequest.url?.includes("/auth/signup") ||
+          originalRequest.url?.includes("/auth/verify") ||
+          originalRequest.url?.includes("/auth/refresh");
 
         if (status === 401 && !isAuthRoute) {
-          // Unauthorized error: Redirect to login
-          // toast.error("Session expired. Please log in again.");
+          if (!originalRequest._retry) {
+            if (isRefreshing) {
+              return new Promise(function (resolve, reject) {
+                failedQueue.push({ resolve, reject });
+              })
+                .then((token) => {
+                  originalRequest.headers.Authorization = `Bearer ${token}`;
+                  return HTTP_CLIENT_INSTANCE(originalRequest);
+                })
+                .catch((err) => {
+                  return Promise.reject(err);
+                });
+            }
 
-          console.log("Session expired. Please log in again.");
-          if (typeof window !== "undefined") {
-            const currentPath = window.location.pathname;
-            if (currentPath !== "/login" && currentPath !== "/signup") {
-              window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            const refreshToken = Cookies.get("refresh_token");
+            if (refreshToken) {
+              return axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}${apiEndpoints.Auth.REFRESH_TOKEN}`,
+                { refreshToken },
+                { headers: { "Content-Type": "application/json" } }
+              )
+              .then((response) => {
+                const newAccessToken = response.data?.data?.accessToken || response.data?.accessToken;
+                const newRefreshToken = response.data?.data?.refreshToken || response.data?.refreshToken;
+                
+                if (newAccessToken) {
+                  Cookies.set("access_token", newAccessToken, { expires: 1 });
+                  if (newRefreshToken) {
+                    Cookies.set("refresh_token", newRefreshToken, { expires: 7 });
+                  }
+                  
+                  const authStore = useAuthStore.getState();
+                  if (authStore.user) {
+                    authStore.login(authStore.user, newAccessToken, newRefreshToken || refreshToken);
+                  }
+
+                  processQueue(null, newAccessToken);
+                  originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                  return HTTP_CLIENT_INSTANCE(originalRequest);
+                }
+              })
+              .catch((refreshError) => {
+                processQueue(refreshError, null);
+                Cookies.remove("access_token");
+                Cookies.remove("refresh_token");
+                if (typeof window !== "undefined") {
+                  const currentPath = window.location.pathname;
+                  if (currentPath !== "/login" && currentPath !== "/signup") {
+                    window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+                  } else {
+                    window.location.href = "/login";
+                  }
+                }
+                return Promise.reject(refreshError);
+              })
+              .finally(() => {
+                isRefreshing = false;
+              });
             } else {
-              window.location.href = "/login";
+              Cookies.remove("access_token");
+              Cookies.remove("refresh_token");
+              if (typeof window !== "undefined") {
+                const currentPath = window.location.pathname;
+                if (currentPath !== "/login" && currentPath !== "/signup") {
+                  window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+                } else {
+                  window.location.href = "/login";
+                }
+              }
             }
           }
         } else if (status >= 400 && status < 500 && status !== 401) {

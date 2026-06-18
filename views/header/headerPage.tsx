@@ -14,7 +14,7 @@ import { motion } from "framer-motion";
 const Header = () => {
   const pathname = usePathname();
   const { theme, toggleTheme } = useThemeStore();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, logout, accessToken } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -22,6 +22,18 @@ const Header = () => {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Sync auth state with cookies — if cookie expired but Zustand state is stale, log out
+  useEffect(() => {
+    if (!mounted) return;
+    const cookieToken = typeof window !== "undefined"
+      ? document.cookie.split(";").find((c) => c.trim().startsWith("access_token="))
+      : null;
+    if (!cookieToken && accessToken) {
+      // Stale Zustand state — cookie is gone, clear the store
+      logout();
+    }
+  }, [mounted, accessToken, logout]);
 
   const isAuthPage =
     pathname.includes("/login") ||
@@ -146,6 +158,13 @@ const Header = () => {
               <div className="w-[180px] h-11 animate-pulse bg-muted rounded-full" />
             ) : isAuth ? (
               <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => logout()}
+                  className="h-11 px-8 rounded-full font-bold border-border/60 hover:bg-muted bg-muted/30"
+                >
+                  Sign Out
+                </Button>
                 <Link
                   href={
                     user?.role === "tutor"
@@ -153,25 +172,10 @@ const Header = () => {
                       : "/student/profile"
                   }
                 >
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-muted transition-colors cursor-pointer border border-border/50">
-                    <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-xs">
-                      {user?.fullName
-                        ?.split(" ")[0]
-                        ?.charAt(0)
-                        ?.toUpperCase() || "U"}
-                    </div>
-                    <span className="text-sm font-semibold max-w-[100px] truncate">
-                      {user?.fullName?.split(" ")[0] || "User"}
-                    </span>
-                  </div>
+                  <Button className="h-11 px-8 rounded-full font-bold bg-[var(--primary)] hover:bg-[var(--primary)] text-white shadow-lg shadow-primary/20 cursor-pointer">
+                    Profile
+                  </Button>
                 </Link>
-                <Button
-                  variant="outline"
-                  onClick={() => logout()}
-                  className="h-11 rounded-full font-bold border-border/60 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive cursor-pointer"
-                >
-                  Logout
-                </Button>
               </div>
             ) : (
               <>
@@ -233,6 +237,16 @@ const Header = () => {
                 <div className="w-full h-12 animate-pulse bg-muted rounded-full" />
               ) : isAuth ? (
                 <>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      logout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="h-12 w-full rounded-full font-bold"
+                  >
+                    Sign Out
+                  </Button>
                   <Link
                     href={
                       user?.role === "tutor"
@@ -242,28 +256,10 @@ const Header = () => {
                     className="w-full"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/30 border border-border/50">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-sm">
-                        {user?.fullName
-                          ?.split(" ")[0]
-                          ?.charAt(0)
-                          ?.toUpperCase() || "U"}
-                      </div>
-                      <span className="text-base font-semibold truncate">
-                        {user?.fullName?.split(" ")[0] || "User"}
-                      </span>
-                    </div>
+                    <Button className="h-12 w-full rounded-full font-bold bg-[var(--primary)] text-white">
+                      Profile
+                    </Button>
                   </Link>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      logout();
-                      setIsMenuOpen(false);
-                    }}
-                    className="h-12 w-full rounded-full font-bold border-border/60 hover:bg-destructive hover:text-destructive-foreground"
-                  >
-                    Logout
-                  </Button>
                 </>
               ) : (
                 <>

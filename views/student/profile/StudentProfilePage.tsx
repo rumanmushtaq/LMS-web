@@ -70,26 +70,7 @@ export default function StudentProfilePage() {
 
   return (
     <>
-      {/* Top breadcrumb hero outside layout if we want, or put everything in layout. The screenshot has a hero for "My Profile". */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-rose-50 via-white to-blue-50 dark:from-rose-950/20 dark:via-background dark:to-blue-950/20 border-b border-border/50">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,70,103,0.08),_transparent_60%)]" />
-        <div className="container mx-auto px-6 py-10 sm:py-14 text-center relative">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-3">
-            My Profile
-          </h1>
-          <nav className="flex items-center justify-center gap-2 text-[14px] text-muted-foreground">
-            <Link
-              href="/"
-              className="flex items-center gap-1 hover:text-foreground transition-colors"
-            >
-              <Home className="h-3.5 w-3.5" />
-              Home
-            </Link>
-            <ChevronRight className="h-3.5 w-3.5 text-[var(--primary)]" />
-            <span className="text-foreground font-medium">My Profile</span>
-          </nav>
-        </div>
-      </section>
+
 
       <StudentLayout>
         {/* Banner with Profile Box */}
@@ -137,9 +118,9 @@ export default function StudentProfilePage() {
           </div>
 
           {/* Abstract circles decoration inside banner */}
-          <div className="absolute -top-10 -right-10 h-64 w-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-10 right-20 h-40 w-40 rounded-full bg-blue-400/20 blur-xl pointer-events-none" />
-          <div className="absolute top-10 right-40 h-20 w-20 rounded-full bg-indigo-500/30 blur-lg pointer-events-none" />
+          <div className="absolute -top-24 -right-12 h-[400px] w-[400px] rounded-full bg-white/10 pointer-events-none" />
+          <div className="absolute -bottom-32 right-32 h-[350px] w-[350px] rounded-full bg-white/10 pointer-events-none" />
+          <div className="absolute top-20 right-64 h-48 w-48 rounded-full bg-white/5 pointer-events-none" />
         </div>
 
         {/* Profile Card */}
@@ -154,7 +135,7 @@ export default function StudentProfilePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-y-8 gap-x-12">
             {/* Field block */}
             <div className="space-y-1.5">
               <p className="text-[14px] font-bold text-foreground">
@@ -229,7 +210,7 @@ export default function StudentProfilePage() {
             </div>
 
             {/* Full width Bio */}
-            <div className="md:col-span-2 space-y-2 mt-2">
+            <div className="md:col-span-3 space-y-2 mt-2">
               <p className="text-[14px] font-bold text-foreground">Bio</p>
               <p className="text-[14px] text-muted-foreground leading-relaxed">
                 {kycData?.bio || "No bio added yet."}

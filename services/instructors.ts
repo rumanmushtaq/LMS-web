@@ -9,6 +9,8 @@ export interface InstructorProfile {
   email: string;
   avatar: string | null;
   photoUrl?: string | null;
+  introVideoUrl?: string | null;
+  video?: string | null;
   title: string | null;
   bio: string | null;
   specialties: string[];
@@ -21,6 +23,32 @@ export interface InstructorProfile {
   studentCount: number;
   hourlyRate: number | null;
   createdAt: string;
+  // Detail-only fields
+  aboutMe?: string | null;
+  education?: { degree: string; institution: string; period: string }[];
+  experience?: { role: string; company: string; period: string }[];
+  certifications?: string[];
+  social?: {
+    facebook?: string; instagram?: string; twitter?: string;
+    youtube?: string; linkedin?: string;
+  };
+  phone?: string | null;
+  address?: string | null;
+  availability?: AvailabilitySlot[];
+  timezone?: string | null;
+  country?: string | null;
+  nativeLanguage?: string | null;
+  spokenLanguages?: string[];
+  additionalLanguages?: string[];
+  pricePerHour?: number | null;
+  courses?: any[];
+  slug?: string;
+}
+
+export interface AvailabilitySlot {
+  day: string;
+  startTime: string;
+  endTime: string;
 }
 
 export interface InstructorsListResponse {

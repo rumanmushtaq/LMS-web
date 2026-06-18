@@ -56,7 +56,7 @@ export default function TaxFormsPage() {
   const isUS = !!selectedUSPerson;
   const formName = isUS ? "W-9" : "W-8BEN";
   const downloadLink = isUS ? "/tax-forms/fw9.pdf" : "/tax-forms/fw8ben.pdf";
-  
+
   // State for the uploaded PDF
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -91,7 +91,7 @@ export default function TaxFormsPage() {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
     const selectedFile = e.target.files[0];
-    
+
     if (selectedFile.type !== "application/pdf") {
       toast.error("Please upload a valid PDF document.");
       return;
@@ -201,7 +201,7 @@ export default function TaxFormsPage() {
       }
 
       setUploadedFile(selectedFile);
-      
+
       // Simulate high-end "Scanning" feel
       await new Promise((r) => setTimeout(r, 1500));
       setIsAnalyzing(false);
@@ -301,8 +301,14 @@ export default function TaxFormsPage() {
         formData,
         { headers: { "Content-Type": "multipart/form-data" } },
       );
-      const pdfUrl = uploadRes.data.data.url;
+      // Backend returns { url: '...' } directly, handle both nested and flat shapes
+      const pdfUrl = uploadRes.data?.data?.url || uploadRes.data?.url;
 
+      if (!pdfUrl) {
+        throw new Error("Upload succeeded but no URL was returned.");
+      }
+
+      console.log("selectedUSPerson", selectedUSPerson)
       // 2. Submit to onboarding endpoint
       await axiosInstance.post(apiEndpoints.Onboarding.TAX_FORM, {
         taxFormUrl: pdfUrl,
@@ -311,9 +317,10 @@ export default function TaxFormsPage() {
 
       toast.success("Tax form signed and submitted successfully!");
       router.push("/onboarding/kyc");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Submission failed. Please try again.");
+      const msg = error?.response?.data?.message || error?.message || "Submission failed. Please try again.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -367,7 +374,7 @@ export default function TaxFormsPage() {
           {/* Right Column: Workflow Steps */}
           <div className="lg:w-8/12">
             <div className="space-y-6">
-              
+
               {/* Step 0: Residency Status Selection */}
               {selectedUSPerson === null && (
                 <motion.div
@@ -485,7 +492,7 @@ export default function TaxFormsPage() {
                             <p className="text-sm text-muted-foreground mb-5">
                               Draw your signature below. We will automatically place it in the correct signature field of your uploaded PDF.
                             </p>
-                            
+
                             {!signatureDataUrl ? (
                               <div className="bg-muted/30 p-6 rounded-2xl border border-border">
                                 <SignaturePad
@@ -529,7 +536,7 @@ export default function TaxFormsPage() {
                       </p>
                     </div>
                   ) : finalPdfUrl && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="rounded-3xl bg-card border-2 border-primary/30 p-6 sm:p-8 shadow-2xl"

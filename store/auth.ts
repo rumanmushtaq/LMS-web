@@ -50,8 +50,17 @@ export const useAuthStore = create<AuthState>()(
         },
 
         getUser: () => get().user,
-        getToken: () => get().accessToken,
-        isAuthenticated: () => !!get().accessToken,
+        getToken: () => {
+          // Cookie is the true source of truth (expires in sync with backend)
+          return Cookies.get("access_token") || get().accessToken;
+        },
+        isAuthenticated: () => {
+          // Both the cookie AND the store token must exist.
+          // Cookie expiry is the real indicator — if it's gone, session is over.
+          const cookieToken = Cookies.get("access_token");
+          const storeToken = get().accessToken;
+          return !!(cookieToken && storeToken);
+        },
       }),
       {
         name: "lms-auth-storage",
