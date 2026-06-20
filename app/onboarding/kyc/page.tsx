@@ -60,6 +60,7 @@ import axiosInstance from "@/utils/axiosInstance";
 import { useAuthStore } from "@/store/auth";
 import { toast } from "sonner";
 import apiEndpoints from "@/utils/apiConfig";
+import categoriesService, { CategoryItem } from "@/services/categories";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -71,6 +72,7 @@ const KYCPage = () => {
   const [isClient, setIsClient] = useState(false);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
 
   // Comprehensive Form State
   const [formData, setFormData] = useState({
@@ -139,6 +141,13 @@ const KYCPage = () => {
   const router = useRouter();
   const token = useAuthStore((state) => state.accessToken);
   const authUser = useAuthStore((state) => state.user);
+
+  useEffect(() => {
+    categoriesService
+      .getCategories()
+      .then((data) => { if (data && data.length > 0) setCategories(data); })
+      .catch((err) => console.error("Failed to load categories", err));
+  }, []);
 
   useEffect(() => {
     setIsClient(true);
@@ -824,26 +833,29 @@ const KYCPage = () => {
                     <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
                       Academic Category
                     </Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      {[
-                        "Academic",
-                        "Music",
-                        "Coding",
-                        "Design",
-                        "Business",
-                        "Language",
-                      ].map((cat) => (
-                        <button
-                          key={cat}
-                          onClick={() =>
-                            setFormData({ ...formData, category: cat })
-                          }
-                          className={`py-4 rounded-2xl border-2 font-bold text-xs transition-all ${formData.category === cat ? "border-primary bg-primary/5 text-primary shadow-sm" : "border-border bg-card hover:border-primary/30 text-foreground"}`}
-                        >
-                          {cat}
-                        </button>
-                      ))}
-                    </div>
+                    {categories.length === 0 ? (
+                      <div className="flex items-center gap-3 py-5 px-4 rounded-2xl border-2 border-dashed border-border">
+                        <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Loading categories...</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-3">
+                        {categories.map((cat) => (
+                          <button
+                            key={cat._id}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, category: cat.title })}
+                            className={`px-5 py-3 rounded-2xl border-2 font-bold text-sm transition-all duration-200 ${
+                              formData.category === cat.title
+                                ? "border-primary bg-primary/5 text-primary shadow-sm"
+                                : "border-border bg-card hover:border-primary/40 text-foreground"
+                            }`}
+                          >
+                            {cat.title}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
