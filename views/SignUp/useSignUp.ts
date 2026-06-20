@@ -62,17 +62,17 @@ const useSignup = () => {
       // Access tokens and user from the 'data' wrapper in the response
       const responseData = res?.data;
 
-      // If tokens are returned (for Tutors), log them in and redirect to tax forms
+      // If tokens are returned (for Tutors), log them in and redirect to contract page
       if (responseData?.tokens && responseData?.user) {
         console.log(
-          "Tutor detected, logging in and redirecting to tax forms...",
+          "Tutor detected, logging in and redirecting to contract page...",
         );
         login(
           responseData.user,
           responseData.tokens.accessToken,
           responseData.tokens.refreshToken,
         );
-        router.push("/onboarding/tax-forms");
+        router.push("/onboarding/contract");
         return;
       }
       console.log("No tokens in response, redirecting to check-email...");

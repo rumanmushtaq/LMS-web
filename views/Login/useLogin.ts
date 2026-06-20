@@ -6,10 +6,10 @@ import { LoginFormValues, loginSchema } from "@/schemas/login";
 import authService from "@/services/auth";
 import { useAuthStore } from "@/store/auth";
 import { useRouter, useSearchParams } from "next/navigation";
+import { USER } from "@/constants/userRole";
 
 const useLogin = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const storeLogin = useAuthStore((state) => state.login);
@@ -27,27 +27,34 @@ const useLogin = () => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    setLoading(true);
+ 
     setError(null);
 
     try {
       const res = await authService.loginApi(data);
 
-      // Backend returns { user, accessToken, refreshToken }
-      storeLogin(res.user, res.accessToken, res.refreshToken);
+      console.log("res", res);
 
-      // Redirect to home/dashboard or the previous page after successful login
-      router.push(redirectUrl);
+      // Backend returns { user, accessToken, refreshToken }
+      storeLogin(res.data.user, res.data.tokens.accessToken, res.data.tokens.refreshToken);
+
+      const user = useAuthStore.getState().user;
+
+      console.log("user", user);
+
+      if(user?.role === USER.STUDENT){
+        router.push("/instructors");
+      } else {
+        router.push(redirectUrl);
+      }
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Login failed. Please try again.";
       setError(message);
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
-  return { form, onSubmit, showPassword, setShowPassword, loading, error };
+  return { form, onSubmit, showPassword, setShowPassword, error };
 };
 
 export default useLogin;

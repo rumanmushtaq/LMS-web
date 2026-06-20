@@ -143,7 +143,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 w-full">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 w-full">
           {(topCategories.length > 0
             ? topCategories
             : [
@@ -153,28 +153,35 @@ export default function Home() {
                 { name: "Productivity", count: 126 },
                 { name: "Lifestyles", count: 214 },
                 { name: "Design", count: 161 },
+                { name: "Development", count: 189 },
               ]
-          ).map((cat, i) => (
+          ).slice(0, 7).map((cat, i) => (
             <div
               key={i}
-              className="group p-8 rounded-[40px] border border-border/50 bg-card hover:bg-primary transition-all duration-500 text-center space-y-4 cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/20 flex flex-col items-center justify-center"
+              className="relative group overflow-hidden rounded-[30px] aspect-[4/5] cursor-pointer shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-500"
             >
-              <div className="w-16 h-16 rounded-3xl bg-primary/10 group-hover:bg-white/20 flex items-center justify-center text-3xl transition-colors">
-                {cat.image ? (
-                  <img
-                    src={cat.image}
-                    alt={cat.name}
-                    className="w-10 h-10 object-contain transition-all duration-300 group-hover:scale-110"
-                  />
-                ) : (
-                  getCategoryIcon(cat.name)
-                )}
-              </div>
-              <div className="text-center">
-                <h3 className="font-bold text-lg group-hover:text-white transition-colors">
+              {/* Full background image or fallback background with icon */}
+              {cat.image ? (
+                <img
+                  src={cat.image}
+                  alt={cat.name}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+              ) : (
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary/80 to-primary/40 flex flex-col items-center justify-center transition-transform duration-700 group-hover:scale-110">
+                  <span className="text-6xl drop-shadow-xl mb-4">{getCategoryIcon(cat.name)}</span>
+                </div>
+              )}
+
+              {/* Gradient overlay to make text readable */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
+
+              {/* Content overlay */}
+              <div className="absolute inset-0 p-5 flex flex-col justify-end translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                <h3 className="text-white font-bold text-lg leading-tight mb-1">
                   {cat.name}
                 </h3>
-                <p className="text-sm text-muted-foreground group-hover:text-white/80 transition-colors">
+                <p className="text-white/80 text-xs font-medium">
                   {cat.count} {cat.count === 1 ? "Course" : "Courses"}
                 </p>
               </div>

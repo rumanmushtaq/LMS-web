@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: "View the details and courses of the instructor.",
 };
 
-export default function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   return (
     <Suspense
       fallback={
@@ -16,7 +17,7 @@ export default function Page({ params }: { params: { id: string } }) {
         </div>
       }
     >
-      <InstructorDetailPage instructorId={params.id} />
+      <InstructorDetailPage instructorSlug={slug} />
     </Suspense>
   );
 }
