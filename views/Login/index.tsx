@@ -37,7 +37,7 @@ const LoginForm = () => {
             <span className="text-primary-foreground font-bold text-sm">D</span>
           </div>
           <span className="text-xl font-bold text-foreground">
-            Dreams<span className="text-primary">LMS</span>
+            Varona <span className="text-primary">Academy</span>
           </span>
         </div>
 

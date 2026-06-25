@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import InstructorDetailPage from "@/views/instructors/InstructorDetailPage";
 
 export const metadata: Metadata = {
-  title: "Instructor Detail | Dreams LMS",
+  title: "Instructor Detail | Varona Academy",
   description: "View the details and courses of the instructor.",
 };
 

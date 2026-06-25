@@ -75,7 +75,7 @@ export default function ContactPage() {
                       Email Us
                     </p>
                     <span className="text-lg font-semibold">
-                      contact@dreamslms.com
+                      contact@varonaacademy.com
                     </span>
                   </div>
                 </div>

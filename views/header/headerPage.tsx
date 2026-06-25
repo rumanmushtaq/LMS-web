@@ -89,7 +89,7 @@ const Header = () => {
         <Link href="/" className="flex items-center group">
           <Image
             src="/images/logo-image.png"
-            alt="Dreams LMS"
+            alt="Varona Academy"
             width={300}
             height={120}
             className="h-24 w-auto object-contain transition-transform duration-200 group-hover:scale-105"

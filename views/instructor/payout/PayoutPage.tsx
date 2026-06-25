@@ -165,7 +165,7 @@ export default function PayoutPage() {
 
           <div className="pt-6 border-t border-gray-50 flex flex-col sm:flex-row items-center justify-between gap-6">
             <p className="text-[11px] text-muted-foreground max-w-md">
-              By saving these details, you authorize Dreams LMS to initiate
+              By saving these details, you authorize Varona Academy to initiate
               payouts to this account for your completed lesson earnings.
               Payouts are typically processed every Friday.
             </p>

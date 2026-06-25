@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Dreams LMS",
-    default: "Dreams LMS - Online Learning Platform",
+    template: "%s | Varona Academy",
+    default: "Varona Academy - Online Learning Platform",
   },
   description:
     "A premium online learning platform offering courses from top instructors worldwide.",

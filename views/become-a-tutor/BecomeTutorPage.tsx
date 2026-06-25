@@ -551,7 +551,7 @@ export default function BecomeTutorPage() {
         </div>
       </section>
 
-      {/* 3. WHY TEACH ON DREAMS LMS */}
+      {/* 3. WHY TEACH ON VARONA ACADEMY */}
       <section className="py-24">
         <div className="container mx-auto px-6 max-w-7xl">
           <div className="text-center space-y-4 mb-20 max-w-3xl mx-auto">

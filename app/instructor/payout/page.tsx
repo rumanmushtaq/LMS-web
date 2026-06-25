@@ -3,7 +3,7 @@ import PayoutPage from "@/views/instructor/payout/PayoutPage";
 import InstructorLayout from "@/views/instructor/InstructorLayout";
 
 export const metadata: Metadata = {
-  title: "Teacher Account | Dreams LMS",
+  title: "Teacher Account | Varona Academy",
   description: "Manage your payout and bank account details.",
 };
 

@@ -83,7 +83,7 @@ const LeftPanel = () => {
         <h2 className="text-2xl font-bold text-foreground mb-3">
           Welcome to{" "}
           <span className="block">
-            Dreams<span className="text-primary">LMS</span> Courses.
+            Varona <span className="text-primary">Academy</span> Courses.
           </span>
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">

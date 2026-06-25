@@ -32,7 +32,7 @@ const Footer = () => {
             <div className="flex items-center gap-3">
               <Image
                 src="/images/lms-logo.png"
-                alt="Dreams LMS"
+                alt="Varona Academy"
                 width={100}
                 height={100}
                 className="h-24 w-auto"
@@ -161,7 +161,7 @@ const Footer = () => {
                   <Mail className="h-5 w-5 text-primary" />
                 </div>
                 <p className="text-[15px] text-muted-foreground">
-                  dreamslms@example.com
+                  varonaacademy@example.com
                 </p>
               </div>
 
