@@ -83,10 +83,9 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
 
   const joinDate = new Date(createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-  // Use backend data or fall back to the static arrays defined above if empty
-  const activeEducation = data.education?.length ? data.education : education;
-  const activeExperience = data.experience?.length ? data.experience : experience;
-  const activeCertifications = data.certifications?.length ? data.certifications : certBadges.map(() => "Certification"); // simplification for now, will handle below properly
+  const activeEducation = Array.isArray(data.education) && data.education.length ? data.education : education;
+  const activeExperience = Array.isArray(data.experience) && data.experience.length ? data.experience : experience;
+  const activeCertifications = Array.isArray(data.certifications) && data.certifications.length ? data.certifications : certBadges.map(() => "Certification"); // simplification for now, will handle below properly
   const activeSocial = data.social || {};
 
   return (
