@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Moon, ShoppingCart, Sun, Menu, X, Bell, CheckCheck } from "lucide-react";
+import { ChevronDown, Moon, ShoppingCart, Sun, Menu, X, Bell, CheckCheck, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useThemeStore } from "@/store/theme";
@@ -73,6 +73,9 @@ const Header = () => {
     { name: "Contact us", href: "/contact", hasDropdown: false },
   ];
 
+  // Message icon nav item (shown when authenticated)
+  const showMessagesIcon = mounted && isAuth;
+
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     if (href === "/shop" && pathname.startsWith("/product")) return true;
@@ -81,15 +84,15 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background shadow-sm">
-      <div className="container mx-auto flex h-20 items-center justify-between px-6">
+      <div className="container mx-auto flex h-28 items-center justify-between px-6">
         {/* Left: Logo */}
         <Link href="/" className="flex items-center group">
           <Image
             src="/images/logo-image.png"
             alt="Dreams LMS"
-            width={140}
-            height={56}
-            className="h-14 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+            width={300}
+            height={120}
+            className="h-24 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
             priority
           />
         </Link>
@@ -137,6 +140,27 @@ const Header = () => {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-4">
+          {/* Messages Icon */}
+          {showMessagesIcon && (
+            <Link href="/chat">
+              <div
+                className={cn(
+                  "relative flex h-11 w-11 items-center justify-center rounded-full bg-muted/50 transition-colors hover:bg-muted cursor-pointer group",
+                  pathname.startsWith("/chat") && "bg-primary/10"
+                )}
+                title="Messages"
+              >
+                <MessageSquare
+                  className={cn(
+                    "h-5 w-5 transition-colors",
+                    pathname.startsWith("/chat")
+                      ? "text-primary"
+                      : "text-foreground/70 group-hover:text-foreground"
+                  )}
+                />
+              </div>
+            </Link>
+          )}
           {/* Theme Toggle */}
           {mounted && (
             <Button
@@ -178,7 +202,7 @@ const Header = () => {
                   )}
                 </div>
                 <div className="max-h-80 overflow-y-auto">
-                  {notifications.length === 0 ? (
+                  {!Array.isArray(notifications) || notifications.length === 0 ? (
                     <div className="p-4 text-center text-sm text-muted-foreground">No notifications</div>
                   ) : (
                     <div className="flex flex-col">

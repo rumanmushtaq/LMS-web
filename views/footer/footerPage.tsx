@@ -33,14 +33,14 @@ const Footer = () => {
               <Image
                 src="/images/lms-logo.png"
                 alt="Dreams LMS"
-                width={44}
-                height={44}
-                className="h-11 w-auto"
+                width={100}
+                height={100}
+                className="h-24 w-auto"
               />
               <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center">
-                Dreams
-                <span className="text-[var(--primary)] text-[10px] font-bold self-start mt-1.5 ml-0.5">
-                  LMS
+                Varona
+                <span className="text-[var(--primary)] ml-1.5">
+                  Academy
                 </span>
               </h2>
             </div>
@@ -181,7 +181,7 @@ const Footer = () => {
       {/* Bottom Footer */}
       <div className="bg-[var(--primary)] py-7 text-[13px] font-medium text-white/80">
         <div className="container mx-auto flex flex-col items-center justify-between gap-5 px-6 md:flex-row">
-          <p>© 2025 DreamsLMS. All rights reserved.</p>
+          <p>© 2025 Varona Academy. All rights reserved.</p>
           <div className="flex items-center gap-8">
             <Link href="/terms-and-conditions" className="hover:text-white transition-colors">
               Terms & Conditions

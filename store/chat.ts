@@ -7,6 +7,7 @@ interface ChatState {
   openChat: (userId: string, userName: string) => void;
   closeChat: () => void;
   toggleChat: () => void;
+  clearActiveChat: () => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -16,4 +17,5 @@ export const useChatStore = create<ChatState>((set) => ({
   openChat: (userId, userName) => set({ isOpen: true, activeUserId: userId, activeUserName: userName }),
   closeChat: () => set({ isOpen: false, activeUserId: null, activeUserName: null }),
   toggleChat: () => set((state) => ({ isOpen: !state.isOpen })),
+  clearActiveChat: () => set({ activeUserId: null, activeUserName: null }),
 }));
