@@ -24,6 +24,16 @@ class ChatService {
     return data;
   }
 
+  async unblockConversation(conversationId: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.post(apiEndpoints.Chat.UNBLOCK(conversationId));
+    return data;
+  }
+
+  async deleteConversation(conversationId: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.delete(apiEndpoints.Chat.DELETE(conversationId));
+    return data;
+  }
+
   async flagMessage(messageId: string, reason: string): Promise<any> {
     const { data } = await HTTP_CLIENT.post(apiEndpoints.Chat.FLAG_MESSAGE(messageId), { reason });
     return data;

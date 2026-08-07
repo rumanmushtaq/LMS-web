@@ -16,12 +16,14 @@ import {
   HelpCircle,
   Settings,
   LogOut,
+  CalendarClock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const mainMenuItems = [
   { name: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
   { name: "My Profile", href: "/student/profile", icon: User },
+  { name: "My Classes", href: "/student/classes", icon: CalendarClock },
   { name: "Enrolled Courses", href: "#", icon: BookOpen },
   { name: "My Certificates", href: "#", icon: Award },
   { name: "Wishlist", href: "#", icon: Heart },

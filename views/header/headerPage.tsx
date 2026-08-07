@@ -282,7 +282,7 @@ const Header = () => {
             ) : (
               <>
                 <Link href="/login">
-                  <Button className="h-11 px-8 rounded-full font-bold bg-[var(--primary)] hover:bg-[var(--primary)] text-white shadow-lg shadow-primary/20">
+                  <Button className="h-11 px-8 rounded-full font-bold bg-[var(--primary)] hover:bg-[var(--primary)] text-white shadow-lg shadow-primary/20 cursor-pointer">
                     Sign In
                   </Button>
                 </Link>
@@ -370,7 +370,7 @@ const Header = () => {
                     className="w-full"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <Button className="h-12 w-full rounded-full font-bold bg-[var(--primary)] text-white">
+                    <Button className="h-12 w-full rounded-full font-bold bg-[var(--primary)] text-white cursor-pointer">
                       Sign In
                     </Button>
                   </Link>

@@ -35,7 +35,7 @@ export default function SignaturePad({
   const handleSave = () => {
     if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
       const dataUrl = sigCanvasRef.current
-        .getTrimmedCanvas()
+        .getCanvas()
         .toDataURL("image/png");
       onSignatureChange(dataUrl);
       setIsSaved(true);

@@ -184,14 +184,14 @@ const LoginForm = () => {
       </Form>
 
       {/* Divider */}
-      <div className="flex items-center gap-4 my-6">
+      {/* <div className="flex items-center gap-4 my-6">
         <div className="flex-1 h-px bg-border" />
         <span className="text-sm text-muted-foreground">Or</span>
         <div className="flex-1 h-px bg-border" />
-      </div>
+      </div> */}
 
       {/* Social Buttons */}
-      <div className="flex gap-3">
+      {/* <div className="flex gap-3">
         <Button
           variant="outline"
           className="flex-1 h-12 rounded-full gap-2 font-medium"
@@ -205,7 +205,7 @@ const LoginForm = () => {
         >
           Facebook
         </Button>
-      </div>
+      </div> */}
 
       {/* Sign Up */}
       <p className="text-center text-sm text-muted-foreground mt-6">

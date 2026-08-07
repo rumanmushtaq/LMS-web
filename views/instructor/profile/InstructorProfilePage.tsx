@@ -12,6 +12,10 @@ import InstructorLayout from "../InstructorLayout";
 import { cn } from "@/lib/utils";
 import { useInstructorProfile } from "@/hooks/useInstructorProfile";
 import AvailabilityCalendar from "./AvailabilityCalendar";
+import { useEffect, useState } from "react";
+import { getMaterials, TutorMaterial } from "@/services/materials";
+import { useAuthStore } from "@/store/auth";
+import { Library } from "lucide-react";
 
 /* ─── Tiny shared primitives ─────────────────────────────── */
 
@@ -81,6 +85,15 @@ export default function InstructorProfilePage() {
 
   const { fields: eduFields, append: appendEdu, remove: removeEdu } = useFieldArray({ control, name: "education" });
   const { fields: expFields, append: appendExp, remove: removeExp } = useFieldArray({ control, name: "experience" });
+
+  const { user } = useAuthStore();
+  const [materials, setMaterials] = useState<TutorMaterial[]>([]);
+
+  useEffect(() => {
+    if (user?.id) {
+      getMaterials({ tutorId: user.id }).then(setMaterials).catch(console.error);
+    }
+  }, [user?.id]);
 
   if (loading) return (
     <InstructorLayout>
@@ -264,7 +277,7 @@ export default function InstructorProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-2">Specialties</p>
-                  {kycData?.specialties?.length > 0 ? (
+                  {Array.isArray(kycData?.specialties) && kycData.specialties.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {kycData.specialties.map((s: string, i: number) => (
                         <span key={i} className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold border border-primary/20">{s}</span>
@@ -274,7 +287,7 @@ export default function InstructorProfilePage() {
                 </div>
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-2">Languages</p>
-                  {(kycData?.spokenLanguages?.length > 0 || kycData?.nativeLanguage) ? (
+                  {((Array.isArray(kycData?.spokenLanguages) && kycData.spokenLanguages.length > 0) || kycData?.nativeLanguage) ? (
                     <div className="flex flex-wrap gap-2">
                       {kycData?.nativeLanguage && (
                         <span className="px-3 py-1 rounded-full bg-accent/20 text-accent-foreground text-xs font-semibold border border-accent/30">
@@ -321,7 +334,7 @@ export default function InstructorProfilePage() {
                     </div>
                   ))}
                 </div>
-              ) : kycData?.education?.length > 0 ? (
+              ) : Array.isArray(kycData?.education) && kycData.education.length > 0 ? (
                 <div className="space-y-4">
                   {kycData.education.map((edu: any, idx: number) => (
                     <div key={idx} className="flex gap-4 items-start">
@@ -368,7 +381,7 @@ export default function InstructorProfilePage() {
                     </div>
                   ))}
                 </div>
-              ) : kycData?.experience?.length > 0 ? (
+              ) : Array.isArray(kycData?.experience) && kycData.experience.length > 0 ? (
                 <div className="space-y-4">
                   {kycData.experience.map((exp: any, idx: number) => (
                     <div key={idx} className="flex gap-4 items-start">
@@ -400,7 +413,7 @@ export default function InstructorProfilePage() {
             </SectionCard>
 
             {/* ── Certifications ── */}
-            {kycData?.certifications?.length > 0 && (
+            {Array.isArray(kycData?.certifications) && kycData.certifications.length > 0 && (
               <SectionCard icon={Award} title="Certifications">
                 <div className="flex flex-wrap gap-2">
                   {kycData.certifications.map((c: string, i: number) => (
@@ -425,6 +438,47 @@ export default function InstructorProfilePage() {
                 </div>
               </SectionCard>
             )}
+
+            {/* ── Materials for Sale ── */}
+            <SectionCard
+              icon={Library}
+              title="Materials & Notes"
+              action={
+                <Link href="/instructor/materials">
+                  <Btn variant="outline" size="sm" className="text-primary hover:bg-primary/10">
+                    Manage Materials
+                  </Btn>
+                </Link>
+              }
+            >
+              {materials.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">You haven't listed any materials yet.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {materials?.map((m) => (
+                    <div key={m._id} className="rounded-xl border border-border/50 bg-muted/20 p-3 flex flex-col gap-2">
+                      <div className="aspect-[4/3] bg-background rounded-lg overflow-hidden border border-border/50">
+                        {m.coverImageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={m.coverImageUrl} alt={m.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                            <BookOpen className="w-8 h-8" />
+                          </div>
+                        )}
+                      </div>
+                      <h4 className="font-bold text-sm text-foreground line-clamp-1" title={m.title}>{m.title}</h4>
+                      <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
+                        <span className="text-primary font-bold text-xs">${(m.price / 100).toFixed(2)}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${m.isActive ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
+                          {m.isActive ? 'Active' : 'Hidden'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SectionCard>
 
           </form>
         </div>

@@ -41,11 +41,18 @@ export default function ChatWidget() {
   const token = getToken();
   const currentUser = getUser();
   const currentUserId = currentUser?.id || (currentUser as any)?._id;
-  const { isConnected, messages: socketMessages, sendMessage, typing, socket } = useChatSocket(token || '');
+  const { isConnected, messages: socketMessages, sendMessage, joinConversation, typing, stopTyping, socket } = useChatSocket(token || '');
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Ensure we rejoin the socket room if the connection drops and reconnects
+  useEffect(() => {
+    if (isConnected && conversationId) {
+      joinConversation(conversationId);
+    }
+  }, [isConnected, conversationId, joinConversation]);
 
   // Scroll to bottom whenever messages update — scroll the container, not the whole page
   useEffect(() => {
@@ -144,10 +151,28 @@ export default function ChatWidget() {
 
     // Emit to socket
     sendMessage(conversationId, optimisticMsg.content);
+    stopTyping(conversationId);
+  };
+
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleInputChange = (val: string) => {
+    setInputMessage(val);
+    if (!conversationId) return;
+
+    typing(conversationId);
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    typingTimeoutRef.current = setTimeout(() => {
+      stopTyping(conversationId);
+    }, 2000);
   };
 
   const onEmojiClick = (emojiObject: any) => {
-    setInputMessage((prev) => prev + emojiObject.emoji);
+    handleInputChange(inputMessage + emojiObject.emoji);
   };
 
   const handleFlagMessage = async (msgId: string) => {
@@ -326,10 +351,7 @@ export default function ChatWidget() {
                 <input
                   type="text"
                   value={inputMessage}
-                  onChange={(e) => {
-                    setInputMessage(e.target.value);
-                    if (conversationId) typing(conversationId);
-                  }}
+                  onChange={(e) => handleInputChange(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                   placeholder={isLoadingConv ? 'Loading chat...' : 'Type a message…'}
                   disabled={isLoadingConv || !conversationId}

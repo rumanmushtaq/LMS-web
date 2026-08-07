@@ -54,6 +54,12 @@ export interface CourseItem {
   reviewCount?: number;
 }
 
+export interface AvailabilityItem {
+  day: string;
+  startTime: string;
+  endTime: string;
+}
+
 export interface InstructorDetailData extends InstructorProfile {
   aboutMe: string | null;
   education: EducationItem[];
@@ -63,6 +69,7 @@ export interface InstructorDetailData extends InstructorProfile {
   phone: string | null;
   address: string | null;
   courses?: CourseItem[];
+  availability?: AvailabilityItem[];
 }
 
 export interface InstructorsListResponse {
