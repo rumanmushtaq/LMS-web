@@ -64,15 +64,16 @@ export const setupAxios = () => {
 
         if (status === 401 && !isAuthRoute) {
           // Unauthorized error: Redirect to login
-          // toast.error("Session expired. Please log in again.");
-
           console.log("Session expired. Please log in again.");
+          
+          // Clear tokens so we don't keep sending them and getting 401s
+          Cookies.remove("access_token");
+          Cookies.remove("refresh_token");
+
           if (typeof window !== "undefined") {
             const currentPath = window.location.pathname;
             if (currentPath !== "/login" && currentPath !== "/signup") {
               window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
-            } else {
-              window.location.href = "/login";
             }
           }
         } else if (status >= 400 && status < 500 && status !== 401) {

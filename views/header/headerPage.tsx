@@ -28,14 +28,6 @@ const Header = () => {
   const unreadCount = useNotificationStore((state) => state.unreadCount);
   const openChat = useChatStore((state) => state.openChat);
 
-  // Prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-    if (isAuthenticated()) {
-      fetchNotifications();
-    }
-  }, []);
-
   const isAuthPage =
     pathname.includes("/login") ||
     pathname.includes("/signup") ||
@@ -43,6 +35,14 @@ const Header = () => {
     pathname.includes("/new-password") ||
     pathname.includes("/otp") ||
     pathname.includes("/landing-Page");
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+    if (isAuthenticated() && !isAuthPage) {
+      fetchNotifications();
+    }
+  }, [pathname]);
 
   if (isAuthPage) return null;
 

@@ -231,7 +231,7 @@ export default function ChatWidget() {
             </div>
             <button
               onClick={closeChat}
-              className="text-white/60 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+              className="text-white/60 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10 cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -374,7 +374,7 @@ export default function ChatWidget() {
       {/* ── Floating Toggle Button ── */}
       <button
         onClick={toggleChat}
-        className="w-14 h-14 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+        className="w-14 h-14 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer"
         style={{ background: 'linear-gradient(135deg, #1e2230, #2d3452)' }}
       >
         {isOpen ? <X size={24} /> : <MessageCircle size={24} />}

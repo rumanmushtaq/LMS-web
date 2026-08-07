@@ -3,6 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { useChatStore } from '@/store/chat';
 import { useNotificationStore } from '@/store/notification';
+import { useAuthStore } from '@/store/auth';
 
 interface ChatSocketHook {
   socket: Socket | null;
@@ -34,6 +35,14 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
     socketIo.on('connect', () => {
       console.log('Socket connected:', socketIo.id);
       setIsConnected(true);
+    });
+
+    socketIo.on('connect_error', (error) => {
+      console.error('Socket connection error:', error.message);
+      if (error.message.includes('jwt expired') || error.message.includes('Unauthorized')) {
+        socketIo.disconnect();
+        useAuthStore.getState().logout();
+      }
     });
 
     socketIo.on('disconnect', () => {

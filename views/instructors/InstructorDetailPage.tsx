@@ -41,6 +41,7 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
   const { instructor: data, loading, error } = useInstructorDetail(instructorSlug);
   const { openChat } = useChatStore();
   const isAuthenticated = useAuthStore(state => state.isAuthenticated());
+  const user = useAuthStore(state => state.user);
   const [hydrated, setHydrated] = React.useState(false);
   const [showRequestModal, setShowRequestModal] = React.useState(false);
 
@@ -255,13 +256,15 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
                     {fullName}
                   </h2>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => openChat(data?._id, fullName)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f66962] text-white text-xs font-semibold rounded-lg hover:bg-[#e04d47] transition-colors"
-                    >
-                      <MessageCircle size={14} />
-                      Chat
-                    </button>
+                    {user?.role?.toLowerCase() !== "tutor" && (
+                      <button
+                        onClick={() => openChat(data?._id, fullName)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f66962] text-white text-xs font-semibold rounded-lg hover:bg-[#e04d47] transition-colors"
+                      >
+                        <MessageCircle size={14} />
+                        Chat
+                      </button>
+                    )}
                     <button
                       id="book-class-btn"
                       onClick={() => setShowRequestModal(true)}
