@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { useChatStore } from '@/store/chat';
@@ -9,6 +9,7 @@ interface ChatSocketHook {
   isConnected: boolean;
   messages: any[];
   sendMessage: (conversationId: string, content: string) => void;
+  joinConversation: (conversationId: string) => void;
   typing: (conversationId: string) => void;
   stopTyping: (conversationId: string) => void;
 }
@@ -88,23 +89,29 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
     };
   }, [token]);
 
-  const sendMessage = (conversationId: string, content: string) => {
+  const sendMessage = useCallback((conversationId: string, content: string) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('sendMessage', { conversationId, content });
     }
-  };
+  }, []);
 
-  const typing = (conversationId: string) => {
+  const typing = useCallback((conversationId: string) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('typing', conversationId);
     }
-  };
+  }, []);
 
-  const stopTyping = (conversationId: string) => {
+  const stopTyping = useCallback((conversationId: string) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('stopTyping', conversationId);
     }
-  };
+  }, []);
 
-  return { socket, isConnected, messages, sendMessage, typing, stopTyping };
+  const joinConversation = useCallback((conversationId: string) => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('joinConversation', conversationId);
+    }
+  }, []);
+
+  return { socket, isConnected, messages, sendMessage, joinConversation, typing, stopTyping };
 };

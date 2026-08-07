@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import EditProfilePage from "@/views/student/profile/EditProfilePage";
 
 export const metadata: Metadata = {
-  title: "Edit Profile | Dreams LMS",
+  title: "Edit Profile | Varona Academy",
   description: "Update your personal information and student profile details.",
 };
 

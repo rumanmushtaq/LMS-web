@@ -26,7 +26,7 @@ const Footer = () => {
                 D
               </div>
               <span className="text-base sm:text-lg font-bold text-footer-heading">
-                Dreams<span className="text-primary">LMS</span>
+                Varona <span className="text-primary">Academy</span>
               </span>
             </div>
             <p className="text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6">
@@ -151,7 +151,7 @@ const Footer = () => {
       <div className="bg-footer-bottom text-footer-foreground/80 py-4 sm:py-5 px-4 sm:px-6 md:px-8 lg:px-16">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-xs sm:text-sm">
           <p className="text-center sm:text-left">
-            Copyright 2025 © <span className="text-primary">DreamsLMS</span>.
+            Copyright 2025 © <span className="text-primary">VaronaAcademy</span>.
             All right reserved.
           </p>
 

@@ -341,7 +341,7 @@ export default function Home() {
         <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
           <div className="space-y-4 mb-20 max-w-3xl">
             <h2 className="text-4xl lg:text-5xl font-black">
-              Achieve your Goals with DreamsLMS
+              Achieve your Goals with VaronaAcademy
             </h2>
             <p className="text-primary-foreground/70">
               96% of eLearning for Business customers see improved results

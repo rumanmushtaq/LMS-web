@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff, Mail, ChevronRight } from "lucide-react";
+import { Eye, EyeOff, Mail, ChevronRight, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,7 @@ const SignupForm = () => {
             <span className="text-primary-foreground font-bold text-sm">D</span>
           </div>
           <span className="text-xl font-bold text-foreground">
-            Dreams<span className="text-primary">LMS</span>
+            Varona <span className="text-primary">Academy</span>
           </span>
         </div>
 
@@ -277,9 +277,9 @@ const SignupForm = () => {
           {/* Submit */}
           <Button
             type="submit"
-            className="w-full h-12 text-base font-semibold rounded-full gap-1"
+            className="w-full h-12 text-base font-semibold rounded-full gap-1 cursor-pointer"
           >
-            Sign up <ChevronRight className="h-4 w-4" />
+            Sign up {form.formState.isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" />: <ChevronRight className="h-4 w-4" />} 
           </Button>
         </form>
       </Form>

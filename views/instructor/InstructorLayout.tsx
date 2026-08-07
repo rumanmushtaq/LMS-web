@@ -18,12 +18,16 @@ import {
   CreditCard,
   FileText,
   Clock,
+  CalendarClock,
+  Library,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const mainMenuItems = [
   { name: "Dashboard", href: "/instructor/dashboard", icon: LayoutDashboard },
   { name: "My Profile", href: "/instructor/profile", icon: User },
+  { name: "Materials & Notes", href: "/instructor/materials", icon: Library },
+  { name: "Class Requests", href: "/instructor/class-requests", icon: CalendarClock },
   { name: "Courses", href: "/instructor/courses", icon: BookOpen },
   { name: "Announcements", href: "/instructor/announcements", icon: Bell },
   { name: "Assignments", href: "/instructor/assignments", icon: FileCheck },

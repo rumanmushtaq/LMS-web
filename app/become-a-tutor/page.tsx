@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import BecomeTutorPage from "@/views/become-a-tutor/BecomeTutorPage";
 
 export const metadata: Metadata = {
-  title: "Become a Tutor | Dreams LMS",
+  title: "Become a Tutor | Varona Academy",
   description:
     "Join our global team of expert tutors and start teaching students worldwide. Set your own hours, hourly rate, and curriculum.",
 };

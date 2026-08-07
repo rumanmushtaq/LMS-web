@@ -14,8 +14,7 @@ import {
   Flag,
   Search,
   MoreVertical,
-  Phone,
-  Video,
+  Ban,
   CheckCheck,
   Check,
 } from "lucide-react";
@@ -38,6 +37,8 @@ interface Conversation {
   participants: any[];
   lastMessage?: { content: string; createdAt: string };
   updatedAt: string;
+  isBlocked?: boolean;
+  blockedBy?: string;
 }
 
 function formatTime(dateStr: string) {
@@ -106,7 +107,7 @@ export default function ChatPage() {
   const currentUser = getUser();
   const currentUserId = currentUser?.id || (currentUser as any)?._id;
 
-  const { isConnected, messages: socketMessages, sendMessage, typing, socket } =
+  const { isConnected, messages: socketMessages, sendMessage, joinConversation, typing, stopTyping, socket } =
     useChatSocket(token || "");
 
   // Scroll to bottom on new messages — scroll the container, not the whole page
@@ -116,6 +117,13 @@ export default function ChatPage() {
       container.scrollTop = container.scrollHeight;
     }
   }, [localMessages]);
+
+  // Ensure we rejoin the socket room if the connection drops and reconnects
+  useEffect(() => {
+    if (isConnected && selectedConvId) {
+      joinConversation(selectedConvId);
+    }
+  }, [isConnected, selectedConvId, joinConversation]);
 
   // Merge socket messages
   useEffect(() => {
@@ -221,7 +229,25 @@ export default function ChatPage() {
     setLocalMessages((prev) => [...prev, optimisticMsg]);
     setInputMessage("");
     sendMessage(selectedConvId, optimisticMsg.content);
+    stopTyping(selectedConvId);
     inputRef.current?.focus();
+  };
+
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleInputChange = (val: string) => {
+    setInputMessage(val);
+    if (!selectedConvId) return;
+
+    typing(selectedConvId);
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    typingTimeoutRef.current = setTimeout(() => {
+      stopTyping(selectedConvId);
+    }, 2000);
   };
 
   const handleFlagMessage = async (msgId: string) => {
@@ -234,6 +260,54 @@ export default function ChatPage() {
       toast.error("Failed to flag message");
     } finally {
       setFlaggingMsgId(null);
+    }
+  };
+
+  const handleBlockConversation = async () => {
+    if (!selectedConvId) return;
+    if (!confirm(`Are you sure you want to block ${activeUserName}? You won't be able to message each other.`)) return;
+    
+    try {
+      await chatService.blockConversation(selectedConvId);
+      toast.success("User blocked successfully.");
+      loadConversations();
+      // Update selected conversation in state immediately
+      setConversationsList((prev) => 
+        prev.map(c => c._id === selectedConvId ? { ...c, isBlocked: true, blockedBy: currentUserId } : c)
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to block user.");
+    }
+  };
+
+  const handleUnblockConversation = async () => {
+    if (!selectedConvId) return;
+    try {
+      await chatService.unblockConversation(selectedConvId);
+      toast.success("User unblocked successfully.");
+      loadConversations();
+      setConversationsList((prev) => 
+        prev.map(c => c._id === selectedConvId ? { ...c, isBlocked: false, blockedBy: undefined } : c)
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to unblock user.");
+    }
+  };
+
+  const handleDeleteConversation = async () => {
+    if (!selectedConvId) return;
+    if (!confirm(`Are you sure you want to completely delete this chat? This action cannot be undone.`)) return;
+    
+    try {
+      await chatService.deleteConversation(selectedConvId);
+      toast.success("Chat deleted successfully.");
+      handleBackToList();
+      loadConversations();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete chat.");
     }
   };
 
@@ -490,15 +564,16 @@ export default function ChatPage() {
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <button className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-                        <Phone size={16} />
-                      </button>
-                      <button className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-                        <Video size={16} />
-                      </button>
-                      <button className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-                        <MoreVertical size={16} />
-                      </button>
+                      {!(conversationsList.find(c => c._id === selectedConvId)?.isBlocked) && (
+                        <button 
+                          onClick={handleBlockConversation}
+                          className="p-2 rounded-xl hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive flex items-center gap-1.5 text-sm font-medium"
+                          title="Block User"
+                        >
+                          <Ban size={16} />
+                          <span className="hidden sm:inline">Block</span>
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -618,53 +693,84 @@ export default function ChatPage() {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Input Area */}
-                  <div className="p-4 bg-card border-t border-border/50 shrink-0 relative">
-                    {showEmojiPicker && (
-                      <div className="absolute bottom-full left-4 mb-2 z-50 shadow-2xl">
-                        <EmojiPicker
-                          onEmojiClick={(obj) => setInputMessage((p) => p + obj.emoji)}
-                          height={320}
-                          width={300}
-                        />
+                  {/* Input Area or Blocked State */}
+                  {(() => {
+                    const activeConv = conversationsList.find(c => c._id === selectedConvId);
+                    if (activeConv?.isBlocked) {
+                      const isBlockedByMe = activeConv.blockedBy === currentUserId;
+                      return (
+                        <div className="p-4 bg-card border-t border-border/50 shrink-0 text-center">
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {isBlockedByMe 
+                              ? "You have blocked this user." 
+                              : "You cannot reply to this conversation."}
+                          </p>
+                          <div className="flex items-center justify-center gap-3">
+                            {isBlockedByMe && (
+                              <button 
+                                onClick={handleUnblockConversation}
+                                className="px-5 py-2.5 bg-muted text-foreground hover:bg-muted/80 rounded-xl text-sm font-medium transition-colors cursor-pointer"
+                              >
+                                Unblock User
+                              </button>
+                            )}
+                            <button 
+                              onClick={handleDeleteConversation}
+                              className="px-5 py-2.5 bg-destructive/10 text-destructive hover:bg-destructive/20 rounded-xl text-sm font-medium transition-colors cursor-pointer"
+                            >
+                              Delete Chat
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="p-4 bg-card border-t border-border/50 shrink-0 relative">
+                        {showEmojiPicker && (
+                          <div className="absolute bottom-full left-4 mb-2 z-50 shadow-2xl">
+                            <EmojiPicker
+                              onEmojiClick={(obj) => handleInputChange(inputMessage + obj.emoji)}
+                              height={320}
+                              width={300}
+                            />
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setShowEmojiPicker((p) => !p)}
+                            className="p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
+                            title="Add emoji"
+                          >
+                            <Smile size={20} />
+                          </button>
+                          <input
+                            ref={inputRef}
+                            type="text"
+                            value={inputMessage}
+                            onChange={(e) => handleInputChange(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                            placeholder={
+                              isLoadingConv ? "Loading chat…" : `Message ${activeUserName}…`
+                            }
+                            disabled={isLoadingConv || !selectedConvId}
+                            className="flex-1 px-4 py-2.5 text-sm rounded-xl border border-border bg-muted/40 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                          />
+                          <button
+                            onClick={handleSendMessage}
+                            disabled={!inputMessage.trim() || !selectedConvId}
+                            className="w-10 h-10 flex items-center justify-center rounded-xl text-white disabled:opacity-30 transition-all hover:scale-105 active:scale-95 shrink-0 shadow-md"
+                            style={{
+                              background:
+                                "linear-gradient(135deg, oklch(0.7 0.15 210), oklch(0.45 0.22 300))",
+                            }}
+                          >
+                            <Send size={16} className="ml-0.5" />
+                          </button>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setShowEmojiPicker((p) => !p)}
-                        className="p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
-                        title="Add emoji"
-                      >
-                        <Smile size={20} />
-                      </button>
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        value={inputMessage}
-                        onChange={(e) => {
-                          setInputMessage(e.target.value);
-                          if (selectedConvId) typing(selectedConvId);
-                        }}
-                        onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                        placeholder={
-                          isLoadingConv ? "Loading chat…" : `Message ${activeUserName}…`
-                        }
-                        disabled={isLoadingConv || !selectedConvId}
-                        className="flex-1 px-4 py-2.5 text-sm rounded-xl border border-border bg-muted/40 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
-                      />
-                      <button
-                        onClick={handleSendMessage}
-                        disabled={!inputMessage.trim() || !selectedConvId}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl text-white disabled:opacity-30 transition-all hover:scale-105 active:scale-95 shrink-0 shadow-md"
-                        style={{
-                          background:
-                            "linear-gradient(135deg, oklch(0.7 0.15 210), oklch(0.45 0.22 300))",
-                        }}
-                      >
-                        <Send size={16} className="ml-0.5" />
-                      </button>
-                    </div>
-                  </div>
+                    );
+                  })()}
                 </>
               )}
             </div>

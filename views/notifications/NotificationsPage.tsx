@@ -55,8 +55,10 @@ export default function NotificationsPage() {
         sortOrder: currentSort,
         isRead: currentFilter === "unread" ? false : undefined,
       });
-      setNotifications(res.data);
-      setMeta(res.meta);
+      const notificationsData = res.data?.data || [];
+      const notificationsMeta = res.data?.meta || null;
+      setNotifications(notificationsData);
+      setMeta(notificationsMeta);
       
       // Also update the global header store so unread badge stays in sync
       if (currentPage === 1 && currentFilter === "all") {
@@ -77,7 +79,7 @@ export default function NotificationsPage() {
     if (currentlyRead) return;
     try {
       await globalMarkAsRead(id);
-      setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, read: true } : n)));
+      setNotifications((prev) => (prev || []).map((n) => (n._id === id ? { ...n, read: true } : n)));
     } catch (error) {
       console.error(error);
     }
@@ -86,7 +88,7 @@ export default function NotificationsPage() {
   const handleMarkAllAsRead = async () => {
     try {
       await globalMarkAllAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      setNotifications((prev) => (prev || []).map((n) => ({ ...n, read: true })));
     } catch (error) {
       console.error(error);
     }
@@ -150,7 +152,7 @@ export default function NotificationsPage() {
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
-          ) : notifications.length === 0 ? (
+          ) : (!notifications || notifications.length === 0) ? (
             <div className="flex flex-col items-center justify-center h-64 text-center">
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
                 <Inbox className="w-8 h-8 text-muted-foreground" />
@@ -162,7 +164,7 @@ export default function NotificationsPage() {
             </div>
           ) : (
             <div className="divide-y divide-border/50">
-              {notifications.map((notification, idx) => (
+              {(notifications || []).map((notification, idx) => (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}

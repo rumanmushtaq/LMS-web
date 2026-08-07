@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import InstructorsPage from "@/views/instructors/InstructorsPage";
 
 export const metadata: Metadata = {
-  title: "Instructor List | Dreams LMS",
+  title: "Instructor List | Varona Academy",
   description:
     "Browse our expert instructors. Filter by category, level, price, and more to find the perfect teacher for your learning journey.",
 };

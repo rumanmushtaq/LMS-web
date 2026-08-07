@@ -32,8 +32,8 @@ export const useNotificationStore = create<NotificationState>()(
           const { default: notificationsService } = await import('@/services/notifications');
           const data = await notificationsService.getNotifications({ limit: 10, isRead: false });
           set({
-            notifications: data.data || [],
-            unreadCount: data.meta?.unreadCount || 0,
+            notifications: data.data?.data || [],
+            unreadCount: data.data?.meta?.unreadCount || 0,
           });
         } catch (error) {
           console.error("Failed to fetch notifications", error);

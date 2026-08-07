@@ -12,6 +12,7 @@ import {
   Heart,
   Star,
   Briefcase,
+  CalendarPlus,
 } from "lucide-react";
 
 import { useInstructorDetail } from "./hooks/useInstructorDetail";
@@ -23,8 +24,13 @@ import {
 } from "@/constants/instructorConstants";
 import { useChatStore } from "@/store/chat";
 import { useAuthStore } from "@/store/auth";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, DollarSign, Download, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getMaterials, purchaseMaterial, TutorMaterial } from "@/services/materials";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import RequestClassModal from "@/views/student/classes/components/RequestClassModal";
 
 interface InstructorDetailPageProps {
   instructorSlug: string;
@@ -36,6 +42,34 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
   const { openChat } = useChatStore();
   const isAuthenticated = useAuthStore(state => state.isAuthenticated());
   const [hydrated, setHydrated] = React.useState(false);
+  const [showRequestModal, setShowRequestModal] = React.useState(false);
+
+  const [materials, setMaterials] = React.useState<TutorMaterial[]>([]);
+  const [purchasingId, setPurchasingId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (data?._id) {
+      getMaterials({ tutorId: data._id, isActive: true })
+        .then(setMaterials)
+        .catch(console.error);
+    }
+  }, [data?._id]);
+
+  const handlePurchase = async (material: TutorMaterial) => {
+    try {
+      setPurchasingId(material._id);
+      const res = await purchaseMaterial(material._id);
+      if (res.downloadUrl) {
+        window.open(res.downloadUrl, '_blank');
+        alert("Purchase successful! Your file is opening in a new tab.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to process purchase.");
+    } finally {
+      setPurchasingId(null);
+    }
+  };
 
   // Wait for Zustand to rehydrate from localStorage before checking auth.
   // Without this, isAuthenticated() returns false on first render even for
@@ -87,6 +121,25 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
   const activeExperience = Array.isArray(data.experience) && data.experience.length ? data.experience : experience;
   const activeCertifications = Array.isArray(data.certifications) && data.certifications.length ? data.certifications : certBadges.map(() => "Certification"); // simplification for now, will handle below properly
   const activeSocial = data.social || {};
+
+  const dayOfWeekMap: Record<string, number> = {
+    sunday: 0,
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6,
+  };
+
+  const calendarEvents = data.availability?.map((av) => {
+    const dayName = av.day.toLowerCase().trim();
+    return {
+      title: `${av.startTime} - ${av.endTime}`,
+      daysOfWeek: [dayOfWeekMap[dayName] ?? 1],
+      color: "#f66962",
+    };
+  }) || [];
 
   return (
     <div
@@ -201,13 +254,23 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
                   <h2 style={{ fontSize: 21, fontWeight: 800, letterSpacing: "-0.022em", color: "#0d1117", lineHeight: 1.2 }}>
                     {fullName}
                   </h2>
-                  <button
-                    onClick={() => openChat(data?._id, fullName)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f66962] text-white text-xs font-semibold rounded-lg hover:bg-[#e04d47] transition-colors"
-                  >
-                    <MessageCircle size={14} />
-                    Chat
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => openChat(data?._id, fullName)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f66962] text-white text-xs font-semibold rounded-lg hover:bg-[#e04d47] transition-colors"
+                    >
+                      <MessageCircle size={14} />
+                      Chat
+                    </button>
+                    <button
+                      id="book-class-btn"
+                      onClick={() => setShowRequestModal(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors border border-[#f66962] text-[#f66962] hover:bg-[#f66962] hover:text-white"
+                    >
+                      <CalendarPlus size={14} />
+                      Book a Class
+                    </button>
+                  </div>
                 </div>
 
                 {/* Title + Rating row */}
@@ -413,6 +476,126 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
                 ))}
               </div>
             </div>
+
+            {/* ── Materials for Sale ── */}
+            {materials.length > 0 && (
+              <div
+                className="rounded-2xl"
+                style={{
+                  background: "#fff",
+                  border: "1px solid #edeef2",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.04), 0 12px 32px -8px rgba(0,0,0,0.07)",
+                  padding: "26px 28px",
+                }}
+              >
+                <SectionHeading>Materials & Notes</SectionHeading>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {materials.map((m) => (
+                    <div key={m._id} className="rounded-xl border border-border p-4 hover:shadow-lg transition-all flex flex-col">
+                      <div className="aspect-[4/3] bg-muted rounded-lg mb-3 overflow-hidden">
+                        {m.coverImageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={m.coverImageUrl} alt={m.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                            <BookOpen className="w-10 h-10" />
+                          </div>
+                        )}
+                      </div>
+                      <h4 className="font-bold text-sm text-foreground line-clamp-1">{m.title}</h4>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-1 mb-3 flex-1">
+                        {m.description}
+                      </p>
+                      <button
+                        onClick={() => handlePurchase(m)}
+                        disabled={purchasingId === m._id}
+                        className="w-full mt-auto inline-flex items-center justify-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold py-2 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {purchasingId === m._id ? (
+                          <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
+                        ) : (
+                          <>
+                            <DollarSign className="w-4 h-4" />
+                            {(m.price / 100).toFixed(2)} - Purchase
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Availability ── */}
+            {data.availability && data.availability.length > 0 && (
+              <div
+                className="rounded-2xl"
+                style={{
+                  background: "#fff",
+                  border: "1px solid #edeef2",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.04), 0 12px 32px -8px rgba(0,0,0,0.07)",
+                  padding: "26px 28px",
+                }}
+              >
+                <SectionHeading>Teaching Availability</SectionHeading>
+                <div style={{ marginTop: 20 }}>
+                  <style>{`
+                    .fc-theme-standard td, .fc-theme-standard th {
+                      border-color: #edeef2;
+                    }
+                    .fc .fc-toolbar-title {
+                      font-size: 1.125rem;
+                      font-weight: 700;
+                      color: #111827 !important;
+                    }
+                    .fc .fc-button-primary {
+                      background-color: #f66962 !important;
+                      border-color: #f66962 !important;
+                    }
+                    .fc .fc-button-primary:hover {
+                      background-color: #e04d47 !important;
+                      border-color: #e04d47 !important;
+                    }
+                    .fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:not(:disabled).fc-button-active {
+                      background-color: #c23b2e !important;
+                      border-color: #c23b2e !important;
+                    }
+                    .fc-event {
+                      cursor: default;
+                      font-size: 0.8rem;
+                      padding: 2px 4px;
+                      border-radius: 4px;
+                    }
+                    /* Fix for dark mode overriding link colors inside the calendar */
+                    .fc-daygrid-day-number,
+                    .fc-col-header-cell-cushion {
+                      color: #374151 !important;
+                      font-weight: 600;
+                      text-decoration: none !important;
+                    }
+                    .fc-daygrid-day-number:hover,
+                    .fc-col-header-cell-cushion:hover {
+                      color: #111827 !important;
+                    }
+                    /* Ensure calendar background stays clean */
+                    .fc-view-harness {
+                      background-color: #fff;
+                    }
+                  `}</style>
+                  <FullCalendar
+                    plugins={[dayGridPlugin, timeGridPlugin]}
+                    initialView="dayGridMonth"
+                    events={calendarEvents}
+                    headerToolbar={{
+                      left: 'prev,next today',
+                      center: 'title',
+                      right: 'dayGridMonth'
+                    }}
+                    height="auto"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ═══ RIGHT COLUMN ═══ */}
@@ -591,6 +774,16 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
           </div>
         </div>
       </div>
+
+      {/* Request Class Modal */}
+      {data && (
+        <RequestClassModal
+          isOpen={showRequestModal}
+          onClose={() => setShowRequestModal(false)}
+          tutorId={data._id}
+          tutorName={fullName}
+        />
+      )}
     </div>
   );
 }
