@@ -1,1 +1,7 @@
-npm run build
+# Type-check first, then build.
+#
+# The order matters: `next build` no longer type-checks (see next.config.ts),
+# so `typecheck` is what catches type errors — and it fails in seconds rather
+# than part-way through a build. Only once types are clean do we pay for the
+# build.
+npm run typecheck && npm run build

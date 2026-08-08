@@ -24,6 +24,7 @@ export interface UpdateProfileParams {
   gender?: string;
   dob?: string;
   bio?: string;
+  profilePicture?: string;
   education?: {
     degree: string;
     institution: string;
@@ -34,6 +35,29 @@ export interface UpdateProfileParams {
     company: string;
     period: string;
   }[];
+
+  // Tutor profile fields. All are rendered on the profile pages; until the
+  // matching DTO fields existed the API rejected every one of them.
+  title?: string;
+  address?: string;
+  country?: string;
+  timezone?: string;
+  category?: string;
+  /** Teaching experience level — distinct from the `experience` array. */
+  level?: string;
+  specialties?: string[];
+  spokenLanguages?: string[];
+  nativeLanguage?: string;
+  certifications?: string[];
+  pricePerHour?: number;
+  availability?: { day: string; startTime: string; endTime: string }[];
+  social?: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+    youtube?: string;
+    linkedin?: string;
+  };
 }
 
 class UsersService {

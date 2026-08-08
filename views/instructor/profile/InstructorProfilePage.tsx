@@ -122,7 +122,8 @@ export default function InstructorProfilePage() {
     { icon: Users, label: "Students", value: kycData?.studentCount ?? "—" },
     { icon: BookOpen, label: "Courses", value: kycData?.lessonCount ?? "—" },
     { icon: Star, label: "Rating", value: kycData?.rating ? `${kycData.rating}/5` : "—" },
-    { icon: DollarSign, label: "Rate/hr", value: kycData?.pricePerHour ? `$${kycData.pricePerHour}` : "—" },
+    // Onboarding writes pricePerHour; seeded/older records use hourlyRate.
+    { icon: DollarSign, label: "Rate/hr", value: (kycData?.pricePerHour ?? kycData?.hourlyRate) ? `$${kycData.pricePerHour ?? kycData.hourlyRate}` : "—" },
   ];
 
   return (
@@ -301,7 +302,10 @@ export default function InstructorProfilePage() {
                   ) : <p className="text-sm text-muted-foreground italic">No languages listed.</p>}
                 </div>
                 <Field label="Category" value={kycData?.category} />
-                <Field label="Experience Level" value={kycData?.experience} />
+                {/* `experience` is the work-history array rendered further
+                    down; the level is its own field. Reading `experience`
+                    here printed "[object Object]" once any history existed. */}
+                <Field label="Experience Level" value={kycData?.level} />
               </div>
             </SectionCard>
 
