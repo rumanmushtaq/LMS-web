@@ -19,6 +19,12 @@ class ChatService {
     return data;
   }
 
+  /** Clears the unread badge for a conversation the user has just opened. */
+  async markConversationRead(conversationId: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.post(apiEndpoints.Chat.MARK_READ(conversationId));
+    return data;
+  }
+
   async blockConversation(conversationId: string): Promise<any> {
     const { data } = await HTTP_CLIENT.post(apiEndpoints.Chat.BLOCK(conversationId));
     return data;

@@ -5,6 +5,46 @@ import { useChatStore } from '@/store/chat';
 import { useNotificationStore } from '@/store/notification';
 import { useAuthStore } from '@/store/auth';
 
+/** Keeps a long-lived session from growing an unbounded message buffer. */
+const MESSAGE_BUFFER_LIMIT = 200;
+
+/**
+ * One socket per token, shared by every component that calls this hook.
+ *
+ * ChatWidget is mounted in the root layout and ChatPage renders on /chat, so
+ * without this the user holds two connections at once — the widget's early
+ * return happens after its hooks have already run. Two connections means two
+ * of every notification and twice the server-side fan-out.
+ */
+let sharedSocket: { token: string; socket: Socket; refCount: number } | null = null;
+
+function acquireSocket(token: string, url: string): Socket {
+  if (sharedSocket && sharedSocket.token === token) {
+    sharedSocket.refCount += 1;
+    return sharedSocket.socket;
+  }
+
+  // Token changed (re-login): drop the old connection before opening a new one.
+  if (sharedSocket) {
+    sharedSocket.socket.disconnect();
+    sharedSocket = null;
+  }
+
+  const socket = io(url, { auth: { token }, transports: ['websocket'] });
+  sharedSocket = { token, socket, refCount: 1 };
+  return socket;
+}
+
+function releaseSocket(socket: Socket) {
+  if (!sharedSocket || sharedSocket.socket !== socket) return;
+
+  sharedSocket.refCount -= 1;
+  if (sharedSocket.refCount <= 0) {
+    sharedSocket.socket.disconnect();
+    sharedSocket = null;
+  }
+}
+
 interface ChatSocketHook {
   socket: Socket | null;
   isConnected: boolean;
@@ -27,100 +67,110 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
     // Use environment variable for backend URL if available
     const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-    const socketIo = io(SOCKET_URL, {
-      auth: { token },
-      transports: ['websocket'],
-    });
+    const socketIo = acquireSocket(token, SOCKET_URL);
 
-    socketIo.on('connect', () => {
-      console.log('Socket connected:', socketIo.id);
-      setIsConnected(true);
-    });
+    // A second consumer joining an already-open socket never sees the original
+    // 'connect' event, so seed from the live state.
+    setIsConnected(socketIo.connected);
 
-    socketIo.on('connect_error', (error) => {
+    const onConnect = () => setIsConnected(true);
+    const onDisconnect = () => setIsConnected(false);
+
+    const onConnectError = (error: Error) => {
       console.error('Socket connection error:', error.message);
       if (error.message.includes('jwt expired') || error.message.includes('Unauthorized')) {
         socketIo.disconnect();
         useAuthStore.getState().logout();
       }
-    });
+    };
 
-    socketIo.on('disconnect', () => {
-      console.log('Socket disconnected');
-      setIsConnected(false);
-    });
+    const onNewMessage = (message: any) => {
+      // Buffer of everything received this session. Consumers advance their own
+      // cursor over it, so several events landing in one React batch are all
+      // seen — reading only the newest entry silently drops the rest.
+      setMessages((prev) => {
+        const next = [...prev, message];
+        return next.length > MESSAGE_BUFFER_LIMIT
+          ? next.slice(-MESSAGE_BUFFER_LIMIT)
+          : next;
+      });
+    };
 
-    socketIo.on('newMessage', (message: any) => {
-      setMessages((prev) => [...prev, message]);
-    });
+    const onNewNotification = (data: any) => {
+      if (data.type !== 'chat_message') return;
 
-    socketIo.on('userTyping', (data: any) => {
-      console.log('User is typing...', data);
-    });
+      const { message, senderId } = data;
 
-    socketIo.on('userStoppedTyping', (data: any) => {
-      console.log('User stopped typing...', data);
-    });
+      // Don't show toast if chat is currently open with this user
+      const { isOpen, activeUserId } = useChatStore.getState();
+      if (isOpen && activeUserId === senderId) return;
 
-    socketIo.on('newNotification', (data: any) => {
-      if (data.type === 'chat_message') {
-        const { message, senderId } = data;
-        
-        // Don't show toast if chat is currently open with this user
-        const { isOpen, activeUserId } = useChatStore.getState();
-        if (isOpen && activeUserId === senderId) return;
+      useNotificationStore.getState().addNotification({
+        type: 'chat_message',
+        title: 'New Message',
+        content: message.content,
+        senderId,
+      });
 
-        // Add to notification store
-        useNotificationStore.getState().addNotification({
-          type: 'chat_message',
-          title: 'New Message',
-          content: message.content,
-          senderId,
-        });
+      toast('New Message', {
+        description: message.content,
+        action: {
+          label: 'View',
+          onClick: () => {
+            useChatStore.getState().openChat(senderId, 'New Message');
+          },
+        },
+      });
+    };
 
-        toast('New Message', {
-          description: message.content,
-          action: {
-            label: 'View',
-            onClick: () => {
-              useChatStore.getState().openChat(senderId, 'New Message');
-            }
-          }
-        });
-      }
-    });
+    socketIo.on('connect', onConnect);
+    socketIo.on('disconnect', onDisconnect);
+    socketIo.on('connect_error', onConnectError);
+    socketIo.on('newMessage', onNewMessage);
+    socketIo.on('newNotification', onNewNotification);
 
     setSocket(socketIo);
     socketRef.current = socketIo;
 
     return () => {
-      socketIo.disconnect();
+      // The socket outlives this consumer, so detach our own listeners rather
+      // than leaving them attached to a connection someone else is still using.
+      socketIo.off('connect', onConnect);
+      socketIo.off('disconnect', onDisconnect);
+      socketIo.off('connect_error', onConnectError);
+      socketIo.off('newMessage', onNewMessage);
+      socketIo.off('newNotification', onNewNotification);
+
+      socketRef.current = null;
+      releaseSocket(socketIo);
     };
   }, [token]);
 
-  const sendMessage = useCallback((conversationId: string, content: string) => {
+  const emit = useCallback((event: string, payload: unknown) => {
     if (socketRef.current?.connected) {
-      socketRef.current.emit('sendMessage', { conversationId, content });
+      socketRef.current.emit(event, payload);
     }
   }, []);
 
-  const typing = useCallback((conversationId: string) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('typing', conversationId);
-    }
-  }, []);
+  const sendMessage = useCallback(
+    (conversationId: string, content: string) => emit('sendMessage', { conversationId, content }),
+    [emit],
+  );
 
-  const stopTyping = useCallback((conversationId: string) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('stopTyping', conversationId);
-    }
-  }, []);
+  const typing = useCallback(
+    (conversationId: string) => emit('typing', conversationId),
+    [emit],
+  );
 
-  const joinConversation = useCallback((conversationId: string) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('joinConversation', conversationId);
-    }
-  }, []);
+  const stopTyping = useCallback(
+    (conversationId: string) => emit('stopTyping', conversationId),
+    [emit],
+  );
+
+  const joinConversation = useCallback(
+    (conversationId: string) => emit('joinConversation', conversationId),
+    [emit],
+  );
 
   return { socket, isConnected, messages, sendMessage, joinConversation, typing, stopTyping };
 };

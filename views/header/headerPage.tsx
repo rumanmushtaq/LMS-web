@@ -20,6 +20,7 @@ const Header = () => {
   const { user, isAuthenticated, logout } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const notifications = useNotificationStore((state) => state.notifications);
   const markAsRead = useNotificationStore((state) => state.markAsRead);
@@ -179,7 +180,7 @@ const Header = () => {
 
           {/* Notifications */}
           {isAuth && mounted && (
-            <Popover>
+            <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
               <PopoverTrigger asChild>
                 <div className="relative cursor-pointer group">
                   <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted/50 transition-colors group-hover:bg-muted">
@@ -212,8 +213,19 @@ const Header = () => {
                           className={cn("p-4 border-b last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors", !notification.read && "bg-primary/5")}
                           onClick={() => {
                             markAsRead(notification._id);
-                            if (notification.type === 'chat_message' && notification.senderId) {
-                              openChat(notification.senderId, "New Message");
+
+                            // actionPayload is what survives a reload; the flat
+                            // senderId only exists on the live socket event.
+                            const senderId =
+                              notification.actionPayload?.senderId ?? notification.senderId;
+                            const senderName =
+                              notification.actionPayload?.senderName ??
+                              notification.title ??
+                              "Chat";
+
+                            if (notification.type === 'chat_message' && senderId) {
+                              setIsNotificationsOpen(false);
+                              openChat(senderId, senderName);
                             }
                           }}
                         >

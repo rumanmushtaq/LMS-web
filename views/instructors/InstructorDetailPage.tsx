@@ -213,9 +213,9 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
               {/* Avatar */}
               <div className="relative shrink-0" style={{ width: "100%", maxWidth: 220 }}>
                 <div className="relative w-full md:w-[220px] h-[220px] overflow-hidden bg-gray-100 flex items-center justify-center">
-                  {avatar ? (
+                  {avatar || data.photoUrl ? (
                     <Image
-                      src={avatar}
+                      src={avatar || data.photoUrl || ""}
                       alt={fullName}
                       fill
                       className="object-cover object-top"
@@ -256,7 +256,7 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
                     {fullName}
                   </h2>
                   <div className="flex items-center gap-2">
-                    {user?.role?.toLowerCase() !== "tutor" && (
+                    {user?.role?.toLowerCase() === "student" && (
                       <button
                         onClick={() => openChat(data?._id, fullName)}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f66962] text-white text-xs font-semibold rounded-lg hover:bg-[#e04d47] transition-colors"
