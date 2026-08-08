@@ -198,13 +198,6 @@ const LoginForm = () => {
         >
           Google
         </Button>
-
-        <Button
-          variant="outline"
-          className="flex-1 h-12 rounded-full gap-2 font-medium"
-        >
-          Facebook
-        </Button>
       </div> */}
 
       {/* Sign Up */}

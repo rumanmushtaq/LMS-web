@@ -3,7 +3,11 @@ import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { useChatStore } from '@/store/chat';
 import { useNotificationStore } from '@/store/notification';
-import { useAuthStore } from '@/store/auth';
+import {
+  endSession,
+  loginUrlForCurrentPage,
+  refreshSession,
+} from '@/lib/auth/session';
 
 /** Keeps a long-lived session from growing an unbounded message buffer. */
 const MESSAGE_BUFFER_LIMIT = 200;
@@ -76,11 +80,22 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
     const onConnect = () => setIsConnected(true);
     const onDisconnect = () => setIsConnected(false);
 
-    const onConnectError = (error: Error) => {
+    const onConnectError = async (error: Error) => {
       console.error('Socket connection error:', error.message);
-      if (error.message.includes('jwt expired') || error.message.includes('Unauthorized')) {
-        socketIo.disconnect();
-        useAuthStore.getState().logout();
+      if (!error.message.includes('jwt expired') && !error.message.includes('Unauthorized')) {
+        return;
+      }
+
+      // Stop the reconnect loop before doing anything slow.
+      socketIo.disconnect();
+
+      // An expired token is recoverable. Refreshing updates the store, which
+      // changes `token`, which re-runs this effect with a fresh connection.
+      // Previously this went straight to logout, dropping the user's session
+      // every time the 15-minute access token lapsed.
+      const refreshed = await refreshSession();
+      if (!refreshed) {
+        await endSession({ redirectTo: loginUrlForCurrentPage() });
       }
     };
 

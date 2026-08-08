@@ -13,11 +13,12 @@ import { useChatStore } from "@/store/chat";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { endSession } from "@/lib/auth/session";
 
 const Header = () => {
   const pathname = usePathname();
   const { theme, toggleTheme } = useThemeStore();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -85,15 +86,15 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background shadow-sm">
-      <div className="container mx-auto flex h-28 items-center justify-between px-6">
+      <div className="container mx-auto flex h-32 items-center justify-between px-6">
         {/* Left: Logo */}
         <Link href="/" className="flex items-center group">
           <Image
             src="/images/logo-image.png"
             alt="Varona Academy"
-            width={300}
-            height={120}
-            className="h-24 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+            width={350}
+            height={140}
+            className="h-28 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
             priority
           />
         </Link>
@@ -285,7 +286,7 @@ const Header = () => {
                 </Link>
                 <Button
                   variant="outline"
-                  onClick={() => logout()}
+                  onClick={() => { void endSession({ notifyServer: true, redirectTo: "/login" }); }}
                   className="h-11 rounded-full font-bold border-border/60 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive cursor-pointer"
                 >
                   Logout
@@ -367,8 +368,8 @@ const Header = () => {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      logout();
                       setIsMenuOpen(false);
+                      void endSession({ notifyServer: true, redirectTo: "/login" });
                     }}
                     className="h-12 w-full rounded-full font-bold border-border/60 hover:bg-destructive hover:text-destructive-foreground"
                   >

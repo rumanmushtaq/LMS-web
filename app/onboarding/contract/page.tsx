@@ -29,7 +29,7 @@ const contractText = `INDEPENDENT CONTRACTOR AGREEMENT
 This Independent Contractor Agreement ("Agreement") is entered into between:
 
 Company:
-Varona Academy, a company organized under the laws of State of California, USA, with its principal place of business at 18034 Ventura Boulevard, Suite 313, Encino, California 91316 ("Platform")
+Varona Academy, a company organized under the laws of State of California, USA, with its principal place of business at 18034 Ventura Boulevard, #313, Encino, California 91316 ("Platform")
 
 and
 

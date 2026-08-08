@@ -58,7 +58,7 @@ export default function LanguageTutorsSection() {
             Why Choose Us
           </p>
           <h2 className="text-3xl md:text-5xl font-black text-foreground leading-tight">
-            Learn languages online with the world's best tutors
+            Learn languages online with International Tutor from all over the world.
           </h2>
           <p className="text-muted-foreground font-medium text-lg mx-auto">
             Tutors from all over the world offer online language lessons

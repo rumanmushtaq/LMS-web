@@ -9,7 +9,7 @@ export default function WorldTutorsSection() {
           Tutors from all over the world offer online lessons
         </h2>
         <p className="text-muted-foreground font-medium text-lg mx-auto">
-          Learn languages online with the world's best tutors
+          Learn languages online with International Tutor from all over the world.
         </p>
       </div>
 
