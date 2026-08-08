@@ -13,13 +13,15 @@ import { useChatStore } from "@/store/chat";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { endSession } from "@/lib/auth/session";
 
 const Header = () => {
   const pathname = usePathname();
   const { theme, toggleTheme } = useThemeStore();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const notifications = useNotificationStore((state) => state.notifications);
   const markAsRead = useNotificationStore((state) => state.markAsRead);
@@ -28,14 +30,6 @@ const Header = () => {
   const unreadCount = useNotificationStore((state) => state.unreadCount);
   const openChat = useChatStore((state) => state.openChat);
 
-  // Prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-    if (isAuthenticated()) {
-      fetchNotifications();
-    }
-  }, []);
-
   const isAuthPage =
     pathname.includes("/login") ||
     pathname.includes("/signup") ||
@@ -43,6 +37,14 @@ const Header = () => {
     pathname.includes("/new-password") ||
     pathname.includes("/otp") ||
     pathname.includes("/landing-Page");
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+    if (isAuthenticated() && !isAuthPage) {
+      fetchNotifications();
+    }
+  }, [pathname]);
 
   if (isAuthPage) return null;
 
@@ -84,15 +86,15 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background shadow-sm">
-      <div className="container mx-auto flex h-28 items-center justify-between px-6">
+      <div className="container mx-auto flex h-32 items-center justify-between px-6">
         {/* Left: Logo */}
         <Link href="/" className="flex items-center group">
           <Image
             src="/images/logo-image.png"
             alt="Varona Academy"
-            width={300}
-            height={120}
-            className="h-24 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+            width={350}
+            height={140}
+            className="h-28 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
             priority
           />
         </Link>
@@ -179,7 +181,7 @@ const Header = () => {
 
           {/* Notifications */}
           {isAuth && mounted && (
-            <Popover>
+            <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
               <PopoverTrigger asChild>
                 <div className="relative cursor-pointer group">
                   <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted/50 transition-colors group-hover:bg-muted">
@@ -212,8 +214,19 @@ const Header = () => {
                           className={cn("p-4 border-b last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors", !notification.read && "bg-primary/5")}
                           onClick={() => {
                             markAsRead(notification._id);
-                            if (notification.type === 'chat_message' && notification.senderId) {
-                              openChat(notification.senderId, "New Message");
+
+                            // actionPayload is what survives a reload; the flat
+                            // senderId only exists on the live socket event.
+                            const senderId =
+                              notification.actionPayload?.senderId ?? notification.senderId;
+                            const senderName =
+                              notification.actionPayload?.senderName ??
+                              notification.title ??
+                              "Chat";
+
+                            if (notification.type === 'chat_message' && senderId) {
+                              setIsNotificationsOpen(false);
+                              openChat(senderId, senderName);
                             }
                           }}
                         >
@@ -273,7 +286,7 @@ const Header = () => {
                 </Link>
                 <Button
                   variant="outline"
-                  onClick={() => logout()}
+                  onClick={() => { void endSession({ notifyServer: true, redirectTo: "/login" }); }}
                   className="h-11 rounded-full font-bold border-border/60 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive cursor-pointer"
                 >
                   Logout
@@ -355,8 +368,8 @@ const Header = () => {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      logout();
                       setIsMenuOpen(false);
+                      void endSession({ notifyServer: true, redirectTo: "/login" });
                     }}
                     className="h-12 w-full rounded-full font-bold border-border/60 hover:bg-destructive hover:text-destructive-foreground"
                   >

@@ -75,7 +75,7 @@ export default function ContactPage() {
                       Email Us
                     </p>
                     <span className="text-lg font-semibold">
-                      contact@varonaacademy.com
+                      info@varonaacademy.com
                     </span>
                   </div>
                 </div>
@@ -89,7 +89,7 @@ export default function ContactPage() {
                       Visit Us
                     </p>
                     <span className="text-lg font-semibold leading-snug">
-                      132 Dartmouth Street Boston, Massachusetts 02156
+                      18034 Ventura Boulevard, #313, Encino, California 91316
                     </span>
                   </div>
                 </div>

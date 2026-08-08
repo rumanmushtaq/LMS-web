@@ -1,5 +1,4 @@
 import {
-  Facebook,
   Instagram,
   Twitter,
   Youtube,
@@ -10,7 +9,6 @@ import {
 } from "lucide-react";
 
 export const socialLinks = [
-  { Icon: Facebook,  hover: "#1877f2", label: "Facebook"  },
   { Icon: Instagram, hover: "#e1306c", label: "Instagram" },
   { Icon: Twitter,   hover: "#0f1419", label: "Twitter"   },
   { Icon: Youtube,   hover: "#ff0000", label: "YouTube"   },

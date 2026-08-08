@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
+import { useAuthHydrated } from "@/hooks/useAuthHydrated";
 import { Loader2 } from "lucide-react";
 
 /**
@@ -14,8 +15,12 @@ import { Loader2 } from "lucide-react";
 export default function ProfileRedirectPage() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
+  const hydrated = useAuthHydrated();
 
   useEffect(() => {
+    // Deciding before the store has rehydrated sends signed-in users to /login.
+    if (!hydrated) return;
+
     if (!isAuthenticated()) {
       router.replace("/login");
       return;
@@ -25,7 +30,7 @@ export default function ProfileRedirectPage() {
     } else {
       router.replace("/student/profile");
     }
-  }, [user, isAuthenticated, router]);
+  }, [hydrated, user, isAuthenticated, router]);
 
   return (
     <div className="flex items-center justify-center min-h-[60vh]">

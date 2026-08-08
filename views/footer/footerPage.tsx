@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, MapPin, Phone, Send, Facebook, Instagram } from "lucide-react";
+import { Mail, MapPin, Phone, Send, Instagram } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -161,7 +161,7 @@ const Footer = () => {
                   <Mail className="h-5 w-5 text-primary" />
                 </div>
                 <p className="text-[15px] text-muted-foreground">
-                  varonaacademy@example.com
+                  info@varonaacademy.com
                 </p>
               </div>
 
@@ -192,10 +192,7 @@ const Footer = () => {
             </Link>
             <span className="text-white/20 hidden md:inline">|</span>
             <div className="flex items-center gap-4">
-              <Link href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                <Facebook className="h-4 w-4" />
-              </Link>
-              <Link href="https://www.instagram.com/varonaacademy/?igsh=MTc0a3RsMHdvdXBsZQ%3D%3D&utm_source=qr#" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+              <Link href="https://www.instagram.com/varonaacademy/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
                 <Instagram className="h-4 w-4" />
               </Link>
             </div>

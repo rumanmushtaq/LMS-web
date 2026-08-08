@@ -22,20 +22,15 @@ import EmojiPicker from "emoji-picker-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { mergeMessages, type ChatMessage } from "@/lib/chat/messages";
 
-interface LocalMessage {
-  _id: string;
-  content: string;
-  senderId: string;
-  conversationId: string;
-  createdAt: string;
-  pending?: boolean;
-}
+type LocalMessage = ChatMessage;
 
 interface Conversation {
   _id: string;
   participants: any[];
   lastMessage?: { content: string; createdAt: string };
+  unreadCount?: number;
   updatedAt: string;
   isBlocked?: boolean;
   blockedBy?: string;
@@ -110,13 +105,18 @@ export default function ChatPage() {
   const { isConnected, messages: socketMessages, sendMessage, joinConversation, typing, stopTyping, socket } =
     useChatSocket(token || "");
 
-  // Scroll to bottom on new messages — scroll the container, not the whole page
+  // Scroll to bottom on new messages — scroll the container, not the whole page.
+  // Deferred a frame so the new rows are laid out first; measuring scrollHeight
+  // synchronously reads the height of the *previous* render and stops short.
   useEffect(() => {
     const container = messagesContainerRef.current;
-    if (container) {
+    if (!container) return;
+
+    const frame = requestAnimationFrame(() => {
       container.scrollTop = container.scrollHeight;
-    }
-  }, [localMessages]);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [localMessages, isLoadingConv, selectedConvId]);
 
   // Ensure we rejoin the socket room if the connection drops and reconnects
   useEffect(() => {
@@ -125,35 +125,62 @@ export default function ChatPage() {
     }
   }, [isConnected, selectedConvId, joinConversation]);
 
-  // Merge socket messages
+  // Merge socket messages.
+  //
+  // React batches state updates, so several socket events can arrive between
+  // two renders. The cursor tracks the last entry already folded in — reading
+  // only socketMessages[length - 1] loses every message but the newest.
+  const lastMergedIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (socketMessages.length === 0) return;
-    const latest = socketMessages[socketMessages.length - 1];
-    setLocalMessages((prev) => {
-      const exactExists = prev.some((m) => m._id === latest._id);
-      if (exactExists) return prev;
-      const isOwn = latest.senderId === currentUserId;
-      if (isOwn) {
-        const pendingIndex = prev.findIndex(
-          (m) => m.pending && m.content === latest.content
-        );
-        if (pendingIndex !== -1) {
-          const next = [...prev];
-          next[pendingIndex] = { ...latest, pending: false };
-          return next;
-        }
-      }
-      return [...prev, latest];
-    });
-    // Update last message preview in conversations list
-    setConversationsList((prev) =>
-      prev.map((c) =>
-        c._id === latest.conversationId
-          ? { ...c, lastMessage: { content: latest.content, createdAt: latest.createdAt } }
-          : c
-      )
+
+    const seenIndex = lastMergedIdRef.current
+      ? socketMessages.findIndex((m) => m._id === lastMergedIdRef.current)
+      : -1;
+    const fresh = socketMessages.slice(seenIndex + 1);
+    if (fresh.length === 0) return;
+
+    lastMergedIdRef.current = socketMessages[socketMessages.length - 1]._id;
+
+    setLocalMessages((prev) =>
+      mergeMessages(prev, fresh, {
+        conversationId: selectedConvId,
+        currentUserId,
+      })
     );
-  }, [socketMessages, currentUserId]);
+
+    // Update the preview and unread tally for every conversation touched —
+    // not just the one on screen.
+    setConversationsList((prev) =>
+      prev.map((c) => {
+        const forConv = fresh.filter((m) => m.conversationId === c._id);
+        if (forConv.length === 0) return c;
+
+        const latest = forConv[forConv.length - 1];
+        // Messages landing in the thread the user is looking at are read on
+        // arrival; anything else bumps that conversation's badge.
+        const isOpenThread = c._id === selectedConvId;
+        const incoming = forConv.filter((m) => m.senderId !== currentUserId).length;
+
+        return {
+          ...c,
+          lastMessage: { content: latest.content, createdAt: latest.createdAt },
+          unreadCount: isOpenThread ? 0 : (c.unreadCount ?? 0) + incoming,
+        };
+      })
+    );
+
+    // Keep the server in step for the thread that is actually on screen.
+    const readForOpenThread = selectedConvId
+      ? fresh.some(
+          (m) => m.conversationId === selectedConvId && m.senderId !== currentUserId
+        )
+      : false;
+    if (readForOpenThread && selectedConvId) {
+      chatService.markConversationRead(selectedConvId).catch(console.error);
+    }
+  }, [socketMessages, currentUserId, selectedConvId]);
 
   // Load conversations
   const loadConversations = useCallback(() => {
@@ -191,6 +218,13 @@ export default function ChatPage() {
             if (socket?.connected) {
               socket.emit("joinConversation", conv._id);
             }
+
+            // Opening the thread is what makes it read.
+            chatService.markConversationRead(conv._id).catch(console.error);
+            setConversationsList((prev) =>
+              prev.map((c) => (c._id === conv._id ? { ...c, unreadCount: 0 } : c))
+            );
+
             return chatService.getMessages(conv._id);
           }
         })
@@ -444,6 +478,9 @@ export default function ChatPage() {
                     const initials =
                       (other.firstName?.charAt(0) ?? "") + (other.lastName?.charAt(0) ?? "");
                     const isSelected = activeUserId === other._id;
+                    // An open thread is being read right now, so never badge it.
+                    const unreadCount = isSelected ? 0 : conv.unreadCount ?? 0;
+                    const hasUnread = unreadCount > 0;
 
                     return (
                       <motion.div
@@ -479,19 +516,40 @@ export default function ChatPage() {
                           <div className="flex justify-between items-baseline mb-0.5">
                             <h4
                               className={cn(
-                                "font-semibold text-sm truncate",
-                                isSelected ? "text-primary" : "text-foreground"
+                                "text-sm truncate",
+                                isSelected ? "text-primary font-semibold" : "text-foreground",
+                                hasUnread ? "font-bold" : "font-semibold"
                               )}
                             >
                               {name || "User"}
                             </h4>
-                            <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                            <span
+                              className={cn(
+                                "text-[10px] shrink-0 ml-2",
+                                hasUnread ? "text-primary font-semibold" : "text-muted-foreground"
+                              )}
+                            >
                               {formatConvDate(conv.lastMessage?.createdAt ?? conv.updatedAt)}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {conv.lastMessage?.content ?? "Start a conversation…"}
-                          </p>
+                          <div className="flex items-center justify-between gap-2">
+                            <p
+                              className={cn(
+                                "text-xs truncate",
+                                hasUnread ? "text-foreground font-medium" : "text-muted-foreground"
+                              )}
+                            >
+                              {conv.lastMessage?.content ?? "Start a conversation…"}
+                            </p>
+                            {hasUnread && (
+                              <span
+                                aria-label={`${unreadCount} unread messages`}
+                                className="shrink-0 min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground"
+                              >
+                                {unreadCount > 99 ? "99+" : unreadCount}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </motion.div>
                     );

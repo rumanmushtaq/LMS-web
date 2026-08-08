@@ -46,6 +46,7 @@ const apiEndpoints = {
   Chat: {
     CONVERSATIONS: "/api/v1/chat/conversations",
     MESSAGES: (id: string) => `/api/v1/chat/conversations/${id}/messages`,
+    MARK_READ: (id: string) => `/api/v1/chat/conversations/${id}/read`,
     BLOCK: (id: string) => `/api/v1/chat/conversations/${id}/block`,
     UNBLOCK: (id: string) => `/api/v1/chat/conversations/${id}/unblock`,
     DELETE: (id: string) => `/api/v1/chat/conversations/${id}`,

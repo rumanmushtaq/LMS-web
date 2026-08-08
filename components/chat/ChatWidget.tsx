@@ -9,15 +9,9 @@ import { useChatStore } from '@/store/chat';
 import { useAuthStore } from '@/store/auth';
 import chatService from '@/services/chat';
 import { usePathname } from 'next/navigation';
+import { mergeMessages, type ChatMessage } from '@/lib/chat/messages';
 
-interface LocalMessage {
-  _id: string;
-  content: string;
-  senderId: string;
-  conversationId: string;
-  createdAt: string;
-  pending?: boolean; // optimistic flag
-}
+type LocalMessage = ChatMessage;
 
 export default function ChatWidget() {
   const pathname = usePathname();
@@ -54,36 +48,40 @@ export default function ChatWidget() {
     }
   }, [isConnected, conversationId, joinConversation]);
 
-  // Scroll to bottom whenever messages update — scroll the container, not the whole page
+  // Scroll to bottom whenever messages update — scroll the container, not the whole page.
+  // Deferred a frame so the new rows are laid out first; measuring scrollHeight
+  // synchronously reads the height of the *previous* render and stops short.
   useEffect(() => {
     const container = messagesContainerRef.current;
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
-  }, [localMessages]);
+    if (!container) return;
 
-  // Merge incoming socket messages into local state (avoid duplicates by _id)
+    const frame = requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [localMessages, isLoadingConv, conversationId]);
+
+  // Merge incoming socket messages into local state.
+  //
+  // The cursor matters: React batches updates, so several events can land
+  // between renders and reading only the newest one drops the rest.
+  const lastMergedIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (socketMessages.length === 0) return;
-    const latest = socketMessages[socketMessages.length - 1];
-    setLocalMessages(prev => {
-      const exactExists = prev.some(m => m._id === latest._id);
-      if (exactExists) return prev;
-      
-      const isOurMessage = latest.senderId === currentUserId;
-      if (isOurMessage) {
-        // Find matching pending message by content
-        const pendingIndex = prev.findIndex(m => m.pending && m.content === latest.content);
-        if (pendingIndex !== -1) {
-          const newMessages = [...prev];
-          newMessages[pendingIndex] = { ...latest, pending: false };
-          return newMessages;
-        }
-      }
-      
-      return [...prev, latest];
-    });
-  }, [socketMessages, currentUserId]);
+
+    const seenIndex = lastMergedIdRef.current
+      ? socketMessages.findIndex(m => m._id === lastMergedIdRef.current)
+      : -1;
+    const fresh = socketMessages.slice(seenIndex + 1);
+    if (fresh.length === 0) return;
+
+    lastMergedIdRef.current = socketMessages[socketMessages.length - 1]._id;
+
+    setLocalMessages(prev =>
+      mergeMessages(prev, fresh, { conversationId, currentUserId })
+    );
+  }, [socketMessages, currentUserId, conversationId]);
 
   // Load conversations list when chat is open but no active user is selected
   useEffect(() => {
@@ -118,6 +116,13 @@ export default function ChatWidget() {
           if (socket?.connected) {
             socket.emit('joinConversation', conv._id);
           }
+
+          // Opening the thread is what makes it read.
+          chatService.markConversationRead(conv._id).catch(console.error);
+          setConversationsList(prev =>
+            prev.map(c => (c._id === conv._id ? { ...c, unreadCount: 0 } : c))
+          );
+
           // Load message history
           return chatService.getMessages(conv._id);
         }
@@ -231,7 +236,7 @@ export default function ChatWidget() {
             </div>
             <button
               onClick={closeChat}
-              className="text-white/60 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+              className="text-white/60 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10 cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -255,7 +260,10 @@ export default function ChatWidget() {
                 conversationsList.map((conv) => {
                   const otherUser = conv.participants?.find((p: any) => p._id !== currentUserId) || conv.participants?.[0];
                   if (!otherUser) return null;
-                  
+
+                  const unreadCount = conv.unreadCount ?? 0;
+                  const hasUnread = unreadCount > 0;
+
                   return (
                     <div
                       key={conv._id}
@@ -267,13 +275,23 @@ export default function ChatWidget() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-baseline mb-0.5">
-                          <h4 className="font-semibold text-sm text-gray-900 truncate">
+                          <h4 className={`text-sm text-gray-900 truncate ${hasUnread ? 'font-bold' : 'font-semibold'}`}>
                             {otherUser.firstName} {otherUser.lastName}
                           </h4>
                         </div>
-                        <p className="text-xs text-gray-500 truncate">
-                          {conv.lastMessage?.content || 'Click to view messages'}
-                        </p>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={`text-xs truncate ${hasUnread ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                            {conv.lastMessage?.content || 'Click to view messages'}
+                          </p>
+                          {hasUnread && (
+                            <span
+                              aria-label={`${unreadCount} unread messages`}
+                              className="shrink-0 min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white"
+                            >
+                              {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -374,7 +392,7 @@ export default function ChatWidget() {
       {/* ── Floating Toggle Button ── */}
       <button
         onClick={toggleChat}
-        className="w-14 h-14 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+        className="w-14 h-14 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer"
         style={{ background: 'linear-gradient(135deg, #1e2230, #2d3452)' }}
       >
         {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
