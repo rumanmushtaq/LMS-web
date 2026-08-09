@@ -31,6 +31,25 @@ const profileSchema = z.object({
       }),
     )
     .optional(),
+
+  // Expertise — collected at KYC onboarding, editable here afterwards.
+  category: z.string().optional(),
+  /** Teaching experience level — distinct from the `experience` work history. */
+  level: z.string().optional(),
+  specialties: z.array(z.string()).optional(),
+  nativeLanguage: z.string().optional(),
+  spokenLanguages: z.array(z.string()).optional(),
+  /** Certificate file URLs uploaded during KYC or from the profile. */
+  certifications: z.array(z.string()).optional(),
+  availability: z
+    .array(
+      z.object({
+        day: z.string(),
+        startTime: z.string(),
+        endTime: z.string(),
+      }),
+    )
+    .optional(),
 });
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -52,6 +71,13 @@ export const useInstructorProfile = () => {
       bio: "",
       education: [],
       experience: [],
+      category: "",
+      level: "",
+      specialties: [],
+      nativeLanguage: "",
+      spokenLanguages: [],
+      certifications: [],
+      availability: [],
     },
   });
 
@@ -78,6 +104,13 @@ export const useInstructorProfile = () => {
         bio: data.kycData?.bio || "",
         education: data.kycData?.education || [],
         experience: data.kycData?.experience || [],
+        category: data.kycData?.category || "",
+        level: data.kycData?.level || "",
+        specialties: data.kycData?.specialties || [],
+        nativeLanguage: data.kycData?.nativeLanguage || "",
+        spokenLanguages: data.kycData?.spokenLanguages || [],
+        certifications: data.kycData?.certifications || [],
+        availability: data.kycData?.availability || [],
       });
     } catch (error) {
       console.error("Failed to fetch profile:", error);

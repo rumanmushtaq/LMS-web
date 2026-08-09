@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Library,
   Plus,
@@ -27,9 +28,12 @@ import {
   uploadMaterialFile,
   TutorMaterial,
 } from "@/services/materials";
+import { FileTypePlaceholder } from "@/components/materials/FileTypePlaceholder";
 
 export default function InstructorMaterialsPage() {
   const { user } = useAuthStore();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [materials, setMaterials] = useState<TutorMaterial[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,6 +79,18 @@ export default function InstructorMaterialsPage() {
       setLoading(false);
     }
   };
+
+  // Deep link from the profile page: /instructor/materials?edit=<id> opens
+  // that material's edit modal once the list has loaded, then strips the
+  // param so refresh/back doesn't reopen it.
+  useEffect(() => {
+    const editId = searchParams.get("edit");
+    if (!editId || loading || materials.length === 0) return;
+    const target = materials.find((m) => m._id === editId);
+    if (target) openEditModal(target);
+    router.replace("/instructor/materials", { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, loading, materials]);
 
   const filteredMaterials = materials.filter((m) => {
     const matchesSearch = m.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -321,7 +337,7 @@ export default function InstructorMaterialsPage() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <FileText className="w-12 h-12 text-muted-foreground/30" />
+                    <FileTypePlaceholder fileUrl={material.fileUrl} iconClassName="w-12 h-12" />
                   )}
                   {/* Status Badge */}
                   <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-md shadow-sm border bg-background/80 border-border/50">

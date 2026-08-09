@@ -12,8 +12,13 @@ import InstructorLayout from "../InstructorLayout";
 import { cn } from "@/lib/utils";
 import { useInstructorProfile } from "@/hooks/useInstructorProfile";
 import AvailabilityCalendar from "./AvailabilityCalendar";
-import { useEffect, useState } from "react";
-import { getMaterials, TutorMaterial } from "@/services/materials";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import axiosInstance from "@/utils/axiosInstance";
+import apiEndpoints from "@/utils/apiConfig";
+import { getMaterials, deleteMaterial, TutorMaterial } from "@/services/materials";
+import categoriesService, { CategoryItem } from "@/services/categories";
+import { FileTypePlaceholder } from "@/components/materials/FileTypePlaceholder";
 import { useAuthStore } from "@/store/auth";
 import { Library } from "lucide-react";
 
@@ -21,6 +26,10 @@ import { Library } from "lucide-react";
 
 const Btn = ({ children, variant = "primary", size = "md", className = "", ...p }: any) => (
   <button
+    // Buttons default to type="submit" inside a form; without this, pressing
+    // Enter in any input "clicks" the first Btn in the form (implicit
+    // submission) — which was adding Education rows out of nowhere.
+    type="button"
     className={cn(
       "inline-flex items-center justify-center rounded-xl text-sm font-medium transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-95 gap-2",
       variant === "ghost" ? "hover:bg-accent hover:text-accent-foreground"
@@ -65,6 +74,189 @@ const SelectField = ({ label, name, control, options }: any) => (
   </div>
 );
 
+/** Chip editor for string arrays (specialties, spoken languages). Enter, comma, or the + button adds; ✕ removes. */
+const TagInputField = ({ label, name, control, placeholder = "Type and press Enter" }: any) => {
+  const [draft, setDraft] = useState("");
+  return (
+    <div>
+      <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 block mb-1">{label}</label>
+      <Controller name={name} control={control} render={({ field }) => {
+        // Older KYC records can hold a non-array here; never assume.
+        const tags: string[] = Array.isArray(field.value) ? field.value : [];
+        const commit = () => {
+          const tag = draft.trim().replace(/,+$/, "");
+          if (tag && !tags.some((t) => t.toLowerCase() === tag.toLowerCase())) {
+            field.onChange([...tags, tag]);
+          }
+          setDraft("");
+        };
+        return (
+          <div className="flex flex-wrap items-center gap-2 p-2 rounded-xl border border-border bg-background focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+            {tags.map((tag, i) => (
+              <span key={i} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold border border-primary/20">
+                {tag}
+                <button type="button" onClick={() => field.onChange(tags.filter((_, idx) => idx !== i))}
+                  className="hover:text-destructive transition-colors" aria-label={`Remove ${tag}`}>
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+            <input
+              type="text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder={tags.length === 0 ? placeholder : ""}
+              className="flex-1 min-w-[110px] h-7 px-1 bg-transparent focus:outline-none text-sm"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === ",") {
+                  e.preventDefault();
+                  commit();
+                }
+              }}
+              onBlur={commit}
+            />
+            <button
+              type="button"
+              onClick={commit}
+              disabled={!draft.trim()}
+              className="p-1.5 rounded-lg border border-border text-primary hover:bg-primary/10 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+              aria-label={`Add ${label}`}
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        );
+      }} />
+    </div>
+  );
+};
+
+const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+/** Weekly availability editor — same day/startTime/endTime slots the KYC onboarding produces. */
+const AvailabilityEditor = ({ control }: any) => (
+  <Controller name="availability" control={control} render={({ field }) => {
+    const slots: { day: string; startTime: string; endTime: string }[] = field.value ?? [];
+    const slotFor = (day: string) => slots.find((s) => s.day === day);
+    const setSlot = (day: string, patch: Partial<{ startTime: string; endTime: string }> | null) => {
+      if (patch === null) {
+        field.onChange(slots.filter((s) => s.day !== day));
+      } else if (slotFor(day)) {
+        field.onChange(slots.map((s) => (s.day === day ? { ...s, ...patch } : s)));
+      } else {
+        field.onChange([...slots, { day, startTime: "09:00", endTime: "17:00", ...patch }]);
+      }
+    };
+    return (
+      <div className="space-y-2">
+        {WEEK_DAYS.map((day) => {
+          const slot = slotFor(day);
+          return (
+            <div key={day} className={cn(
+              "flex flex-wrap items-center gap-3 p-3 rounded-xl border transition-colors",
+              slot ? "border-primary/30 bg-primary/5" : "border-border/50 bg-muted/20",
+            )}>
+              <label className="flex items-center gap-2.5 w-32 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={!!slot}
+                  onChange={(e) => setSlot(day, e.target.checked ? {} : null)}
+                  className="h-4 w-4 rounded border-border accent-primary"
+                />
+                <span className={cn("text-sm font-semibold", slot ? "text-foreground" : "text-muted-foreground")}>{day}</span>
+              </label>
+              {slot && (
+                <div className="flex items-center gap-2 text-sm">
+                  <input type="time" value={slot.startTime}
+                    onChange={(e) => setSlot(day, { startTime: e.target.value })}
+                    className="h-9 px-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                  <span className="text-muted-foreground">to</span>
+                  <input type="time" value={slot.endTime}
+                    onChange={(e) => setSlot(day, { endTime: e.target.value })}
+                    className="h-9 px-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }} />
+);
+
+const EXPERIENCE_LEVELS = ["Less than 1 year", "1-3 Years", "3-5 Years", "5-10 Years", "10+ Years"];
+
+/** "1783186451488-certificate_Tekaa2zZ8.jpeg" → "certificate_Tekaa2zZ8.jpeg" — never the raw URL. */
+const certDisplayName = (url: string, index: number) => {
+  try {
+    const base = decodeURIComponent(url.split("/").pop()!.split("?")[0]).replace(/^\d+-/, "");
+    return base || `Certificate ${index + 1}`;
+  } catch {
+    return `Certificate ${index + 1}`;
+  }
+};
+
+/** Add/remove certificate files. Uses the same upload endpoint and folder as KYC onboarding. */
+const CertificationsEditor = ({ control }: any) => {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <Controller name="certifications" control={control} render={({ field }) => {
+      const certs: string[] = Array.isArray(field.value) ? field.value : [];
+
+      const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        setUploading(true);
+        try {
+          const data = new FormData();
+          data.append("file", file);
+          data.append("folder", "tutor-certs");
+          const res = await axiosInstance.post(apiEndpoints.Onboarding.UPLOAD, data, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          field.onChange([...certs, res.data.data.url]);
+          toast.success("Certificate uploaded. Remember to save your profile.");
+        } catch (err) {
+          console.error("Certificate upload failed", err);
+          toast.error("Certificate upload failed. Please try again.");
+        } finally {
+          setUploading(false);
+        }
+      };
+
+      return (
+        <div className="space-y-3">
+          {certs.length === 0 && (
+            <p className="text-sm text-muted-foreground italic">No certifications uploaded yet.</p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            {certs.map((url, i) => (
+              <span key={i} className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-300 text-xs font-semibold">
+                <Award className="h-3.5 w-3.5 shrink-0" />
+                <a href={url} target="_blank" rel="noopener noreferrer" className="hover:underline max-w-[220px] truncate" title={certDisplayName(url, i)}>
+                  {certDisplayName(url, i)}
+                </a>
+                <button type="button" onClick={() => field.onChange(certs.filter((_, idx) => idx !== i))}
+                  className="p-0.5 hover:text-destructive transition-colors" aria-label="Remove certificate">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </span>
+            ))}
+          </div>
+          <input ref={inputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={onFile} />
+          <Btn variant="outline" size="sm" disabled={uploading} onClick={() => inputRef.current?.click()}
+            className="text-primary hover:bg-primary/10">
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            {uploading ? "Uploading…" : "Add Certificate"}
+          </Btn>
+        </div>
+      );
+    }} />
+  );
+};
+
 const SectionCard = ({ icon: Icon, title, action, children }: any) => (
   <div className="rounded-3xl border border-border/50 bg-card/60 backdrop-blur-xl shadow-xl shadow-foreground/5 overflow-hidden">
     <div className="px-6 py-5 border-b border-border/50 flex items-center justify-between">
@@ -94,6 +286,28 @@ export default function InstructorProfilePage() {
       getMaterials({ tutorId: user.id }).then(setMaterials).catch(console.error);
     }
   }, [user?.id]);
+
+  const [deletingMaterialId, setDeletingMaterialId] = useState<string | null>(null);
+
+  // Same source the KYC onboarding uses for its category picker.
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  useEffect(() => {
+    categoriesService.getCategories().then(setCategories).catch(console.error);
+  }, []);
+
+  const handleDeleteMaterial = async (m: TutorMaterial) => {
+    if (!window.confirm(`Delete "${m.title}" permanently? It will be removed from sale and this cannot be undone. If you only want to stop selling it, use Edit and set it to Hidden instead.`)) return;
+    setDeletingMaterialId(m._id);
+    try {
+      await deleteMaterial(m._id);
+      setMaterials((prev) => prev.filter((x) => x._id !== m._id));
+    } catch (error) {
+      console.error("Failed to delete material:", error);
+      alert("Failed to delete material. Please try again.");
+    } finally {
+      setDeletingMaterialId(null);
+    }
+  };
 
   if (loading) return (
     <InstructorLayout>
@@ -216,7 +430,18 @@ export default function InstructorProfilePage() {
             </div>
           </div>
 
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            // Enter in a text input must never trigger implicit submission —
+            // saving is the explicit Save button's job. Textareas keep Enter
+            // for newlines; tag inputs handle Enter themselves first.
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.target as HTMLElement).tagName === "INPUT") {
+                e.preventDefault();
+              }
+            }}
+            className="space-y-6"
+          >
 
             {/* ── Personal Information ── */}
             <SectionCard icon={UserIcon} title="Personal Information">
@@ -275,38 +500,54 @@ export default function InstructorProfilePage() {
 
             {/* ── Expertise & Languages ── */}
             <SectionCard icon={Award} title="Expertise & Languages">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-2">Specialties</p>
-                  {Array.isArray(kycData?.specialties) && kycData.specialties.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {kycData.specialties.map((s: string, i: number) => (
-                        <span key={i} className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold border border-primary/20">{s}</span>
-                      ))}
-                    </div>
-                  ) : <p className="text-sm text-muted-foreground italic">None listed.</p>}
+              {isEditing ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <TagInputField label="Specialties" name="specialties" control={control}
+                    placeholder="e.g. Algebra — press Enter to add" />
+                  <div className="space-y-4">
+                    <InputField label="Native Language" name="nativeLanguage" control={control} placeholder="English" />
+                    <TagInputField label="Other Languages" name="spokenLanguages" control={control}
+                      placeholder="e.g. Spanish — press Enter to add" />
+                  </div>
+                  <SelectField label="Category" name="category" control={control}
+                    options={categories.map((c) => ({ value: c.title, label: c.title }))} />
+                  <SelectField label="Experience Level" name="level" control={control}
+                    options={EXPERIENCE_LEVELS.map((l) => ({ value: l, label: l }))} />
                 </div>
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-2">Languages</p>
-                  {((Array.isArray(kycData?.spokenLanguages) && kycData.spokenLanguages.length > 0) || kycData?.nativeLanguage) ? (
-                    <div className="flex flex-wrap gap-2">
-                      {kycData?.nativeLanguage && (
-                        <span className="px-3 py-1 rounded-full bg-accent/20 text-accent-foreground text-xs font-semibold border border-accent/30">
-                          {kycData.nativeLanguage} (Native)
-                        </span>
-                      )}
-                      {kycData?.spokenLanguages?.map((l: string, i: number) => (
-                        <span key={i} className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-semibold border border-border/50">{l}</span>
-                      ))}
-                    </div>
-                  ) : <p className="text-sm text-muted-foreground italic">No languages listed.</p>}
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-2">Specialties</p>
+                    {Array.isArray(kycData?.specialties) && kycData.specialties.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {kycData.specialties.map((s: string, i: number) => (
+                          <span key={i} className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold border border-primary/20">{s}</span>
+                        ))}
+                      </div>
+                    ) : <p className="text-sm text-muted-foreground italic">None listed.</p>}
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-2">Languages</p>
+                    {((Array.isArray(kycData?.spokenLanguages) && kycData.spokenLanguages.length > 0) || kycData?.nativeLanguage) ? (
+                      <div className="flex flex-wrap gap-2">
+                        {kycData?.nativeLanguage && (
+                          <span className="px-3 py-1 rounded-full bg-accent/20 text-accent-foreground text-xs font-semibold border border-accent/30">
+                            {kycData.nativeLanguage} (Native)
+                          </span>
+                        )}
+                        {kycData?.spokenLanguages?.map((l: string, i: number) => (
+                          <span key={i} className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-semibold border border-border/50">{l}</span>
+                        ))}
+                      </div>
+                    ) : <p className="text-sm text-muted-foreground italic">No languages listed.</p>}
+                  </div>
+                  <Field label="Category" value={kycData?.category} />
+                  {/* `experience` is the work-history array rendered further
+                      down; the level is its own field. Reading `experience`
+                      here printed "[object Object]" once any history existed. */}
+                  <Field label="Experience Level" value={kycData?.level} />
                 </div>
-                <Field label="Category" value={kycData?.category} />
-                {/* `experience` is the work-history array rendered further
-                    down; the level is its own field. Reading `experience`
-                    here printed "[object Object]" once any history existed. */}
-                <Field label="Experience Level" value={kycData?.level} />
-              </div>
+              )}
             </SectionCard>
 
             {/* ── Education ── */}
@@ -327,7 +568,7 @@ export default function InstructorProfilePage() {
                   )}
                   {eduFields.map((field, i) => (
                     <div key={field.id} className="p-4 rounded-2xl border border-border/50 bg-muted/20 space-y-4 relative">
-                      <button onClick={() => removeEdu(i)} className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors">
+                      <button type="button" onClick={() => removeEdu(i)} className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors">
                         <Trash2 className="h-4 w-4" />
                       </button>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -374,7 +615,7 @@ export default function InstructorProfilePage() {
                   )}
                   {expFields.map((field, i) => (
                     <div key={field.id} className="p-4 rounded-2xl border border-border/50 bg-muted/20 space-y-4 relative">
-                      <button onClick={() => removeExp(i)} className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors">
+                      <button type="button" onClick={() => removeExp(i)} className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors">
                         <Trash2 className="h-4 w-4" />
                       </button>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -404,7 +645,14 @@ export default function InstructorProfilePage() {
 
             {/* ── Availability Calendar ── */}
             <SectionCard icon={Calendar} title="Availability Schedule">
-              {availability.length === 0 ? (
+              {isEditing ? (
+                <>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Tick the days you teach and set your hours. The schedule repeats weekly and is shown to students in their own timezone.
+                  </p>
+                  <AvailabilityEditor control={control} />
+                </>
+              ) : availability.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic">No availability schedule set yet.</p>
               ) : (
                 <>
@@ -417,17 +665,23 @@ export default function InstructorProfilePage() {
             </SectionCard>
 
             {/* ── Certifications ── */}
-            {Array.isArray(kycData?.certifications) && kycData.certifications.length > 0 && (
-              <SectionCard icon={Award} title="Certifications">
+            <SectionCard icon={Award} title="Certifications">
+              {isEditing ? (
+                <CertificationsEditor control={control} />
+              ) : Array.isArray(kycData?.certifications) && kycData.certifications.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {kycData.certifications.map((c: string, i: number) => (
-                    <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-300 text-xs font-semibold">
-                      <Award className="h-3.5 w-3.5" /> {c}
-                    </span>
+                    <a key={i} href={c} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-300 text-xs font-semibold hover:underline">
+                      <Award className="h-3.5 w-3.5 shrink-0" />
+                      <span className="max-w-[220px] truncate" title={certDisplayName(c, i)}>{certDisplayName(c, i)}</span>
+                    </a>
                   ))}
                 </div>
-              </SectionCard>
-            )}
+              ) : (
+                <p className="text-sm text-muted-foreground italic">No certifications uploaded yet.</p>
+              )}
+            </SectionCard>
 
             {/* ── Social Links ── */}
             {kycData?.social && Object.values(kycData.social).some(Boolean) && (
@@ -460,16 +714,37 @@ export default function InstructorProfilePage() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   {materials?.map((m) => (
-                    <div key={m._id} className="rounded-xl border border-border/50 bg-muted/20 p-3 flex flex-col gap-2">
-                      <div className="aspect-[4/3] bg-background rounded-lg overflow-hidden border border-border/50">
+                    <div key={m._id} className="group rounded-xl border border-border/50 bg-muted/20 p-3 flex flex-col gap-2">
+                      <div className="relative aspect-[4/3] bg-background rounded-lg overflow-hidden border border-border/50">
                         {m.coverImageUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={m.coverImageUrl} alt={m.title} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                            <BookOpen className="w-8 h-8" />
-                          </div>
+                          <FileTypePlaceholder fileUrl={m.fileUrl} className="w-full h-full" />
                         )}
+                        {/* Hover actions — type="button" so they never submit the enclosing profile form */}
+                        <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                          <Link
+                            href={`/instructor/materials?edit=${m._id}`}
+                            title="Edit material"
+                            className="p-1.5 rounded-lg bg-background/90 backdrop-blur border border-border/50 text-foreground hover:text-primary hover:border-primary/50 shadow-sm"
+                          >
+                            <PenSquare className="w-3.5 h-3.5" />
+                          </Link>
+                          <button
+                            type="button"
+                            title="Delete material"
+                            onClick={() => handleDeleteMaterial(m)}
+                            disabled={deletingMaterialId === m._id}
+                            className="p-1.5 rounded-lg bg-background/90 backdrop-blur border border-border/50 text-foreground hover:text-destructive hover:border-destructive/50 shadow-sm disabled:opacity-50"
+                          >
+                            {deletingMaterialId === m._id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
                       </div>
                       <h4 className="font-bold text-sm text-foreground line-clamp-1" title={m.title}>{m.title}</h4>
                       <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">

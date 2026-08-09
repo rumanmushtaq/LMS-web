@@ -27,6 +27,7 @@ import { useAuthStore } from "@/store/auth";
 import { MessageCircle, DollarSign, Download, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getMaterials, purchaseMaterial, TutorMaterial } from "@/services/materials";
+import { FileTypePlaceholder } from "@/components/materials/FileTypePlaceholder";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -500,9 +501,7 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={m.coverImageUrl} alt={m.title} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                            <BookOpen className="w-10 h-10" />
-                          </div>
+                          <FileTypePlaceholder fileUrl={m.fileUrl} className="w-full h-full" iconClassName="w-10 h-10" />
                         )}
                       </div>
                       <h4 className="font-bold text-sm text-foreground line-clamp-1">{m.title}</h4>
