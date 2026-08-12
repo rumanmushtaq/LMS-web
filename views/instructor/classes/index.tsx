@@ -88,7 +88,9 @@ const InstructorClasses: React.FC = () => {
                         ? "Class completed"
                         : cls.status === ClassStatus.CANCELLED
                           ? "Class cancelled"
-                          : "Awaiting approval"}
+                          : cls.status === ClassStatus.MISSED
+                            ? "Class missed"
+                            : "Awaiting approval"}
                     </div>
                   )}
                 </div>
