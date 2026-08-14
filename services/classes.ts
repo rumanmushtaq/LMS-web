@@ -6,6 +6,7 @@ export enum ClassStatus {
   ONGOING = 'ONGOING',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
+  MISSED = 'MISSED',
 }
 
 export interface ClassSession {

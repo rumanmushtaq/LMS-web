@@ -90,6 +90,12 @@ const STATUS_CONFIG: Record<
     bg: "bg-red-50 border-red-200",
     icon: XCircle,
   },
+  [ClassStatus.MISSED]: {
+    label: "Missed",
+    color: "text-red-500",
+    bg: "bg-red-50 border-red-200",
+    icon: AlertCircle,
+  },
 };
 
 const FILTER_TABS = [
@@ -99,6 +105,7 @@ const FILTER_TABS = [
   { key: ClassStatus.ONGOING, label: "Live" },
   { key: ClassStatus.COMPLETED, label: "Completed" },
   { key: ClassStatus.CANCELLED, label: "Cancelled" },
+  { key: ClassStatus.MISSED, label: "Missed" },
 ] as const;
 
 type FilterKey = (typeof FILTER_TABS)[number]["key"];
