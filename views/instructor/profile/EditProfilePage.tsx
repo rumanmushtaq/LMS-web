@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toDateInputValue } from "@/utils/date";
 import { useRouter } from "next/navigation";
 import {
   ChevronRight,
@@ -127,15 +128,8 @@ export default function EditProfilePage() {
         setPhone(kyc.phone || "");
         setGender(kyc.gender || "");
 
-        // format dob for date input (YYYY-MM-DD)
-        let formattedDob = "";
-        if (kyc.dob) {
-          try {
-            const d = new Date(kyc.dob);
-            formattedDob = d.toISOString().split("T")[0];
-          } catch (e) {}
-        }
-        setDob(formattedDob);
+        // Calendar-only: take the Y-M-D directly, no tz round-trip.
+        setDob(toDateInputValue(kyc.dob));
         setBio(kyc.bio || "");
 
         setTitle(kyc.title || "");
@@ -181,7 +175,7 @@ export default function EditProfilePage() {
         lastName,
         phone,
         gender,
-        dob: dob ? new Date(dob).toISOString() : undefined,
+        dob: dob || undefined,
         bio,
         title,
         address,
