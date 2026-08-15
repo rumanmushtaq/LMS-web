@@ -93,9 +93,12 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
       // changes `token`, which re-runs this effect with a fresh connection.
       // Previously this went straight to logout, dropping the user's session
       // every time the 15-minute access token lapsed.
-      const refreshed = await refreshSession();
-      if (!refreshed) {
-        await endSession({ redirectTo: loginUrlForCurrentPage() });
+      // Only a server rejection ends the session. A transient failure leaves
+      // the session alone; the socket retries on the next effect run rather
+      // than signing the user out because the network blipped.
+      const result = await refreshSession();
+      if (result.status === "expired") {
+        await endSession({ redirectTo: loginUrlForCurrentPage("expired") });
       }
     };
 
@@ -112,30 +115,42 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
     };
 
     const onNewNotification = (data: any) => {
-      if (data.type !== 'chat_message') return;
+      // Chat messages have their own shape and open-thread suppression.
+      if (data.type === 'chat_message') {
+        const { message, senderId } = data;
 
-      const { message, senderId } = data;
+        // Don't show toast if chat is currently open with this user
+        const { isOpen, activeUserId } = useChatStore.getState();
+        if (isOpen && activeUserId === senderId) return;
 
-      // Don't show toast if chat is currently open with this user
-      const { isOpen, activeUserId } = useChatStore.getState();
-      if (isOpen && activeUserId === senderId) return;
+        useNotificationStore.getState().addNotification({
+          type: 'chat_message',
+          title: 'New Message',
+          content: message.content,
+          senderId,
+        });
 
-      useNotificationStore.getState().addNotification({
-        type: 'chat_message',
-        title: 'New Message',
-        content: message.content,
-        senderId,
-      });
-
-      toast('New Message', {
-        description: message.content,
-        action: {
-          label: 'View',
-          onClick: () => {
-            useChatStore.getState().openChat(senderId, 'New Message');
+        toast('New Message', {
+          description: message.content,
+          action: {
+            label: 'View',
+            onClick: () => {
+              useChatStore.getState().openChat(senderId, 'New Message');
+            },
           },
-        },
+        });
+        return;
+      }
+
+      // Everything else (class requests/approvals/declines, missed, security…)
+      // carries { type, title, content } — surface it in the bell + a toast.
+      if (!data.title) return;
+      useNotificationStore.getState().addNotification({
+        type: data.type ?? 'notification',
+        title: data.title,
+        content: data.content ?? '',
       });
+      toast(data.title, { description: data.content });
     };
 
     socketIo.on('connect', onConnect);
