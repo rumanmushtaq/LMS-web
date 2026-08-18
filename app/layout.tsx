@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { Toaster } from "@/components/ui/sonner";
 import ChatWidget from "@/components/chat/ChatWidget";
+import ClassAlertModal from "@/components/classes/ClassAlertModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,9 @@ export default function RootLayout({
             <Footer />
             <Toaster />
             <ChatWidget />
+            {/* Sits beside ChatWidget so a class alert reaches the student
+                anywhere in the app, not only on class pages. */}
+            <ClassAlertModal />
           </QueryProvider>
         </ThemeProvider>
       </body>

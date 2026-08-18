@@ -145,11 +145,22 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
       // Everything else (class requests/approvals/declines, missed, security…)
       // carries { type, title, content } — surface it in the bell + a toast.
       if (!data.title) return;
+
+      // actionPayload has to be carried through: it is what lets a consumer
+      // tell a class-start alert from an ordinary notice. Dropping it here is
+      // what previously made every notification look identical downstream.
       useNotificationStore.getState().addNotification({
         type: data.type ?? 'notification',
         title: data.title,
         content: data.content ?? '',
+        actionPayload: data.actionPayload,
       });
+
+      // Class-start alerts are shown by ClassAlertModal, which interrupts on
+      // purpose. A toast alongside it would be the same news twice.
+      const kind = data.actionPayload?.kind;
+      if (kind === 'class_starting' || kind === 'class_live') return;
+
       toast(data.title, { description: data.content });
     };
 

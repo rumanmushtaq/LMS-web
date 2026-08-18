@@ -10,6 +10,7 @@ import {
   endSession,
   loginUrlForCurrentPage,
   refreshSession,
+  type RefreshResult,
 } from "@/lib/auth/session";
 
 interface ErrorResponseData {
@@ -31,9 +32,9 @@ type RetriableRequest = InternalAxiosRequestConfig & {
  * rotating the token and invalidating the others — the backend rotates the
  * refresh token on every use, so concurrent refreshes would log the user out.
  */
-let inFlightRefresh: Promise<string | null> | null = null;
+let inFlightRefresh: Promise<RefreshResult> | null = null;
 
-function refreshAccessTokenOnce(): Promise<string | null> {
+function refreshAccessTokenOnce(): Promise<RefreshResult> {
   if (!inFlightRefresh) {
     inFlightRefresh = refreshSession().finally(() => {
       inFlightRefresh = null;
@@ -99,19 +100,28 @@ export const setupAxios = () => {
           if (original && !original._retriedAfterRefresh) {
             original._retriedAfterRefresh = true;
 
-            const accessToken = await refreshAccessTokenOnce();
-            if (accessToken) {
+            const result = await refreshAccessTokenOnce();
+
+            if (result.status === "refreshed") {
               original.headers = original.headers ?? {};
               (original.headers as Record<string, string>).Authorization =
-                `Bearer ${accessToken}`;
+                `Bearer ${result.accessToken}`;
               return HTTP_CLIENT_INSTANCE(original);
+            }
+
+            // The refresh endpoint itself was unreachable — offline, or the API
+            // is mid-deploy. The server has not said this session is over, so
+            // surface the failure instead of signing the user out on a hiccup.
+            if (result.status === "unavailable") {
+              return Promise.reject(error);
             }
           }
 
-          // Refresh is not possible or failed — end the session properly so the
-          // store and cookies agree. Leaving the store populated is what made
-          // the app keep rendering as signed in and bouncing off /login.
-          await endSession({ redirectTo: loginUrlForCurrentPage() });
+          // The server rejected the session: logged out, revoked, or idle past
+          // the timeout. End it locally so the store and cookies agree —
+          // leaving the store populated is what made the app keep rendering as
+          // signed in while bouncing off /login.
+          await endSession({ redirectTo: loginUrlForCurrentPage("expired") });
         } else if (status >= 400 && status < 500 && status !== 401) {
           if (typeof window !== "undefined") {
             window.dispatchEvent(

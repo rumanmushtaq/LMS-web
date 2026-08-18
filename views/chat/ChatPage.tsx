@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { mergeMessages, type ChatMessage } from "@/lib/chat/messages";
+import { insertAtCaret, shouldSendOnKeyDown } from "@/lib/chat/composer";
 
 type LocalMessage = ChatMessage;
 
@@ -282,6 +283,32 @@ export default function ChatPage() {
     typingTimeoutRef.current = setTimeout(() => {
       stopTyping(selectedConvId);
     }, 2000);
+  };
+
+  /**
+   * Insert a picked emoji at the caret, then close the picker and hand focus
+   * back to the input.
+   *
+   * The focus return is what makes Enter work straight after picking: while
+   * the picker holds focus the input never sees the keypress, so the message
+   * simply does not send.
+   */
+  const handleEmojiSelect = (emoji: string) => {
+    const input = inputRef.current;
+    const { value, caret } = insertAtCaret(
+      inputMessage,
+      emoji,
+      input?.selectionStart ?? null,
+      input?.selectionEnd ?? null,
+    );
+
+    handleInputChange(value);
+    setShowEmojiPicker(false);
+
+    requestAnimationFrame(() => {
+      input?.focus();
+      input?.setSelectionRange(caret, caret);
+    });
   };
 
   const handleFlagMessage = async (msgId: string) => {
@@ -788,7 +815,7 @@ export default function ChatPage() {
                         {showEmojiPicker && (
                           <div className="absolute bottom-full left-4 mb-2 z-50 shadow-2xl">
                             <EmojiPicker
-                              onEmojiClick={(obj) => handleInputChange(inputMessage + obj.emoji)}
+                              onEmojiClick={(obj) => handleEmojiSelect(obj.emoji)}
                               height={320}
                               width={300}
                             />
@@ -807,7 +834,11 @@ export default function ChatPage() {
                             type="text"
                             value={inputMessage}
                             onChange={(e) => handleInputChange(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                            onKeyDown={(e) => {
+                              if (!shouldSendOnKeyDown(e)) return;
+                              e.preventDefault();
+                              handleSendMessage();
+                            }}
                             placeholder={
                               isLoadingConv ? "Loading chat…" : `Message ${activeUserName}…`
                             }
