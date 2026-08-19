@@ -47,14 +47,29 @@ export function persistTokens(accessToken: string, refreshToken: string) {
 }
 
 /**
+ * Outcome of a refresh attempt.
+ *
+ * "expired" and "unavailable" must stay distinct. The server is the authority
+ * on session expiry, and it says so with a 401 — anything else (offline, DNS,
+ * 502 during a deploy) is a transient failure that must NOT destroy a session
+ * the server still considers valid. Collapsing the two logs people out every
+ * time the network hiccups, which is especially punishing next to a 15-minute
+ * idle timeout.
+ */
+export type RefreshResult =
+  | { status: "refreshed"; accessToken: string }
+  | { status: "expired" }
+  | { status: "unavailable" };
+
+/**
  * Exchanges the refresh token for a new pair.
  *
  * Deliberately uses a bare axios instance: routing this through the shared
  * client would send it back into the 401 interceptor that called us.
  */
-export async function refreshSession(): Promise<string | null> {
+export async function refreshSession(): Promise<RefreshResult> {
   const refreshToken = getRefreshToken() ?? useAuthStore.getState().refreshToken;
-  if (!refreshToken) return null;
+  if (!refreshToken) return { status: "expired" };
 
   try {
     const { data } = await axios.post(
@@ -64,12 +79,19 @@ export async function refreshSession(): Promise<string | null> {
     );
 
     const tokens = data?.data ?? data;
-    if (!tokens?.accessToken || !tokens?.refreshToken) return null;
+    if (!tokens?.accessToken || !tokens?.refreshToken) return { status: "expired" };
 
     persistTokens(tokens.accessToken, tokens.refreshToken);
-    return tokens.accessToken;
-  } catch {
-    return null;
+    return { status: "refreshed", accessToken: tokens.accessToken };
+  } catch (error) {
+    // The server rejected the refresh: session revoked, idle-expired, past its
+    // absolute lifetime, or the token was replayed. Not recoverable.
+    if (axios.isAxiosError(error) && error.response) {
+      const status = error.response.status;
+      if (status === 401 || status === 403) return { status: "expired" };
+    }
+
+    return { status: "unavailable" };
   }
 }
 
@@ -106,11 +128,20 @@ export async function endSession(options?: {
 }
 
 /** Path the user should come back to after signing in again. */
-export function loginUrlForCurrentPage(): string {
+export function loginUrlForCurrentPage(reason?: "expired"): string {
   if (typeof window === "undefined") return "/login";
 
-  const path = window.location.pathname;
-  if (path === "/login" || path === "/signup") return "/login";
+  const params = new URLSearchParams();
 
-  return `/login?redirect=${encodeURIComponent(path + window.location.search)}`;
+  const path = window.location.pathname;
+  if (path !== "/login" && path !== "/signup") {
+    params.set("redirect", path + window.location.search);
+  }
+
+  // Lets the login page explain the bounce. Without it, being returned to
+  // /login after a quiet 15 minutes reads as a bug rather than a policy.
+  if (reason) params.set("reason", reason);
+
+  const query = params.toString();
+  return query ? `/login?${query}` : "/login";
 }

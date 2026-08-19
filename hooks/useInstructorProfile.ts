@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import usersService, { UpdateProfileParams } from "@/services/users";
 import { toast } from "sonner";
+import { toDateInputValue } from "@/utils/date";
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name is too short").max(50),
@@ -87,13 +88,8 @@ export const useInstructorProfile = () => {
       const data = await usersService.getProfile();
       setProfile(data);
 
-      // Map API data to form values
-      let formattedDob = "";
-      if (data.kycData?.dob) {
-        try {
-          formattedDob = new Date(data.kycData.dob).toISOString().split("T")[0];
-        } catch (e) {}
-      }
+      // Date of birth is calendar-only — take the Y-M-D as-is, no tz round-trip.
+      const formattedDob = toDateInputValue(data.kycData?.dob);
 
       form.reset({
         firstName: data.firstName || "",
@@ -137,7 +133,10 @@ export const useInstructorProfile = () => {
       setIsUpdating(true);
       const updateData: UpdateProfileParams = {
         ...values,
-        dob: values.dob ? new Date(values.dob).toISOString() : undefined,
+        // Send the calendar date as-is ("YYYY-MM-DD"). Converting through
+        // `new Date().toISOString()` re-anchored it to UTC midnight, which
+        // then displayed a day early for anyone behind UTC.
+        dob: values.dob || undefined,
       };
 
       const updatedProfile = await usersService.updateProfile(updateData);

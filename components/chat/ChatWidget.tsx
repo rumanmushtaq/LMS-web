@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/auth';
 import chatService from '@/services/chat';
 import { usePathname } from 'next/navigation';
 import { mergeMessages, type ChatMessage } from '@/lib/chat/messages';
+import { insertAtCaret, shouldSendOnKeyDown } from '@/lib/chat/composer';
 
 type LocalMessage = ChatMessage;
 
@@ -29,6 +30,7 @@ export default function ChatWidget() {
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [flaggingMsgId, setFlaggingMsgId] = useState<string | null>(null);
 
+  const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -176,8 +178,28 @@ export default function ChatWidget() {
     }, 2000);
   };
 
+  /**
+   * Insert at the caret, close the picker, and return focus to the input.
+   *
+   * Without the focus return, Enter pressed straight after picking an emoji
+   * goes to the picker rather than the message box and nothing is sent.
+   */
   const onEmojiClick = (emojiObject: any) => {
-    handleInputChange(inputMessage + emojiObject.emoji);
+    const input = inputRef.current;
+    const { value, caret } = insertAtCaret(
+      inputMessage,
+      emojiObject.emoji,
+      input?.selectionStart ?? null,
+      input?.selectionEnd ?? null,
+    );
+
+    handleInputChange(value);
+    setShowEmojiPicker(false);
+
+    requestAnimationFrame(() => {
+      input?.focus();
+      input?.setSelectionRange(caret, caret);
+    });
   };
 
   const handleFlagMessage = async (msgId: string) => {
@@ -367,10 +389,15 @@ export default function ChatWidget() {
                   <Smile size={20} />
                 </button>
                 <input
+                  ref={inputRef}
                   type="text"
                   value={inputMessage}
                   onChange={(e) => handleInputChange(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                  onKeyDown={(e) => {
+                    if (!shouldSendOnKeyDown(e)) return;
+                    e.preventDefault();
+                    handleSendMessage();
+                  }}
                   placeholder={isLoadingConv ? 'Loading chat...' : 'Type a message…'}
                   disabled={isLoadingConv || !conversationId}
                   className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400 bg-gray-50 transition-all"

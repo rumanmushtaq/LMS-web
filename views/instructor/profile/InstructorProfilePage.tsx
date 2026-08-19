@@ -19,6 +19,7 @@ import apiEndpoints from "@/utils/apiConfig";
 import { getMaterials, deleteMaterial, TutorMaterial } from "@/services/materials";
 import categoriesService, { CategoryItem } from "@/services/categories";
 import { FileTypePlaceholder } from "@/components/materials/FileTypePlaceholder";
+import { formatDateOnly, formatAge } from "@/utils/date";
 import { useAuthStore } from "@/store/auth";
 import { Library } from "lucide-react";
 
@@ -472,7 +473,8 @@ export default function InstructorProfilePage() {
                     <Field label="Email" value={email} />
                     <Field label="Phone" value={kycData?.phone} />
                     <Field label="Gender" value={kycData?.gender} />
-                    <Field label="Date of Birth" value={kycData?.dob ? new Date(kycData.dob).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }) : undefined} />
+                    <Field label="Date of Birth" value={kycData?.dob ? formatDateOnly(kycData.dob) : undefined} />
+                    <Field label="Age" value={formatAge(kycData?.dob) || undefined} />
                     <Field label="Registration Date" value={createdAt ? new Date(createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }) : undefined} />
                     <Field label="Country" value={kycData?.country} />
                     <Field label="Timezone" value={kycData?.timezone} />

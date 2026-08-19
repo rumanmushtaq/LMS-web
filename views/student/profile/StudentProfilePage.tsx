@@ -14,6 +14,7 @@ import Image from "next/image";
 import usersService, { StudentProfile } from "@/services/users";
 import StudentLayout from "../StudentLayout";
 import { cn } from "@/lib/utils";
+import { formatDateOnly, formatAge } from "@/utils/date";
 
 export default function StudentProfilePage() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
@@ -54,19 +55,15 @@ export default function StudentProfilePage() {
   const fullName = `${firstName} ${lastName}`;
   const userName = email.split("@")[0]; // Mock username since model doesn't explicitly store username separately yet
 
-  // Calculations
+  // Calculations — DOB is calendar-only, formatted/aged without a tz shift.
   const dobStr = kycData?.dob
-    ? new Intl.DateTimeFormat("en-GB", {
+    ? formatDateOnly(kycData.dob, {
         day: "2-digit",
         month: "short",
         year: "numeric",
-      }).format(new Date(kycData.dob))
+      })
     : "-";
-  let age = "-";
-  if (kycData?.dob) {
-    const bDate = new Date(kycData.dob);
-    age = String(new Date().getFullYear() - bDate.getFullYear());
-  }
+  const age = formatAge(kycData?.dob) || "-";
 
   return (
     <>

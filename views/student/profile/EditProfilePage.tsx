@@ -6,6 +6,7 @@ import { ChevronRight, Home, Loader2, Save } from "lucide-react";
 import Link from "next/link";
 import usersService, { StudentProfile } from "@/services/users";
 import StudentLayout from "../StudentLayout";
+import { toDateInputValue } from "@/utils/date";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -32,15 +33,8 @@ export default function EditProfilePage() {
         setPhone(data.kycData?.phone || "");
         setGender(data.kycData?.gender || "");
 
-        // format dob for date input (YYYY-MM-DD)
-        let formattedDob = "";
-        if (data.kycData?.dob) {
-          try {
-            const d = new Date(data.kycData.dob);
-            formattedDob = d.toISOString().split("T")[0];
-          } catch (e) {}
-        }
-        setDob(formattedDob);
+        // Calendar-only: take the Y-M-D directly, no tz round-trip.
+        setDob(toDateInputValue(data.kycData?.dob));
         setBio(data.kycData?.bio || "");
       })
       .catch((err) => setError("Failed to load profile."))
@@ -57,7 +51,7 @@ export default function EditProfilePage() {
         lastName,
         phone,
         gender,
-        dob: dob ? new Date(dob).toISOString() : undefined,
+        dob: dob || undefined,
         bio,
       });
       router.push("/student/profile");
