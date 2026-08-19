@@ -18,7 +18,7 @@ import axiosInstance from "@/utils/axiosInstance";
 import apiEndpoints from "@/utils/apiConfig";
 import { getMaterials, deleteMaterial, TutorMaterial } from "@/services/materials";
 import categoriesService, { CategoryItem } from "@/services/categories";
-import { FileTypePlaceholder } from "@/components/materials/FileTypePlaceholder";
+import { FileTypePlaceholder, isImageUrl } from "@/components/materials/FileTypePlaceholder";
 import { formatDateOnly, formatAge } from "@/utils/date";
 import { useAuthStore } from "@/store/auth";
 import { Library } from "lucide-react";
@@ -111,6 +111,7 @@ const TagInputField = ({ label, name, control, placeholder = "Type and press Ent
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === ",") {
                   e.preventDefault();
+                  e.stopPropagation();
                   commit();
                 }
               }}
@@ -439,6 +440,7 @@ export default function InstructorProfilePage() {
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.target as HTMLElement).tagName === "INPUT") {
                 e.preventDefault();
+                if (isEditing) updateProfile();
               }
             }}
             className="space-y-6"
@@ -671,12 +673,24 @@ export default function InstructorProfilePage() {
               {isEditing ? (
                 <CertificationsEditor control={control} />
               ) : Array.isArray(kycData?.certifications) && kycData.certifications.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {kycData.certifications.map((c: string, i: number) => (
                     <a key={i} href={c} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-300 text-xs font-semibold hover:underline">
-                      <Award className="h-3.5 w-3.5 shrink-0" />
-                      <span className="max-w-[220px] truncate" title={certDisplayName(c, i)}>{certDisplayName(c, i)}</span>
+                      title={certDisplayName(c, i)}
+                      className="group relative block rounded-xl overflow-hidden border border-border/60 bg-muted/30 hover:border-primary/40 hover:shadow-md transition-all">
+                      <div className="aspect-[4/3] w-full overflow-hidden">
+                        {isImageUrl(c) ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={c} alt={certDisplayName(c, i)} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                        ) : (
+                          <FileTypePlaceholder fileUrl={c} className="w-full h-full" iconClassName="w-9 h-9" />
+                        )}
+                      </div>
+                      {/* Caption bar with an open-in-new affordance */}
+                      <div className="flex items-center gap-1.5 px-2.5 py-1.5 border-t border-border/50 bg-card/60">
+                        <Award className="h-3 w-3 text-amber-500 shrink-0" />
+                        <span className="text-[11px] font-semibold text-foreground/80 truncate">{certDisplayName(c, i)}</span>
+                      </div>
                     </a>
                   ))}
                 </div>
@@ -715,15 +729,24 @@ export default function InstructorProfilePage() {
                 <p className="text-sm text-muted-foreground italic">You haven't listed any materials yet.</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {materials?.map((m) => (
-                    <div key={m._id} className="group rounded-xl border border-border/50 bg-muted/20 p-3 flex flex-col gap-2">
-                      <div className="relative aspect-[4/3] bg-background rounded-lg overflow-hidden border border-border/50">
-                        {m.coverImageUrl ? (
+                  {materials?.map((m) => {
+                    // Prefer an explicit cover; otherwise, if the material file
+                    // is itself an image, use it; else fall back to a file badge.
+                    const preview = m.coverImageUrl || (isImageUrl(m.fileUrl) ? m.fileUrl : null);
+                    return (
+                    <div key={m._id} className="group relative rounded-2xl border border-border/60 bg-card/60 overflow-hidden shadow-sm hover:shadow-lg hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
+                      <div className="relative aspect-[4/3] bg-muted/40 overflow-hidden">
+                        {preview ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={m.coverImageUrl} alt={m.title} className="w-full h-full object-cover" />
+                          <img src={preview} alt={m.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                         ) : (
-                          <FileTypePlaceholder fileUrl={m.fileUrl} className="w-full h-full" />
+                          <FileTypePlaceholder fileUrl={m.fileUrl} className="w-full h-full" iconClassName="w-10 h-10" />
                         )}
+                        {/* Status pill floats on the image */}
+                        <span className={`absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-md shadow-sm ${m.isActive ? 'bg-green-500/15 text-green-600 border border-green-500/30' : 'bg-muted text-muted-foreground border border-border/50'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${m.isActive ? 'bg-green-500' : 'bg-muted-foreground/50'}`} />
+                          {m.isActive ? 'Active' : 'Hidden'}
+                        </span>
                         {/* Hover actions — type="button" so they never submit the enclosing profile form */}
                         <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                           <Link
@@ -748,15 +771,16 @@ export default function InstructorProfilePage() {
                           </button>
                         </div>
                       </div>
-                      <h4 className="font-bold text-sm text-foreground line-clamp-1" title={m.title}>{m.title}</h4>
-                      <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
-                        <span className="text-primary font-bold text-xs">${(m.price / 100).toFixed(2)}</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${m.isActive ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
-                          {m.isActive ? 'Active' : 'Hidden'}
-                        </span>
+                      <div className="p-3 flex flex-col gap-2 flex-1">
+                        <h4 className="font-bold text-sm text-foreground line-clamp-1" title={m.title}>{m.title}</h4>
+                        <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
+                          <span className="text-primary font-extrabold text-sm">${(m.price / 100).toFixed(2)}</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Material</span>
+                        </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </SectionCard>

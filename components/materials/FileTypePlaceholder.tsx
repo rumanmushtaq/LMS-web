@@ -22,11 +22,21 @@ const FILE_KINDS: Record<string, { label: string; color: string }> = {
   txt: { label: "TXT", color: "text-slate-500" },
 };
 
+const IMAGE_EXTS = new Set(["jpg", "jpeg", "png", "webp", "gif", "avif", "bmp", "svg"]);
+
+/** Extension of a storage URL, ignoring any query/hash. */
+function extOf(url?: string | null): string {
+  if (!url) return "";
+  return url.split("?")[0].split("#")[0].split(".").pop()?.toLowerCase() ?? "";
+}
+
+/** True when the URL points at an image we can render directly as a preview. */
+export function isImageUrl(url?: string | null): boolean {
+  return IMAGE_EXTS.has(extOf(url));
+}
+
 export function fileKind(fileUrl?: string | null) {
-  if (!fileUrl) return null;
-  // Storage URLs (ImageKit) can carry query params — extension is in the path.
-  const ext = fileUrl.split("?")[0].split("#")[0].split(".").pop()?.toLowerCase() ?? "";
-  return FILE_KINDS[ext] ?? null;
+  return FILE_KINDS[extOf(fileUrl)] ?? null;
 }
 
 export function FileTypePlaceholder({
