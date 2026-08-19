@@ -16,7 +16,7 @@ type LocalMessage = ChatMessage;
 
 export default function ChatWidget() {
   const pathname = usePathname();
-  const { isOpen, closeChat, toggleChat, activeUserName, activeUserId, openChat, clearActiveChat } = useChatStore();
+  const { isOpen, closeChat, toggleChat, activeUserName, activeUserId, activeConversationId, openChat, clearActiveChat } = useChatStore();
   const { getToken, getUser } = useAuthStore();
   const [mounted, setMounted] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
@@ -108,10 +108,15 @@ export default function ChatWidget() {
     setLocalMessages([]);
     setIsLoadingConv(true);
 
-    chatService
-      .initConversation(activeUserId)
-      .then((res: any) => {
-        const conv = res?.data ?? res;
+    // When the exact conversation is known (opened from a notification), use
+    // it directly. Re-deriving from the user only finds a 2-person DM, so a
+    // message from a group/class room would otherwise open the wrong thread.
+    const resolveConversation = activeConversationId
+      ? Promise.resolve({ _id: activeConversationId })
+      : chatService.initConversation(activeUserId).then((res: any) => res?.data ?? res);
+
+    resolveConversation
+      .then((conv: any) => {
         if (conv?._id) {
           setConversationId(conv._id);
           // Join the socket room
@@ -137,7 +142,7 @@ export default function ChatWidget() {
       })
       .catch(console.error)
       .finally(() => setIsLoadingConv(false));
-  }, [isOpen, activeUserId, token, socket]);
+  }, [isOpen, activeUserId, activeConversationId, token, socket]);
 
   const handleSendMessage = () => {
     if (!inputMessage.trim() || !conversationId || !currentUser) return;

@@ -81,7 +81,7 @@ function groupMessagesByDate(messages: LocalMessage[]) {
 
 export default function ChatPage() {
   const { getToken, getUser } = useAuthStore();
-  const { activeUserId, activeUserName, openChat, clearActiveChat } = useChatStore();
+  const { activeUserId, activeUserName, activeConversationId, openChat, clearActiveChat } = useChatStore();
 
   const [conversationsList, setConversationsList] = useState<Conversation[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(false);
@@ -203,17 +203,23 @@ export default function ChatPage() {
 
   // Open a conversation by clicking
   const handleOpenConversation = useCallback(
-    (otherUserId: string, otherUserName: string) => {
-      openChat(otherUserId, otherUserName);
+    (otherUserId: string, otherUserName: string, conversationId?: string | null) => {
+      // Preserve the conversation id so the auto-open effect stays stable.
+      openChat(otherUserId, otherUserName, conversationId ?? null);
       setIsMobileConvOpen(true);
       setLocalMessages([]);
       setSelectedConvId(null);
       setIsLoadingConv(true);
 
-      chatService
-        .initConversation(otherUserId)
-        .then((res: any) => {
-          const conv = res?.data ?? res;
+      // Open the exact conversation when known (from a notification); only
+      // re-derive from the user for a plain user click. Deriving by user finds
+      // just a 2-person DM, so a group/class message would open the wrong one.
+      const resolveConversation = conversationId
+        ? Promise.resolve({ _id: conversationId })
+        : chatService.initConversation(otherUserId).then((res: any) => res?.data ?? res);
+
+      resolveConversation
+        .then((conv: any) => {
           if (conv?._id) {
             setSelectedConvId(conv._id);
             if (socket?.connected) {
@@ -241,12 +247,13 @@ export default function ChatPage() {
     [openChat, socket]
   );
 
-  // If chat store has activeUserId (from header click), auto-open that conv
+  // If chat store has activeUserId (from a header/notification click), auto-open
+  // that conversation — by its exact id when one was provided.
   useEffect(() => {
     if (activeUserId && activeUserName) {
-      handleOpenConversation(activeUserId, activeUserName);
+      handleOpenConversation(activeUserId, activeUserName, activeConversationId);
     }
-  }, [activeUserId, activeUserName]); // eslint-disable-line
+  }, [activeUserId, activeUserName, activeConversationId]); // eslint-disable-line
 
   const handleSendMessage = () => {
     if (!inputMessage.trim() || !selectedConvId || !currentUser) return;
