@@ -223,6 +223,22 @@
     scrollbar-color: var(--primary) var(--background);
   }
 
+  /* Tailwind v4's Preflight no longer gives buttons a pointer cursor, so every
+     clickable control showed the default arrow. Restore it globally for
+     enabled buttons and button-role elements; disabled ones show not-allowed. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  label[for],
+  summary,
+  a[href] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
