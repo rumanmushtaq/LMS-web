@@ -4,15 +4,24 @@ import Link from "next/link";
 import { Mail, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import authService from "@/services/auth";
 
 const CheckEmailPage = () => {
   const [resending, setResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
 
+  // Two flows land here: signup verification and password reset. They need
+  // different resend endpoints — resending a *verification* email to someone
+  // who asked to reset their password sends them the wrong link entirely.
+  const searchParams = useSearchParams();
+  const isReset = searchParams.get("mode") === "reset";
+
   const email =
     typeof window !== "undefined"
-      ? sessionStorage.getItem("pending_verification_email")
+      ? sessionStorage.getItem(
+          isReset ? "pending_reset_email" : "pending_verification_email",
+        )
       : null;
 
   const handleResend = async () => {
@@ -20,7 +29,11 @@ const CheckEmailPage = () => {
     setResending(true);
     setResendSuccess(false);
     try {
-      await authService.resendVerificationEmail(email);
+      if (isReset) {
+        await authService.forgetPasswordApi({ email });
+      } else {
+        await authService.resendVerificationEmail(email);
+      }
       setResendSuccess(true);
     } catch (err) {
       console.error("Resend error:", err);

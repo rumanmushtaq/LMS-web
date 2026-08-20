@@ -69,20 +69,13 @@ const useOTP = () => {
     setError(null);
 
     try {
-      // The OTP (token) comes from the verification email
+      // This page verifies EMAIL only. It used to also handle password reset,
+      // but it posts to /auth/verify-email, which looks up the email
+      // verification token — a reset token would never match. Reset is a
+      // magic-link flow now and never reaches this page.
       await authService.otpVerificationApi(data.otp);
 
-      const otpFlow = sessionStorage.getItem("otp_flow");
-
-      if (otpFlow === "forgot-password") {
-        // After verifying reset token, redirect to new-password page passing the token
-        router.push(`/new-password?token=${data.otp}`);
-      } else {
-        // Email verification completed – go to login
-        router.push("/login");
-      }
-
-      sessionStorage.removeItem("otp_flow");
+      router.push("/login");
       sessionStorage.removeItem("pending_verification_email");
     } catch (err: any) {
       const message =
