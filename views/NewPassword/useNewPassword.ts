@@ -29,7 +29,20 @@ const useNewPassword = () => {
     },
   });
 
+  /** No token means the page was opened directly, not from the reset email. */
+  const hasToken = token.trim().length > 0;
+
   const onSubmit = async (data: NewPasswordFormValues) => {
+    // Without this the form posts an empty token and the API answers with a
+    // generic "invalid or expired" — which reads as a broken reset link
+    // rather than "you opened this page the wrong way".
+    if (!hasToken) {
+      setError(
+        "This reset link is missing its token. Open the link from your email, or request a new one.",
+      );
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -39,7 +52,8 @@ const useNewPassword = () => {
         newPassword: data.password,
       });
 
-      // Redirect to login with success message
+      // The backend clears refreshTokenHash on reset, so every existing
+      // session is already dead — sending them to login is correct.
       router.push("/login?reset=success");
     } catch (err: any) {
       const message =
@@ -61,6 +75,7 @@ const useNewPassword = () => {
     loading,
     error,
     token,
+    hasToken,
   };
 };
 

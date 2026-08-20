@@ -117,25 +117,30 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
     const onNewNotification = (data: any) => {
       // Chat messages have their own shape and open-thread suppression.
       if (data.type === 'chat_message') {
-        const { message, senderId } = data;
+        const { message, senderId, senderName, conversationId } = data;
+        const name = senderName || 'New Message';
 
-        // Don't show toast if chat is currently open with this user
-        const { isOpen, activeUserId } = useChatStore.getState();
-        if (isOpen && activeUserId === senderId) return;
+        // Don't show toast if the exact conversation is already open.
+        const { isOpen, activeConversationId, activeUserId } = useChatStore.getState();
+        if (isOpen && (activeConversationId === conversationId || activeUserId === senderId)) return;
 
         useNotificationStore.getState().addNotification({
           type: 'chat_message',
-          title: 'New Message',
+          title: name,
           content: message.content,
           senderId,
+          actionPayload: { conversationId, senderId, senderName: name },
         });
 
-        toast('New Message', {
+        toast(name, {
           description: message.content,
           action: {
             label: 'View',
             onClick: () => {
-              useChatStore.getState().openChat(senderId, 'New Message');
+              // Open the exact conversation the message came from, not a
+              // conversation re-derived from the sender (which breaks for
+              // group / class rooms).
+              useChatStore.getState().openChat(senderId, name, conversationId);
             },
           },
         });

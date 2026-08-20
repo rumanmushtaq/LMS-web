@@ -519,7 +519,7 @@ export default function BecomeTutorPage() {
 
                   <Separator className="bg-white/10" />
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <span className="text-xs text-white/60 block font-semibold">Weekly potential</span>
                       <span className="text-2xl font-extrabold block text-white mt-0.5">

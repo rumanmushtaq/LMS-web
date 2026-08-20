@@ -12,12 +12,20 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        // Hover uses `muted`, not `accent`. This theme repurposes --accent as
+        // a saturated brand cyan, but shadcn treats it as a neutral
+        // interaction surface — so an outline button flipped from white to
+        // bright cyan with white text on hover, which read as a different
+        // button rather than a hover state. `muted` keeps the lift subtle and
+        // the label legible; the border warms toward primary for feedback.
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "border bg-background shadow-xs hover:bg-muted hover:text-foreground hover:border-primary/40 dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        // Same reasoning as `outline` — a ghost button should tint, not
+        // repaint itself in a brand colour.
         ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+          "hover:bg-muted hover:text-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

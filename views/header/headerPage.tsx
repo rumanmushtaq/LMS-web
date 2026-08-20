@@ -35,16 +35,27 @@ const Header = () => {
     pathname.includes("/signup") ||
     pathname.includes("/forgot-password") ||
     pathname.includes("/new-password") ||
+    pathname.includes("/reset-password") ||
+    pathname.includes("/check-email") ||
     pathname.includes("/otp") ||
     pathname.includes("/landing-Page");
 
-  // Prevent hydration mismatch
+  // Prevent hydration mismatch — mark mounted once.
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Load notifications on auth change (initial mount, login, logout) — NOT on
+  // every route change. Depending on `pathname` here refetched notifications on
+  // every navigation, so the header appeared to reload each time the user moved
+  // pages. New notifications already arrive live over the socket, so a
+  // per-navigation refetch is redundant.
+  useEffect(() => {
     if (isAuthenticated() && !isAuthPage) {
       fetchNotifications();
     }
-  }, [pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   if (isAuthPage) return null;
 
@@ -100,7 +111,7 @@ const Header = () => {
         </Link>
 
         {/* Center: Navigation (Desktop) */}
-        <nav className="hidden lg:flex items-center gap-5">
+        <nav className="hidden xl:flex items-center gap-5">
           {navLinks.map((link) => {
             const active = isActive(link.href);
             const highlighted = (link as any).isHighlighted;
@@ -109,7 +120,7 @@ const Header = () => {
                 <Link
                   href={link.href}
                   className={cn(
-                    "flex items-center gap-1.5 text-[15px] relative font-semibold transition-all py-1",
+                    "flex items-center gap-1.5 text-[15px] relative font-semibold transition-all py-1 whitespace-nowrap",
                     highlighted
                       ? "text-white bg-[var(--primary)] px-4 py-2 rounded-full hover:bg-[var(--primary)]/90 hover:scale-105 shadow-lg shadow-primary/20"
                       : cn(
@@ -224,9 +235,14 @@ const Header = () => {
                               notification.title ??
                               "Chat";
 
+                            // The stored conversation id opens the exact thread,
+                            // which is the only correct choice for group/class rooms.
+                            const conversationId =
+                              notification.actionPayload?.conversationId ?? null;
+
                             if (notification.type === 'chat_message' && senderId) {
                               setIsNotificationsOpen(false);
-                              openChat(senderId, senderName);
+                              openChat(senderId, senderName, conversationId);
                             }
                           }}
                         >
@@ -260,7 +276,7 @@ const Header = () => {
           </div>
 
           {/* Auth Buttons (Desktop) */}
-          <div className="hidden lg:flex items-center gap-3 ml-2">
+          <div className="hidden xl:flex items-center gap-3 ml-2">
             {!mounted ? (
               <div className="w-[180px] h-11 animate-pulse bg-muted rounded-full" />
             ) : isAuth ? (
@@ -307,7 +323,7 @@ const Header = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden h-11 w-11"
+            className="xl:hidden h-11 w-11"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? (
@@ -321,7 +337,7 @@ const Header = () => {
 
       {/* Mobile Menu (Overlay) */}
       {isMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-background border-b border-border shadow-xl animate-in slide-in-from-top duration-300">
+        <div className="xl:hidden absolute top-full left-0 w-full bg-background border-b border-border shadow-xl animate-in slide-in-from-top duration-300">
           <nav className="flex flex-col p-6 gap-4">
             {navLinks.map((link) => (
               <Link

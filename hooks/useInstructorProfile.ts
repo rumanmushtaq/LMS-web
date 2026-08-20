@@ -1,10 +1,39 @@
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import usersService, { UpdateProfileParams } from "@/services/users";
 import { toast } from "sonner";
 import { toDateInputValue } from "@/utils/date";
+
+/** True when every field in a repeater row is blank. */
+const isBlankRow = (row: Record<string, string>) =>
+  Object.values(row ?? {}).every((v) => String(v ?? "").trim() === "");
+
+/**
+ * A repeater row must be entirely blank or entirely filled.
+ *
+ * "Add Education" appends `{degree: "", institution: "", period: ""}`, and every
+ * field used to be individually required — so one abandoned row made Save a
+ * silent no-op for the whole profile, including unrelated fields like the name.
+ * Blank rows are now allowed here and dropped before the request; a half-filled
+ * row is a real mistake and still reports one clear error.
+ */
+const allOrNothingRows =
+  (label: string) =>
+  (rows: Record<string, string>[] | undefined, ctx: z.RefinementCtx) => {
+    rows?.forEach((row, index) => {
+      const values = Object.values(row ?? {}).map((v) => String(v ?? "").trim());
+      const filled = values.filter(Boolean).length;
+      if (filled > 0 && filled < values.length) {
+        ctx.addIssue({
+          code: "custom",
+          message: `Complete every field in ${label} entry ${index + 1}, or clear it.`,
+          path: [index],
+        });
+      }
+    });
+  };
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name is too short").max(50),
@@ -17,21 +46,23 @@ const profileSchema = z.object({
   education: z
     .array(
       z.object({
-        degree: z.string().min(1, "Degree is required"),
-        institution: z.string().min(1, "Institution is required"),
-        period: z.string().min(1, "Period is required"),
+        degree: z.string(),
+        institution: z.string(),
+        period: z.string(),
       }),
     )
-    .optional(),
+    .optional()
+    .superRefine(allOrNothingRows("education")),
   experience: z
     .array(
       z.object({
-        role: z.string().min(1, "Role is required"),
-        company: z.string().min(1, "Company is required"),
-        period: z.string().min(1, "Period is required"),
+        role: z.string(),
+        company: z.string(),
+        period: z.string(),
       }),
     )
-    .optional(),
+    .optional()
+    .superRefine(allOrNothingRows("experience")),
 
   // Expertise — collected at KYC onboarding, editable here afterwards.
   category: z.string().optional(),
@@ -133,6 +164,11 @@ export const useInstructorProfile = () => {
       setIsUpdating(true);
       const updateData: UpdateProfileParams = {
         ...values,
+        // Rows the user added and abandoned carry no information; the schema
+        // permits them so they cannot block the save, and they are stripped
+        // here so they never reach the backend.
+        education: values.education?.filter((row) => !isBlankRow(row)),
+        experience: values.experience?.filter((row) => !isBlankRow(row)),
         // Send the calendar date as-is ("YYYY-MM-DD"). Converting through
         // `new Date().toISOString()` re-anchored it to UTC midnight, which
         // then displayed a day early for anyone behind UTC.
@@ -151,6 +187,30 @@ export const useInstructorProfile = () => {
     }
   };
 
+  /**
+   * Reports why a save was refused.
+   *
+   * `handleSubmit` simply does not call its success handler when validation
+   * fails, so without this the Save button appeared completely dead — no save,
+   * no exit from edit mode, no error. Whatever the offending field is, the user
+   * now sees it instead of clicking a button that seems broken.
+   */
+  const reportInvalid = (errors: FieldErrors<ProfileFormValues>) => {
+    const firstMessage = (function findMessage(node: unknown): string | null {
+      if (!node || typeof node !== "object") return null;
+      const maybe = node as { message?: unknown };
+      if (typeof maybe.message === "string") return maybe.message;
+      for (const value of Object.values(node)) {
+        const found = findMessage(value);
+        if (found) return found;
+      }
+      return null;
+    })(errors);
+
+    console.warn("Profile save blocked by validation:", errors);
+    toast.error(firstMessage ?? "Some fields need attention before saving.");
+  };
+
   return {
     profile,
     loading,
@@ -158,6 +218,6 @@ export const useInstructorProfile = () => {
     isUpdating,
     form,
     toggleEdit,
-    updateProfile: form.handleSubmit(updateProfile),
+    updateProfile: form.handleSubmit(updateProfile, reportInvalid),
   };
 };

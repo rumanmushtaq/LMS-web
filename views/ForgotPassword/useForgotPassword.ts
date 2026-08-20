@@ -27,13 +27,13 @@ const useForgotPassword = () => {
     try {
       await authService.forgetPasswordApi(data);
 
-      // Store email so OTP page can resend + mark flow as password-reset
-      sessionStorage.setItem("pending_verification_email", data.email);
-      sessionStorage.setItem("otp_flow", "forgot-password");
+      // Reset is a magic-link flow: the email carries a 64-character token
+      // that the user never types. Sending them to /otp asked for a 4-digit
+      // code that does not exist, so the flow could not be completed.
+      sessionStorage.setItem("pending_reset_email", data.email);
 
       setSuccess(true);
-      // Redirect to OTP page where user enters the reset token
-      router.push("/otp");
+      router.push("/check-email?mode=reset");
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||

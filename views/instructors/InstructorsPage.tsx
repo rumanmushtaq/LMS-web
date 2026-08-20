@@ -27,6 +27,10 @@ export default function InstructorsPage() {
   const [instructors, setInstructors] = useState<InstructorProfile[]>([]);
   const [filterOptions, setFilterOptions] =
     useState<FilterOptionsResponse | null>(null);
+  // Gate the first instructors fetch until filter options have loaded, so the
+  // options load (which also resets priceRange) doesn't trigger a second and
+  // third fetch right after the first.
+  const [optionsLoaded, setOptionsLoaded] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -71,7 +75,9 @@ export default function InstructorsPage() {
         setFilterOptions(opts);
         setPriceRange([opts.priceRange.min, opts.priceRange.max]);
       })
-      .catch(console.error);
+      .catch(console.error)
+      // Even on failure, unblock the instructors fetch so the list still loads.
+      .finally(() => setOptionsLoaded(true));
   }, []);
 
   // Debounce search input
@@ -128,8 +134,11 @@ export default function InstructorsPage() {
   ]);
 
   useEffect(() => {
+    // Wait for filter options (and the priceRange reset they trigger) before
+    // the first fetch, so the initial load is a single request, not three.
+    if (!optionsLoaded) return;
     fetchInstructors();
-  }, [fetchInstructors]);
+  }, [fetchInstructors, optionsLoaded]);
 
   // Filter handlers
   const toggleCategory = (cat: string) => {

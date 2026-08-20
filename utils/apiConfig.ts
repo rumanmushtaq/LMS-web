@@ -40,6 +40,11 @@ const apiEndpoints = {
     CONFIRM_PAYMENT: "/api/v1/shop/confirm-payment",
     MY_ORDERS: "/api/v1/shop/my-orders",
   },
+  Payments: {
+    METHODS: "/api/v1/payments/methods",
+    SETTINGS: "/api/v1/payments/settings",
+    MY_BALANCE: "/api/v1/payments/my-balance",
+  },
   Categories: {
     LIST: "/api/v1/categories",
   },
