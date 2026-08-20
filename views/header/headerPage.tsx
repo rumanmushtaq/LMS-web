@@ -35,16 +35,27 @@ const Header = () => {
     pathname.includes("/signup") ||
     pathname.includes("/forgot-password") ||
     pathname.includes("/new-password") ||
+    pathname.includes("/reset-password") ||
+    pathname.includes("/check-email") ||
     pathname.includes("/otp") ||
     pathname.includes("/landing-Page");
 
-  // Prevent hydration mismatch
+  // Prevent hydration mismatch — mark mounted once.
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Load notifications on auth change (initial mount, login, logout) — NOT on
+  // every route change. Depending on `pathname` here refetched notifications on
+  // every navigation, so the header appeared to reload each time the user moved
+  // pages. New notifications already arrive live over the socket, so a
+  // per-navigation refetch is redundant.
+  useEffect(() => {
     if (isAuthenticated() && !isAuthPage) {
       fetchNotifications();
     }
-  }, [pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   if (isAuthPage) return null;
 
