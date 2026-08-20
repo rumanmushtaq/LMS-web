@@ -6,7 +6,38 @@ import { ChevronRight, Home, Loader2, Save } from "lucide-react";
 import Link from "next/link";
 import usersService, { StudentProfile } from "@/services/users";
 import StudentLayout from "../StudentLayout";
-import { toDateInputValue } from "@/utils/date";
+import { toDateInputValue, formatAge } from "@/utils/date";
+
+
+/**
+ * A value shown for context but not editable here.
+ *
+ * These appear on the profile view, so omitting them entirely from the edit
+ * screen made them look lost. Showing them greyed out says "still here, just
+ * not changed from this page" instead.
+ */
+const ReadOnlyField = ({
+  label,
+  value,
+  note,
+}: {
+  label: string;
+  value?: string | null;
+  note?: string;
+}) => (
+  <div className="space-y-2">
+    <label className="text-[14px] font-bold text-foreground">
+      {label}
+      <span className="ml-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+        Read-only
+      </span>
+    </label>
+    <div className="w-full px-4 py-2.5 rounded-lg border border-border/60 bg-muted/40 text-[14px] text-muted-foreground">
+      {value || "-"}
+    </div>
+    {note && <p className="text-[12px] text-muted-foreground/70">{note}</p>}
+  </div>
+);
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -189,6 +220,48 @@ export default function EditProfilePage() {
                 rows={4}
                 className="w-full p-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] resize-none"
                 placeholder="Tell us about yourself..."
+              />
+            </div>
+
+            {/* Shown on the profile view, so they are shown here too — as
+                read-only, because none of them can be safely edited from this
+                form. Email is the sign-in identity and changing it needs a
+                verification flow; User Name is derived from it; Age follows the
+                date of birth above; Registration Date is a record. */}
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border/50">
+              <ReadOnlyField
+                label="Email"
+                value={profile?.email}
+                note="Your sign-in address. Contact support to change it."
+              />
+              <ReadOnlyField
+                label="User Name"
+                value={profile?.email ? profile.email.split("@")[0] : ""}
+                note="Derived from your email address."
+              />
+              <ReadOnlyField
+                label="Age"
+                // Reads the date being edited, not the saved one, so the value
+                // responds while you change the date of birth above.
+                value={formatAge(dob)}
+              />
+              <ReadOnlyField
+                label="Registration Date"
+                value={
+                  profile?.createdAt
+                    ? // Same format as the profile view — this is a real
+                      // timestamp, not a calendar-only date, so it keeps the
+                      // time and must not go through formatDateOnly.
+                      new Intl.DateTimeFormat("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      }).format(new Date(profile.createdAt))
+                    : ""
+                }
               />
             </div>
 
