@@ -14,11 +14,13 @@ import {
   Info,
   ShieldCheck,
   Truck,
+  Clock,
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import productsService from "@/services/products";
 import { toast } from "sonner";
+import PaymentMethodPicker from "@/components/payments/PaymentMethodPicker";
 import { HTTP_CLIENT } from "@/utils/axiosClient";
 
 export default function ProductDetail() {
@@ -50,6 +52,10 @@ export default function ProductDetail() {
   const [coordinates, setCoordinates] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  /** Set once the API has created the order + payment, before it settles. */
+  const [pendingPayment, setPendingPayment] = useState<any>(null);
   const [orderSuccess, setOrderSuccess] = useState(false);
 
   const handleFindCoordinates = async () => {
@@ -70,52 +76,49 @@ export default function ProductDetail() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!product) return;
+
+    if (!paymentMethod) {
+      toast.error("Please choose a payment method.");
+      return;
+    }
+
     setIsSubmitting(true);
-    
+    setCheckoutError(null);
+
     try {
-      const addressParts = shippingAddress.split(",").map(p => p.trim());
-      const line1 = addressParts[0] || shippingAddress;
-      const city = addressParts[1] || "Los Angeles";
-      const state = addressParts[2] || "CA";
-      const zip = addressParts[3] || "90001";
-      const country = addressParts[4] || "US";
+      const addressParts = shippingAddress.split(",").map((p) => p.trim());
 
       const res = await HTTP_CLIENT.post("/api/v1/shop/checkout", {
         items: [
           {
             productId: product._id,
             size: selectedSizeInModal,
-            quantity: quantity
-          }
+            quantity: quantity,
+          },
         ],
+        paymentMethod,
         shipping: {
           name: fullName,
-          line1: line1,
-          city: city,
-          state: state,
-          zip: zip,
-          country: country
-        }
+          line1: addressParts[0] || shippingAddress,
+          city: addressParts[1] || "",
+          state: addressParts[2] || "",
+          zip: addressParts[3] || "",
+          country: addressParts[4] || "CO",
+        },
       });
-      
-      const clientSecret = res.data?.data?.clientSecret || res.data?.clientSecret;
-      const paymentIntentId = clientSecret ? clientSecret.split("_secret")[0] : null;
-      
-      if (paymentIntentId) {
-        await HTTP_CLIENT.post("/api/v1/shop/confirm-payment", {
-          paymentIntentId
-        });
-      }
-      
-      setOrderSuccess(true);
-      toast.success("Order placed successfully!");
+
+      const payload = res.data?.data ?? res.data;
+
+      // The order exists and a payment has been started, but nothing is paid
+      // until the provider confirms it by webhook. Saying "order placed" here
+      // — which is what this did before, including inside a catch block —
+      // told customers their payment succeeded when no card had been charged.
+      setPendingPayment(payload);
     } catch (err: any) {
-      console.error("Checkout failed:", err);
-      // Fallback to simulated success for presentation when stripe secret key is placeholder
-      setTimeout(() => {
-        setOrderSuccess(true);
-        toast.success("Order placed successfully (Simulated Mode)!");
-      }, 1000);
+      const message =
+        err?.response?.data?.message ||
+        "We couldn't start your payment. Please try again.";
+      setCheckoutError(Array.isArray(message) ? message.join(" · ") : message);
     } finally {
       setIsSubmitting(false);
     }
@@ -327,26 +330,32 @@ export default function ProductDetail() {
       {/* Modern Purchase Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-          {orderSuccess ? (
+          {pendingPayment ? (
             <div className="bg-white dark:bg-zinc-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-border/50 p-8 sm:p-12 relative animate-in zoom-in-95 duration-300 text-center">
               <button
                 onClick={() => {
                   setShowModal(false);
-                  setOrderSuccess(false);
+                  setPendingPayment(null);
                   setCoordinates(null);
                 }}
                 className="absolute right-8 top-8 w-10 h-10 flex items-center justify-center rounded-full bg-muted/50 text-muted-foreground hover:bg-destructive hover:text-white transition-all font-bold animate-in fade-in"
               >
                 ✕
               </button>
-              <div className="bg-emerald-50 dark:bg-emerald-950/30 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-500 animate-bounce">
-                <CheckCircle2 className="w-12 h-12" />
+              {/* Deliberately NOT a success state. The order exists and a
+                  payment has been started, but nothing is paid until the
+                  provider confirms it by webhook. Claiming success here is
+                  what told customers their card had been charged when it
+                  never was. */}
+              <div className="bg-amber-50 dark:bg-amber-950/30 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-amber-500">
+                <Clock className="w-11 h-11" />
               </div>
               <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">
-                Order Placed Successfully!
+                Awaiting Payment
               </h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">
-                Thank you for your purchase. Your order has been securely processed.
+                Your order is reserved. It will be confirmed as soon as your
+                payment completes — we&apos;ll email you the moment it does.
               </p>
 
               <div className="bg-slate-50 dark:bg-zinc-800/50 rounded-2xl p-6 text-left mb-8 space-y-3 border border-slate-100 dark:border-zinc-805">
@@ -386,7 +395,7 @@ export default function ProductDetail() {
               <button
                 onClick={() => {
                   setShowModal(false);
-                  setOrderSuccess(false);
+                  setPendingPayment(null);
                   setCoordinates(null);
                 }}
                 className="w-full bg-[#0a102d] text-white h-14 rounded-2xl font-black uppercase tracking-wider shadow-lg hover:bg-[#121c4b] transition-all"
@@ -530,6 +539,22 @@ export default function ProductDetail() {
                   />
                 </div>
 
+                {/* Payment method */}
+                <div className="pt-2 border-t border-slate-200 dark:border-zinc-700">
+                  <div className="pt-5">
+                    <PaymentMethodPicker
+                      value={paymentMethod}
+                      onChange={setPaymentMethod}
+                    />
+                  </div>
+                </div>
+
+                {checkoutError && (
+                  <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm font-medium text-destructive">
+                    {checkoutError}
+                  </div>
+                )}
+
                 {/* Disclaimer & Submit */}
                 <div className="text-center pt-2 space-y-4">
                   <p className="text-[11px] text-slate-400">
@@ -537,7 +562,7 @@ export default function ProductDetail() {
                   </p>
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !paymentMethod}
                     className="w-full bg-[#0b153b] text-white h-14 rounded-2xl font-black uppercase tracking-wider shadow-lg hover:bg-[#121c4b] transition-all flex items-center justify-center disabled:opacity-50"
                   >
                     {isSubmitting ? (
