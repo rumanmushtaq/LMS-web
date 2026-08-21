@@ -35,6 +35,25 @@ const allOrNothingRows =
     });
   };
 
+/**
+ * Coerce a legacy field to a string[]: some KYC records saved a single value
+ * or a comma-separated string where an array is expected. Used when loading
+ * the form so a save never fails with "expected array, received string".
+ */
+const toStringArray = (v: unknown): string[] => {
+  if (Array.isArray(v)) return v.filter((x): x is string => typeof x === "string");
+  if (typeof v === "string" && v.trim()) {
+    return v
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+/** Object-array fields (availability/education/experience) default to [] if not an array. */
+const toObjectArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
+
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name is too short").max(50),
   lastName: z.string().min(2, "Last name is too short").max(50),
@@ -68,6 +87,9 @@ const profileSchema = z.object({
   category: z.string().optional(),
   /** Teaching experience level — distinct from the `experience` work history. */
   level: z.string().optional(),
+  // These can arrive from older KYC records as a comma-separated string
+  // instead of an array. Coerce so validation ("expected array, received
+  // string") never blocks a profile save.
   specialties: z.array(z.string()).optional(),
   nativeLanguage: z.string().optional(),
   spokenLanguages: z.array(z.string()).optional(),
@@ -129,15 +151,15 @@ export const useInstructorProfile = () => {
         gender: data.kycData?.gender || "",
         dob: formattedDob,
         bio: data.kycData?.bio || "",
-        education: data.kycData?.education || [],
-        experience: data.kycData?.experience || [],
+        education: toObjectArray(data.kycData?.education),
+        experience: toObjectArray(data.kycData?.experience),
         category: data.kycData?.category || "",
         level: data.kycData?.level || "",
-        specialties: data.kycData?.specialties || [],
+        specialties: toStringArray(data.kycData?.specialties),
         nativeLanguage: data.kycData?.nativeLanguage || "",
-        spokenLanguages: data.kycData?.spokenLanguages || [],
-        certifications: data.kycData?.certifications || [],
-        availability: data.kycData?.availability || [],
+        spokenLanguages: toStringArray(data.kycData?.spokenLanguages),
+        certifications: toStringArray(data.kycData?.certifications),
+        availability: toObjectArray(data.kycData?.availability),
       });
     } catch (error) {
       console.error("Failed to fetch profile:", error);
