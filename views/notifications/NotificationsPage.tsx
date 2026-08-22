@@ -22,6 +22,10 @@ import {
 } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/auth";
+import { useChatStore } from "@/store/chat";
+import { resolveNotificationTarget } from "@/lib/notifications/routing";
 
 interface NotificationListResponse {
   data: any[];
@@ -44,6 +48,9 @@ export default function NotificationsPage() {
 
   const globalMarkAsRead = useNotificationStore((state) => state.markAsRead);
   const globalMarkAllAsRead = useNotificationStore((state) => state.markAllAsRead);
+  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const openChat = useChatStore((state) => state.openChat);
   const globalFetchNotifications = useNotificationStore((state) => state.fetchNotifications);
 
   const fetchNotifications = async (currentPage: number, currentSort: "asc" | "desc", currentFilter: "all" | "unread") => {
@@ -74,6 +81,26 @@ export default function NotificationsPage() {
   useEffect(() => {
     fetchNotifications(page, sortOrder, filterUnread);
   }, [page, sortOrder, filterUnread]);
+
+  /**
+   * Marks the notification read and takes the user where it points.
+   *
+   * This page previously only marked read, so every notification here was a
+   * dead click regardless of type. Routing is shared with the header bell so
+   * the two cannot disagree about where a notification leads.
+   */
+  const handleNotificationClick = (notification: any) => {
+    handleMarkAsRead(notification._id, notification.read);
+
+    const target = resolveNotificationTarget(notification, user?.role);
+    if (!target) return;
+
+    if (target.type === "chat") {
+      openChat(target.senderId, target.senderName, target.conversationId);
+    } else {
+      router.push(target.href);
+    }
+  };
 
   const handleMarkAsRead = async (id: string, currentlyRead: boolean) => {
     if (currentlyRead) return;
@@ -170,7 +197,7 @@ export default function NotificationsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                   key={notification._id}
-                  onClick={() => handleMarkAsRead(notification._id, notification.read)}
+                  onClick={() => handleNotificationClick(notification)}
                   className={cn(
                     "p-5 hover:bg-muted/30 transition-colors cursor-pointer flex items-start gap-4",
                     !notification.read ? "bg-primary/5" : ""
