@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Moon, ShoppingCart, Sun, Menu, X, Bell, CheckCheck, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,9 +14,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { endSession } from "@/lib/auth/session";
+import { resolveNotificationTarget } from "@/lib/notifications/routing";
 
 const Header = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, toggleTheme } = useThemeStore();
   const { user, isAuthenticated } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -226,23 +228,24 @@ const Header = () => {
                           onClick={() => {
                             markAsRead(notification._id);
 
-                            // actionPayload is what survives a reload; the flat
-                            // senderId only exists on the live socket event.
-                            const senderId =
-                              notification.actionPayload?.senderId ?? notification.senderId;
-                            const senderName =
-                              notification.actionPayload?.senderName ??
-                              notification.title ??
-                              "Chat";
+                            // Previously this handled chat only, so every class
+                            // notification was a dead click even though the
+                            // backend sends the classId needed to act on it.
+                            const target = resolveNotificationTarget(
+                              notification,
+                              user?.role,
+                            );
+                            if (!target) return;
 
-                            // The stored conversation id opens the exact thread,
-                            // which is the only correct choice for group/class rooms.
-                            const conversationId =
-                              notification.actionPayload?.conversationId ?? null;
-
-                            if (notification.type === 'chat_message' && senderId) {
-                              setIsNotificationsOpen(false);
-                              openChat(senderId, senderName, conversationId);
+                            setIsNotificationsOpen(false);
+                            if (target.type === "chat") {
+                              openChat(
+                                target.senderId,
+                                target.senderName,
+                                target.conversationId,
+                              );
+                            } else {
+                              router.push(target.href);
                             }
                           }}
                         >
