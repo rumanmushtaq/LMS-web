@@ -117,6 +117,7 @@ export interface LiveWatchInfo {
     embedUrl: string | null;
     conversationId: string | null;
     recordingUrl: string | null;
+    provider?: string;
   };
 }
 
@@ -124,6 +125,9 @@ export interface LiveBroadcastInfo {
   classId: string;
   title: string;
   status: LiveStatus;
+  startTime: string;
+  endTime: string;
+  provider?: string;
   rtmpUrl: string | null;
   streamKey: string | null;
   embedUrl: string | null;
@@ -158,5 +162,11 @@ export const startLive = async (id: string) => {
 /** Tutor: end the broadcast and complete the class. */
 export const endLive = async (id: string) => {
   const response = await api.post(`/api/v1/classes/${id}/live/end`);
+  return response.data?.data ?? response.data;
+};
+
+/** Self-hosted streams: short-lived, class-scoped token for the HLS player. */
+export const getPlaybackToken = async (id: string): Promise<{ token: string }> => {
+  const response = await api.get(`/api/v1/live-hls/${id}/token`);
   return response.data?.data ?? response.data;
 };

@@ -19,12 +19,14 @@ import {
   FileText,
   Clock,
   CalendarClock,
+  Video,
   Library,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const mainMenuItems = [
   { name: "Dashboard", href: "/instructor/dashboard", icon: LayoutDashboard },
+  { name: "My Classes", href: "/instructor/classes", icon: Video },
   { name: "My Profile", href: "/instructor/profile", icon: User },
   { name: "Materials & Notes", href: "/instructor/materials", icon: Library },
   { name: "Class Requests", href: "/instructor/class-requests", icon: CalendarClock },
