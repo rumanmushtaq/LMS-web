@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
-import { getClasses, ClassSession, ClassStatus } from "@/services/classes";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
+import {
+  getClasses,
+  leaveClass,
+  ClassSession,
+  ClassStatus,
+} from "@/services/classes";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CalendarClock,
@@ -16,6 +22,7 @@ import {
   AlertCircle,
   Home,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -111,13 +118,49 @@ const FILTER_TABS = [
 type FilterKey = (typeof FILTER_TABS)[number]["key"];
 
 // ─── Class Card ───────────────────────────────────────────────────────────────
-function ClassCard({ cls, index }: { cls: ClassSession; index: number }) {
+function ClassCard({
+  cls,
+  index,
+  onLeft,
+}: {
+  cls: ClassSession;
+  index: number;
+  onLeft: () => void;
+}) {
+  const [isLeaving, setIsLeaving] = useState(false);
   const cfg = STATUS_CONFIG[cls.status] ?? STATUS_CONFIG[ClassStatus.SCHEDULED];
   const StatusIcon = cfg.icon;
   const countdown = useCountdown(cls.startTime);
   const isUpcoming =
     cls.status === ClassStatus.SCHEDULED || cls.status === ClassStatus.ONGOING;
   const isCancelled = cls.status === ClassStatus.CANCELLED;
+  const isGroup = cls.visibility === "group";
+
+  /**
+   * Leaving frees the seat for someone else and permanently bars this student
+   * from the class, so it is confirmed before anything is sent.
+   */
+  const handleLeave = async () => {
+    const ok = window.confirm(
+      `Leave "${cls.title}"?\n\n` +
+        "Your seat will be given up and you will NOT be able to join this " +
+        "class again. This cannot be undone.",
+    );
+    if (!ok) return;
+
+    setIsLeaving(true);
+    try {
+      await leaveClass(cls._id);
+      toast.success("You have left the class.");
+      onLeft();
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Could not leave the class.",
+      );
+    } finally {
+      setIsLeaving(false);
+    }
+  };
 
   return (
     <motion.div
@@ -228,6 +271,22 @@ function ClassCard({ cls, index }: { cls: ClassSession; index: number }) {
             Open external meeting link
           </a>
         )}
+
+        {/* Group classes can be left; a 1-to-1 class is cancelled, not left. */}
+        {isGroup && isUpcoming && (
+          <button
+            onClick={handleLeave}
+            disabled={isLeaving}
+            className="mt-2 flex items-center justify-center gap-2 w-full py-2 rounded-xl text-xs font-medium text-destructive border border-destructive/30 hover:bg-destructive/5 disabled:opacity-50 transition-colors"
+          >
+            {isLeaving ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <LogOut size={13} />
+            )}
+            {isLeaving ? "Leaving…" : "Leave this class"}
+          </button>
+        )}
       </div>
     </motion.div>
   );
@@ -239,12 +298,16 @@ export default function StudentClasses() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
 
-  useEffect(() => {
-    getClasses()
+  const loadClasses = useCallback(() => {
+    return getClasses()
       .then((data: any) => setClasses(Array.isArray(data) ? data : data?.data ?? []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    loadClasses();
+  }, [loadClasses]);
 
   const filtered = useMemo(() => {
     if (activeFilter === "all") return classes;
@@ -382,7 +445,12 @@ export default function StudentClasses() {
             className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
           >
             {filtered.map((cls, i) => (
-              <ClassCard key={cls._id} cls={cls} index={i} />
+              <ClassCard
+                key={cls._id}
+                cls={cls}
+                index={i}
+                onLeft={loadClasses}
+              />
             ))}
           </motion.div>
         </AnimatePresence>
