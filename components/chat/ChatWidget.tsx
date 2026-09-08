@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useChatStore } from '@/store/chat';
 import { useAuthStore } from '@/store/auth';
 import chatService from '@/services/chat';
+import MessageContent from '@/components/chat/MessageContent';
 import { usePathname } from 'next/navigation';
 import { mergeMessages, type ChatMessage } from '@/lib/chat/messages';
 import { insertAtCaret, shouldSendOnKeyDown } from '@/lib/chat/composer';
@@ -367,7 +368,7 @@ export default function ChatWidget() {
                           } ${msg.pending ? 'opacity-60' : 'opacity-100'}`}
                           style={isOwn ? { background: 'linear-gradient(135deg, #f66962, #e04d47)' } : {}}
                         >
-                          {msg.content}
+                          <MessageContent content={msg.content} messageId={msg._id} />
                           {msg.pending && (
                             <span className="ml-1.5 text-[10px] opacity-70">sending…</span>
                           )}

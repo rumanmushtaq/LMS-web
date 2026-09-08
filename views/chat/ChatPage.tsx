@@ -22,6 +22,8 @@ import EmojiPicker from "emoji-picker-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import MessageContent from "@/components/chat/MessageContent";
+import { previewText } from "@/components/chat/GroupClassInvite";
 import { mergeMessages, type ChatMessage } from "@/lib/chat/messages";
 import { insertAtCaret, shouldSendOnKeyDown } from "@/lib/chat/composer";
 
@@ -573,7 +575,9 @@ export default function ChatPage() {
                                 hasUnread ? "text-foreground font-medium" : "text-muted-foreground"
                               )}
                             >
-                              {conv.lastMessage?.content ?? "Start a conversation…"}
+                              {conv.lastMessage
+                                ? previewText(conv.lastMessage.content)
+                                : "Start a conversation…"}
                             </p>
                             {hasUnread && (
                               <span
@@ -751,7 +755,10 @@ export default function ChatPage() {
                                           : {}
                                       }
                                     >
-                                      <span>{msg.content}</span>
+                                      <MessageContent
+                                        content={msg.content}
+                                        messageId={msg._id}
+                                      />
                                       <div
                                         className={cn(
                                           "flex items-center gap-1 mt-1",
