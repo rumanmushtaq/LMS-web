@@ -8,6 +8,9 @@ import { toast } from 'sonner';
 import { useChatStore } from '@/store/chat';
 import { useAuthStore } from '@/store/auth';
 import chatService from '@/services/chat';
+import MessageContent from '@/components/chat/MessageContent';
+import { previewText } from '@/components/chat/GroupClassInvite';
+import { formatShortTime } from '@/lib/format';
 import { usePathname } from 'next/navigation';
 import { mergeMessages, type ChatMessage } from '@/lib/chat/messages';
 import { insertAtCaret, shouldSendOnKeyDown } from '@/lib/chat/composer';
@@ -230,13 +233,23 @@ export default function ChatWidget() {
       {/* Chat Window */}
       {isOpen && (
         <div
-          className="absolute bottom-16 right-0 w-[400px] bg-white border border-gray-200 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-          style={{ height: '580px' }}
+          /* The conversation list hugs its content — a panel holding one chat
+             should not reserve 33rem of empty space. An open conversation
+             does get the fixed height, because messages need somewhere to
+             land and the composer must not jump as they arrive. */
+          className={`absolute bottom-16 right-0 w-[min(23rem,calc(100vw-3rem))] bg-card text-foreground border border-border/70 rounded-2xl shadow-2xl ring-1 ring-black/5 flex flex-col overflow-hidden ${
+            activeUserId
+              ? 'h-[min(33rem,calc(100dvh-9rem))]'
+              : 'max-h-[min(33rem,calc(100dvh-9rem))]'
+          }`}
         >
           {/* ── Header ── */}
           <div
-            className="flex justify-between items-center px-5 py-4 shrink-0"
-            style={{ background: 'linear-gradient(135deg, #1e2230 0%, #2d3452 100%)' }}
+            className="flex justify-between items-center px-4 py-3 shrink-0"
+            style={{
+              background:
+                'linear-gradient(135deg, oklch(0.35 0.08 275) 0%, oklch(0.45 0.22 300) 100%)',
+            }}
           >
             <div className="flex items-center gap-3">
               {activeUserId && (
@@ -271,16 +284,19 @@ export default function ChatWidget() {
 
           {!activeUserId ? (
             /* ── Conversations List Area ── */
-            <div className="flex-1 p-0 overflow-y-auto bg-white flex flex-col">
+            <div className="flex-1 min-h-0 overflow-y-auto bg-card flex flex-col">
               {isLoadingList ? (
                 <div className="flex items-center justify-center h-full">
-                  <Loader2 size={24} className="animate-spin text-gray-400" />
+                  <Loader2 size={22} className="animate-spin text-muted-foreground/60" />
                 </div>
               ) : conversationsList.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full gap-2 p-6">
-                  <MessageCircle size={32} className="text-gray-300" />
-                  <p className="text-center text-sm text-gray-400">
-                    No conversations yet. Your chats will appear here.
+                <div className="flex flex-col items-center justify-center h-full gap-3 p-8 text-center">
+                  <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center">
+                    <MessageCircle size={22} className="text-muted-foreground/70" />
+                  </div>
+                  <p className="text-sm font-medium">No conversations yet</p>
+                  <p className="text-xs text-muted-foreground -mt-1.5">
+                    Message a tutor and it will show up here.
                   </p>
                 </div>
               ) : (
@@ -295,25 +311,38 @@ export default function ChatWidget() {
                     <div
                       key={conv._id}
                       onClick={() => openChat(otherUser._id, `${otherUser.firstName} ${otherUser.lastName}`.trim())}
-                      className="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer flex items-center gap-3 transition-colors"
+                      className="px-3.5 py-3 border-b border-border/50 last:border-0 hover:bg-muted/60 cursor-pointer flex items-center gap-3 transition-colors"
                     >
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary/80 to-primary rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
-                        {otherUser.firstName?.charAt(0) || 'U'}
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm"
+                        style={{
+                          background:
+                            'linear-gradient(135deg, oklch(0.7 0.15 210), oklch(0.45 0.22 300))',
+                        }}
+                      >
+                        {otherUser.firstName?.charAt(0)?.toUpperCase() || 'U'}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-baseline mb-0.5">
-                          <h4 className={`text-sm text-gray-900 truncate ${hasUnread ? 'font-bold' : 'font-semibold'}`}>
+                        <div className="flex justify-between items-baseline gap-2 mb-0.5">
+                          <h4 className={`text-sm truncate ${hasUnread ? 'font-bold' : 'font-semibold'}`}>
                             {otherUser.firstName} {otherUser.lastName}
                           </h4>
+                          <span className="text-[10px] text-muted-foreground shrink-0 tabular-nums">
+                            {formatShortTime(conv.lastMessage?.createdAt)}
+                          </span>
                         </div>
                         <div className="flex items-center justify-between gap-2">
-                          <p className={`text-xs truncate ${hasUnread ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-                            {conv.lastMessage?.content || 'Click to view messages'}
+                          {/* The real last message, with an invite URL reduced to
+                              a label so it cannot crowd out the words around it. */}
+                          <p className={`text-xs truncate ${hasUnread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                            {conv.lastMessage
+                              ? previewText(conv.lastMessage.content)
+                              : 'Start a conversation…'}
                           </p>
                           {hasUnread && (
                             <span
                               aria-label={`${unreadCount} unread messages`}
-                              className="shrink-0 min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white"
+                              className="shrink-0 min-w-[1.25rem] h-5 px-1.5 flex items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground"
                             >
                               {unreadCount > 99 ? '99+' : unreadCount}
                             </span>
@@ -329,17 +358,18 @@ export default function ChatWidget() {
             /* ── Active Chat View ── */
             <>
               {/* ── Messages Area ── */}
-              <div ref={messagesContainerRef} className="flex-1 p-4 overflow-y-auto bg-gray-50 flex flex-col gap-2" onClick={() => setShowEmojiPicker(false)}>
+              <div ref={messagesContainerRef} className="flex-1 p-3.5 overflow-y-auto bg-muted/40 flex flex-col gap-2" onClick={() => setShowEmojiPicker(false)}>
                 {isLoadingConv ? (
                   <div className="flex items-center justify-center h-full">
-                    <Loader2 size={24} className="animate-spin text-gray-400" />
+                    <Loader2 size={22} className="animate-spin text-muted-foreground/60" />
                   </div>
                 ) : localMessages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full gap-2">
-                    <MessageCircle size={32} className="text-gray-300" />
-                    <p className="text-center text-sm text-gray-400">
-                      No messages yet. Say hello! 👋
-                    </p>
+                  <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-6">
+                    <div className="w-12 h-12 rounded-2xl bg-background flex items-center justify-center border border-border/60">
+                      <MessageCircle size={22} className="text-muted-foreground/70" />
+                    </div>
+                    <p className="text-sm font-medium">No messages yet</p>
+                    <p className="text-xs text-muted-foreground -mt-1.5">Say hello 👋</p>
                   </div>
                 ) : (
                   localMessages.map((msg) => {
@@ -353,21 +383,28 @@ export default function ChatWidget() {
                           <button
                             onClick={() => handleFlagMessage(msg._id)}
                             disabled={flaggingMsgId === msg._id}
-                            className="mr-2 opacity-0 group-hover:opacity-100 transition-opacity self-center text-gray-400 hover:text-red-500"
+                            className="mr-2 opacity-0 group-hover:opacity-100 transition-opacity self-center text-muted-foreground hover:text-destructive"
                             title="Flag message"
                           >
                             {flaggingMsgId === msg._id ? <Loader2 size={12} className="animate-spin" /> : <Flag size={12} />}
                           </button>
                         )}
                         <div
-                          className={`max-w-[78%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                          className={`max-w-[78%] px-3.5 py-2 rounded-2xl text-sm leading-relaxed shadow-sm ${
                             isOwn
-                              ? 'bg-primary text-primary-foreground rounded-br-sm'
-                              : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm'
+                              ? 'text-white rounded-br-md'
+                              : 'bg-card border border-border/70 text-foreground rounded-bl-md'
                           } ${msg.pending ? 'opacity-60' : 'opacity-100'}`}
-                          style={isOwn ? { background: 'linear-gradient(135deg, #f66962, #e04d47)' } : {}}
+                          style={
+                            isOwn
+                              ? {
+                                  background:
+                                    'linear-gradient(135deg, oklch(0.45 0.22 300), oklch(0.35 0.08 275))',
+                                }
+                              : {}
+                          }
                         >
-                          {msg.content}
+                          <MessageContent content={msg.content} messageId={msg._id} />
                           {msg.pending && (
                             <span className="ml-1.5 text-[10px] opacity-70">sending…</span>
                           )}
@@ -380,7 +417,7 @@ export default function ChatWidget() {
               </div>
 
               {/* ── Input Area ── */}
-              <div className="p-3 bg-white border-t border-gray-100 flex items-center gap-2 shrink-0 relative">
+              <div className="p-2.5 bg-card border-t border-border/60 flex items-center gap-1.5 shrink-0 relative">
                 {showEmojiPicker && (
                   <div className="absolute bottom-full left-0 mb-2 z-50">
                     <EmojiPicker onEmojiClick={onEmojiClick} height={350} width={300} />
@@ -388,7 +425,7 @@ export default function ChatWidget() {
                 )}
                 <button
                   onClick={() => setShowEmojiPicker((prev) => !prev)}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
                   title="Add Emoji"
                 >
                   <Smile size={20} />
@@ -405,13 +442,16 @@ export default function ChatWidget() {
                   }}
                   placeholder={isLoadingConv ? 'Loading chat...' : 'Type a message…'}
                   disabled={isLoadingConv || !conversationId}
-                  className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400 bg-gray-50 transition-all"
+                  className="flex-1 min-w-0 px-3.5 py-2.5 text-sm rounded-full bg-muted/70 border border-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 focus:bg-background transition-all"
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!inputMessage.trim() || !conversationId}
-                  className="w-10 h-10 flex items-center justify-center rounded-full text-white disabled:opacity-40 transition-all hover:scale-105 active:scale-95 shrink-0"
-                  style={{ background: 'linear-gradient(135deg, #f66962, #e04d47)' }}
+                  className="w-9 h-9 flex items-center justify-center rounded-full text-white disabled:opacity-40 disabled:hover:scale-100 transition-all hover:scale-105 active:scale-95 shrink-0 shadow-sm"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, oklch(0.7 0.15 210), oklch(0.45 0.22 300))',
+                  }}
                 >
                   <Send size={15} className="ml-0.5" />
                 </button>
@@ -424,8 +464,12 @@ export default function ChatWidget() {
       {/* ── Floating Toggle Button ── */}
       <button
         onClick={toggleChat}
-        className="w-14 h-14 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer"
-        style={{ background: 'linear-gradient(135deg, #1e2230, #2d3452)' }}
+        aria-label={isOpen ? 'Close messages' : 'Open messages'}
+        className="w-14 h-14 text-white rounded-full flex items-center justify-center shadow-lg ring-1 ring-black/5 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer"
+        style={{
+          background:
+            'linear-gradient(135deg, oklch(0.7 0.15 210), oklch(0.45 0.22 300))',
+        }}
       >
         {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
       </button>

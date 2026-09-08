@@ -8,6 +8,9 @@ import { useAuthStore } from "@/store/auth";
 import { useLiveClass } from "@/hooks/useLiveClass";
 import VimeoEmbed from "@/components/live/VimeoEmbed";
 import LiveQnAPanel from "@/components/live/LiveQnAPanel";
+import ClassCountdown from "@/components/live/ClassCountdown";
+import HlsPlayer from "@/components/live/HlsPlayer";
+import { useSelfPlayback } from "@/hooks/useSelfPlayback";
 
 export default function StudentLiveClassView({ classId }: { classId: string }) {
   const router = useRouter();
@@ -44,6 +47,12 @@ export default function StudentLiveClassView({ classId }: { classId: string }) {
         if (url) setEmbedUrl(url);
       },
     });
+
+  const isSelfHosted = info?.live.provider === "self";
+  const selfSrc = useSelfPlayback(
+    classId,
+    liveStatus === LiveStatus.LIVE && isSelfHosted,
+  );
 
   if (loading) {
     return (
@@ -99,18 +108,33 @@ export default function StudentLiveClassView({ classId }: { classId: string }) {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 h-[calc(100vh-180px)] min-h-[520px]">
         {/* Video column */}
         <div className="flex flex-col gap-3 min-h-0">
-          {isLive ? (
+          {isLive && isSelfHosted ? (
+            selfSrc ? (
+              <HlsPlayer src={selfSrc} title={info.title} />
+            ) : (
+              <div className="flex items-center justify-center rounded-2xl bg-black text-white/60 aspect-video text-sm">
+                Connecting to the stream…
+              </div>
+            )
+          ) : isLive ? (
             <VimeoEmbed embedUrl={embedUrl!} title={info.title} />
           ) : (
             <div className="flex flex-col items-center justify-center rounded-2xl bg-black text-white/70 aspect-video gap-3">
               <Video className="w-12 h-12 opacity-40" />
-              <p className="font-medium">
-                {hasEnded ? "This class has ended." : "The instructor hasn't started yet."}
-              </p>
-              {!hasEnded && (
-                <p className="text-sm text-white/40">
-                  The video will appear automatically when the class goes live.
-                </p>
+              {hasEnded ? (
+                <p className="font-medium">This class has ended.</p>
+              ) : (
+                <>
+                  <ClassCountdown
+                    startTime={info.startTime}
+                    label="Class starts in"
+                    className="text-3xl font-bold text-white"
+                    fallback={<p className="font-medium">The instructor hasn&apos;t started yet.</p>}
+                  />
+                  <p className="text-sm text-white/40">
+                    The video will appear automatically when the class goes live.
+                  </p>
+                </>
               )}
               {hasEnded && info.live.recordingUrl && (
                 <a
@@ -125,7 +149,7 @@ export default function StudentLiveClassView({ classId }: { classId: string }) {
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Note: live video has a short delay (~15s). Ask questions in the chat anytime — the
+            Note: live video runs a few seconds behind the teacher. Ask questions in the chat anytime — the
             instructor will answer live.
           </p>
         </div>

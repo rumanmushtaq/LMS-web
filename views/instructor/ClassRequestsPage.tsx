@@ -58,7 +58,17 @@ function RequestCard({ req, onApproved, onDeclined }: RequestCardProps) {
     setIsApproving(true);
     try {
       await approveClass(req._id, meetingLink || undefined);
-      toast.success("Class approved! The student will be notified.");
+      // The scheduled class lives on the My Classes page — that's where the
+      // "Go Live" button is, so point the tutor straight at it.
+      toast.success("Class approved! The student will be notified.", {
+        description: "Find it under My Classes to go live when it's time.",
+        action: {
+          label: "My Classes",
+          onClick: () => {
+            window.location.href = "/instructor/classes";
+          },
+        },
+      });
       onApproved(req._id);
     } catch {
       toast.error("Failed to approve class request.");
