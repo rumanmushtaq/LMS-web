@@ -17,6 +17,7 @@ import {
   purchaseSeat,
 } from "@/services/classes";
 import paymentsService, { PaymentMethod } from "@/services/payments";
+import { formatDuration, formatMoney, formatWhen } from "@/lib/format";
 
 /**
  * The page behind a tutor's invite link.
@@ -186,21 +187,44 @@ export default function JoinGroupClassPage({ token }: { token: string }) {
 
           <div className="flex flex-col gap-2.5 text-sm">
             <span className="flex items-center gap-2 text-muted-foreground">
-              <CalendarClock size={15} className="text-primary/70" />
-              {new Date(preview.startTime).toLocaleString()}
+              <CalendarClock size={15} className="text-primary/70 shrink-0" />
+              {formatWhen(preview.startTime)}
+              {formatDuration(preview.startTime, preview.endTime)
+                ? ` · ${formatDuration(preview.startTime, preview.endTime)}`
+                : ""}
             </span>
             <span className="flex items-center gap-2 text-muted-foreground">
-              <Users size={15} className="text-primary/70" />
+              <Users size={15} className="text-primary/70 shrink-0" />
               {preview.seatsLeft} of {preview.maxStudents} seats still available
             </span>
+            {/* Same meter as the chat card, so the offer reads identically
+                wherever the student meets it. */}
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-0.5">
+              <div
+                className={`h-full rounded-full ${
+                  preview.seatsLeft <= 0
+                    ? "bg-muted-foreground/40"
+                    : preview.seatsLeft / Math.max(preview.maxStudents, 1) <= 0.25
+                      ? "bg-amber-500"
+                      : "bg-primary"
+                }`}
+                style={{
+                  width: `${
+                    (Math.max(preview.maxStudents - preview.seatsLeft, 0) /
+                      Math.max(preview.maxStudents, 1)) *
+                    100
+                  }%`,
+                }}
+              />
+            </div>
           </div>
 
           <div className="flex items-baseline justify-between px-4 py-3.5 rounded-xl bg-muted/50">
             <span className="text-sm font-medium text-muted-foreground">
               Price per seat
             </span>
-            <span className="text-2xl font-bold text-foreground">
-              {preview.price.toLocaleString()}
+            <span className="text-2xl font-bold text-foreground tabular-nums">
+              {formatMoney(preview.price, preview.currency)}
             </span>
           </div>
 

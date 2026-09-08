@@ -197,6 +197,8 @@ export interface GroupClassPreview {
   startTime: string;
   endTime: string;
   price: number;
+  /** What `price` is denominated in — a bare number is not a price. */
+  currency?: string;
   maxStudents: number;
   seatsLeft: number;
   open: boolean;
