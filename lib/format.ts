@@ -53,3 +53,21 @@ export function formatDuration(from: string | Date, to: string | Date): string {
   if (!hours) return `${rest} min`;
   return rest ? `${hours} hr ${rest} min` : `${hours} hr`;
 }
+
+/**
+ * Time as a chat list shows it: the clock for today, the date before that.
+ * A full timestamp on every row is noise when most rows are from today.
+ */
+export function formatShortTime(value?: string | Date): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const now = new Date();
+  const sameDay =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+  return sameDay
+    ? date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+    : date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
