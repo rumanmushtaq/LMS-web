@@ -307,11 +307,11 @@ export default function TutorLiveClassView({ classId }: { classId: string }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 min-h-[520px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 lg:h-[calc(100vh-250px)] lg:min-h-[520px]">
         {/* Main column */}
-        <div className="flex flex-col gap-4 min-h-0">
+        <div className="flex flex-col gap-4 min-h-0 lg:h-full lg:overflow-y-auto">
           {hasEnded ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl bg-black text-white/70 aspect-video gap-2">
+            <div className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-black text-white/70 aspect-video lg:aspect-auto lg:flex-1 lg:min-h-0">
               <p className="font-medium">This class has ended.</p>
             </div>
           ) : isLive && broadcast.state === "idle" && !isSelfHosted ? (
@@ -320,7 +320,7 @@ export default function TutorLiveClassView({ classId }: { classId: string }) {
           ) : (
             <>
               {/* Camera-in-browser broadcast (no OBS) */}
-              <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+              <div className="flex flex-col lg:flex-1 lg:min-h-0 rounded-2xl border border-border bg-card p-5 space-y-4">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Camera className="w-4 h-4 text-primary" />
@@ -335,13 +335,13 @@ export default function TutorLiveClassView({ classId }: { classId: string }) {
                   )}
                 </div>
 
-                <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
+                <div className="relative rounded-xl overflow-hidden bg-black aspect-video lg:aspect-auto lg:flex-1 lg:min-h-[220px]">
                   <video
                     ref={broadcast.videoRef}
                     autoPlay
                     muted
                     playsInline
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                   {(broadcast.state === "idle" || broadcast.state === "error") && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white/70">
@@ -464,7 +464,7 @@ export default function TutorLiveClassView({ classId }: { classId: string }) {
         </div>
 
         {/* Chat column */}
-        <div className="min-h-0 h-[calc(100vh-180px)] min-h-[520px]">
+        <div className="min-h-0 h-[520px] lg:h-full">
           <LiveQnAPanel
             title="Student Q&A"
             messages={messages}
