@@ -116,7 +116,7 @@ const Header = () => {
         <nav className="hidden xl:flex items-center gap-5">
           {navLinks.map((link) => {
             const active = isActive(link.href);
-            const highlighted = (link as any).isHighlighted;
+            const highlighted = (link as { highlighted?: boolean }).highlighted;
             return (
               <div key={link.name} className="group relative">
                 <Link
