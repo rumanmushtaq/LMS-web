@@ -11,8 +11,8 @@ export interface Countdown {
   isPast: boolean;
 }
 
-function diff(target: number): Countdown {
-  const ms = target - Date.now();
+function diff(target: number, now: number): Countdown {
+  const ms = target - now;
   if (ms <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, isPast: true };
 
   const totalSeconds = Math.floor(ms / 1000);
@@ -29,26 +29,30 @@ function diff(target: number): Countdown {
  * Ticks once a second toward `startTime`.
  *
  * Returns null for a missing date rather than a zeroed countdown, so callers
- * can tell "no class scheduled" apart from "starting right now".
+ * can tell "no class scheduled" apart from "starting right now". Also null on
+ * the very first render: the clock is only read on the client, because a time
+ * computed during SSR disagrees with the first client tick and hydration warns.
  */
 export function useCountdown(startTime: string | null | undefined): Countdown | null {
   const target = startTime ? new Date(startTime).getTime() : NaN;
   const valid = Number.isFinite(target);
 
-  // Seeded on the client only; computing during render on the server would
-  // emit markup that disagrees with the first client tick.
-  const [countdown, setCountdown] = useState<Countdown | null>(null);
+  const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!valid) {
-      setCountdown(null);
-      return;
-    }
+    if (!valid) return;
 
-    setCountdown(diff(target));
-    const id = setInterval(() => setCountdown(diff(target)), 1000);
-    return () => clearInterval(id);
+    // The first read is deferred to a frame rather than run inline, so the
+    // effect itself never sets state during the commit.
+    const frame = requestAnimationFrame(() => setNow(Date.now()));
+    const id = setInterval(() => setNow(Date.now()), 1000);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      clearInterval(id);
+    };
   }, [target, valid]);
 
-  return countdown;
+  if (!valid || now === null) return null;
+  return diff(target, now);
 }

@@ -18,8 +18,6 @@ import {
   Users,
   Armchair,
   Inbox,
-  MessageSquare,
-  Bell,
   CalendarX,
   AlertTriangle,
   BarChart3,
@@ -28,10 +26,14 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useAuthHydrated } from "@/hooks/useAuthHydrated";
-import dashboardService, { type TutorSummary } from "@/services/dashboard";
+import dashboardService, {
+  dashboardErrorMessage,
+  type TutorSummary,
+} from "@/services/dashboard";
 import DashboardHero, { type HeroClass } from "@/components/dashboard/DashboardHero";
 import StatTile from "@/components/dashboard/StatTile";
 import SectionCard from "@/components/dashboard/SectionCard";
+import UnreadInbox from "@/components/dashboard/UnreadInbox";
 import ClassRow from "@/components/dashboard/ClassRow";
 import {
   DashboardSkeleton,
@@ -87,11 +89,8 @@ export default function InstructorDashboardPage() {
         return;
       }
       setSummary(data);
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ??
-          "Something went wrong reaching the server. Please try again.",
-      );
+    } catch (err: unknown) {
+      setError(dashboardErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -115,7 +114,8 @@ export default function InstructorDashboardPage() {
     [summary],
   );
 
-  const hasActivity = chartData.some((d) => d.completed > 0);
+  const maxCompleted = chartData.reduce((m, d) => Math.max(m, d.completed), 0);
+  const hasActivity = maxCompleted > 0;
 
   if (!hydrated || loading) return <DashboardSkeleton />;
   if (error) return <DashboardError message={error} onRetry={load} />;
@@ -140,7 +140,6 @@ export default function InstructorDashboardPage() {
 
   const stepIndex = ONBOARDING_STEPS.indexOf(summary.onboarding.step as never);
   const onboardingIncomplete = summary.onboarding.step !== "completed" && stepIndex >= 0;
-  const totalUnread = summary.unread.messages + summary.unread.notifications;
   const { missed, limit } = summary.onboarding.strikes;
 
   return (
@@ -194,7 +193,7 @@ export default function InstructorDashboardPage() {
           index={2}
           label="Students taught"
           value={summary.students.distinctTotal}
-          hint="Unique across your classes"
+          hint="Unique students"
           icon={Users}
           tone="violet"
         />
@@ -307,6 +306,10 @@ export default function InstructorDashboardPage() {
                     />
                     <YAxis
                       allowDecimals={false}
+                      /* Without this a single completed class draws an 0–4
+                         axis, which reads as four missing months. */
+                      domain={[0, (max: number) => Math.max(1, max)]}
+                      tickCount={Math.min(5, maxCompleted + 1)}
                       axisLine={false}
                       tickLine={false}
                       tick={{ fill: "currentColor", fontSize: 12 }}
@@ -359,40 +362,7 @@ export default function InstructorDashboardPage() {
             </SectionCard>
           )}
 
-          <SectionCard title="Your inbox" icon={Bell}>
-            {totalUnread === 0 ? (
-              <p className="text-sm text-muted-foreground py-2">
-                You&apos;re all caught up. Nothing unread.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                <Link
-                  href="/chat"
-                  className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-border/50 hover:border-primary/30 hover:bg-muted/40 transition-all"
-                >
-                  <span className="flex items-center gap-2.5 text-sm font-semibold">
-                    <MessageSquare className="w-4 h-4 text-primary" />
-                    Messages
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                    {summary.unread.messages}
-                  </span>
-                </Link>
-                <Link
-                  href="/notifications"
-                  className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-border/50 hover:border-primary/30 hover:bg-muted/40 transition-all"
-                >
-                  <span className="flex items-center gap-2.5 text-sm font-semibold">
-                    <Bell className="w-4 h-4 text-primary" />
-                    Notifications
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                    {summary.unread.notifications}
-                  </span>
-                </Link>
-              </div>
-            )}
-          </SectionCard>
+          <UnreadInbox unread={summary.unread} />
 
           <SectionCard
             title="Your materials"

@@ -92,6 +92,15 @@ export function isTutorSummary(s: DashboardSummary): s is TutorSummary {
   return s.role === "tutor";
 }
 
+/** Message for a failed dashboard load, falling back to something human. */
+export function dashboardErrorMessage(err: unknown): string {
+  const message = (err as { response?: { data?: { message?: unknown } } })?.response?.data
+    ?.message;
+  return typeof message === "string" && message
+    ? message
+    : "Something went wrong reaching the server. Please try again.";
+}
+
 class DashboardService {
   async getSummary(): Promise<DashboardSummary> {
     const { data } = await HTTP_CLIENT.get(apiEndpoints.Dashboard.SUMMARY);
@@ -100,4 +109,5 @@ class DashboardService {
   }
 }
 
-export default new DashboardService();
+const dashboardService = new DashboardService();
+export default dashboardService;

@@ -8,18 +8,20 @@ import {
   CheckCircle2,
   Clock,
   FileText,
-  MessageSquare,
-  Bell,
   CalendarX,
   Hourglass,
   UserCog,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useAuthHydrated } from "@/hooks/useAuthHydrated";
-import dashboardService, { type StudentSummary } from "@/services/dashboard";
+import dashboardService, {
+  dashboardErrorMessage,
+  type StudentSummary,
+} from "@/services/dashboard";
 import DashboardHero, { type HeroClass } from "@/components/dashboard/DashboardHero";
 import StatTile from "@/components/dashboard/StatTile";
 import SectionCard from "@/components/dashboard/SectionCard";
+import UnreadInbox from "@/components/dashboard/UnreadInbox";
 import ClassRow from "@/components/dashboard/ClassRow";
 import {
   DashboardSkeleton,
@@ -53,11 +55,8 @@ export default function StudentDashboardPage() {
         return;
       }
       setSummary(data);
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ??
-          "Something went wrong reaching the server. Please try again.",
-      );
+    } catch (err: unknown) {
+      setError(dashboardErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -94,7 +93,6 @@ export default function StudentDashboardPage() {
       }
     : null;
 
-  const totalUnread = summary.unread.messages + summary.unread.notifications;
 
   return (
     <div className="space-y-6">
@@ -129,7 +127,7 @@ export default function StudentDashboardPage() {
           index={2}
           label="Scheduled hours"
           value={formatHours(summary.scheduledMinutes)}
-          hint="Across completed classes"
+          hint="Completed classes"
           icon={Clock}
           tone="violet"
         />
@@ -181,40 +179,7 @@ export default function StudentDashboardPage() {
         </div>
 
         <div className="space-y-6">
-          <SectionCard title="Your inbox" icon={Bell}>
-            {totalUnread === 0 ? (
-              <p className="text-sm text-muted-foreground py-2">
-                You&apos;re all caught up. Nothing unread.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                <Link
-                  href="/chat"
-                  className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-border/50 hover:border-primary/30 hover:bg-muted/40 transition-all"
-                >
-                  <span className="flex items-center gap-2.5 text-sm font-semibold">
-                    <MessageSquare className="w-4 h-4 text-primary" />
-                    Messages
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                    {summary.unread.messages}
-                  </span>
-                </Link>
-                <Link
-                  href="/notifications"
-                  className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-border/50 hover:border-primary/30 hover:bg-muted/40 transition-all"
-                >
-                  <span className="flex items-center gap-2.5 text-sm font-semibold">
-                    <Bell className="w-4 h-4 text-primary" />
-                    Notifications
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                    {summary.unread.notifications}
-                  </span>
-                </Link>
-              </div>
-            )}
-          </SectionCard>
+          <UnreadInbox unread={summary.unread} />
 
           {summary.classes.pendingApproval > 0 && (
             <SectionCard title="Awaiting approval" icon={Hourglass}>
