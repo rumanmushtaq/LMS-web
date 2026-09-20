@@ -128,9 +128,11 @@ export default function InstructorDashboardPage() {
         title: next.title,
         startTime: next.startTime,
         subtitle:
-          next.maxStudents != null
+          next.isGroup && next.maxStudents != null
             ? `${next.enrolled} of ${next.maxStudents} seats filled`
-            : `${next.enrolled} ${next.enrolled === 1 ? "student" : "students"} enrolled`,
+            : next.isGroup
+              ? `${next.enrolled} ${next.enrolled === 1 ? "student" : "students"} enrolled`
+              : "One-to-one lesson",
         isLive: next.liveStatus === "live" || next.status === "ONGOING",
         joinHref: `/instructor/classes/${next._id}/live`,
       }
@@ -259,8 +261,9 @@ export default function InstructorDashboardPage() {
                       startTime={c.startTime}
                       endTime={c.endTime}
                       isLive={live}
-                      enrolled={c.enrolled}
-                      maxStudents={c.maxStudents}
+                      subtitle={c.isGroup ? undefined : "One-to-one"}
+                      enrolled={c.isGroup ? c.enrolled : undefined}
+                      maxStudents={c.isGroup ? c.maxStudents : null}
                       href={`/instructor/classes/${c._id}/live`}
                     />
                   );

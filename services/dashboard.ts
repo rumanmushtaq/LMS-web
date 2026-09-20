@@ -26,6 +26,12 @@ export interface StudentNextClass extends DashboardClassRef {
 export interface TutorNextClass extends DashboardClassRef {
   enrolled: number;
   maxStudents: number | null;
+  /**
+   * `maxStudents` defaults to 1 for a private lesson, so it cannot tell a
+   * booked 1-to-1 apart from a full one-seat group class. Seat counts are only
+   * meaningful when this is true.
+   */
+  isGroup: boolean;
 }
 
 export interface UnreadCounts {
