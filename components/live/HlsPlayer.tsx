@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 /**
  * In-site player for self-hosted live streams (HLS).
@@ -9,7 +10,16 @@ import React, { useEffect, useRef, useState } from "react";
  * The playlist 404s until ffmpeg writes the first segments, so the loader
  * keeps retrying quietly instead of giving up while the teacher connects.
  */
-export default function HlsPlayer({ src, title }: { src: string; title?: string }) {
+export default function HlsPlayer({
+  src,
+  title,
+  className,
+}: {
+  src: string;
+  title?: string;
+  /** Lets a fixed-height layout override the default 16:9 box. */
+  className?: string;
+}) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [failed, setFailed] = useState(false);
   // Browsers only allow autoplay when muted — start silent and let the
@@ -88,7 +98,12 @@ export default function HlsPlayer({ src, title }: { src: string; title?: string 
   }, [src]);
 
   return (
-    <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black">
+    <div
+      className={cn(
+        "relative w-full aspect-video rounded-2xl overflow-hidden bg-black",
+        className,
+      )}
+    >
       <video
         ref={videoRef}
         title={title}

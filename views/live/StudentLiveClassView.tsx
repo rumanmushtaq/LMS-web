@@ -105,21 +105,33 @@ export default function StudentLiveClassView({ classId }: { classId: string }) {
       </div>
 
       {/* Video + Chat grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 h-[calc(100vh-180px)] min-h-[520px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 lg:h-[calc(100vh-250px)] lg:min-h-[520px]">
         {/* Video column */}
         <div className="flex flex-col gap-3 min-h-0">
+          <p className="text-xs text-muted-foreground">
+            Note: live video runs a few seconds behind the teacher. Ask questions in the chat anytime — the
+            instructor will answer live.
+          </p>
           {isLive && isSelfHosted ? (
             selfSrc ? (
-              <HlsPlayer src={selfSrc} title={info.title} />
+              <HlsPlayer
+                src={selfSrc}
+                title={info.title}
+                className="lg:aspect-auto lg:flex-1 lg:min-h-0"
+              />
             ) : (
-              <div className="flex items-center justify-center rounded-2xl bg-black text-white/60 aspect-video text-sm">
+              <div className="flex items-center justify-center rounded-2xl bg-black text-white/60 aspect-video text-sm lg:aspect-auto lg:flex-1 lg:min-h-0">
                 Connecting to the stream…
               </div>
             )
           ) : isLive ? (
-            <VimeoEmbed embedUrl={embedUrl!} title={info.title} />
+            <VimeoEmbed
+              embedUrl={embedUrl!}
+              title={info.title}
+              className="lg:aspect-auto lg:flex-1 lg:min-h-0"
+            />
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-2xl bg-black text-white/70 aspect-video gap-3">
+            <div className="flex flex-col items-center justify-center rounded-2xl bg-black text-white/70 aspect-video gap-3 lg:aspect-auto lg:flex-1 lg:min-h-0">
               <Video className="w-12 h-12 opacity-40" />
               {hasEnded ? (
                 <p className="font-medium">This class has ended.</p>
@@ -148,17 +160,14 @@ export default function StudentLiveClassView({ classId }: { classId: string }) {
               )}
             </div>
           )}
-          <p className="text-xs text-muted-foreground">
-            Note: live video runs a few seconds behind the teacher. Ask questions in the chat anytime — the
-            instructor will answer live.
-          </p>
         </div>
 
         {/* Chat column */}
-        <div className="min-h-0">
+        <div className="min-h-0 h-[520px] lg:h-full">
           <LiveQnAPanel
             messages={messages}
             currentUserId={currentUserId}
+            conversationId={info?.live.conversationId ?? null}
             isConnected={isConnected}
             typingUser={typingUser}
             onSend={sendMessage}
