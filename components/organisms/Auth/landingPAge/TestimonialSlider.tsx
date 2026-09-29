@@ -62,12 +62,12 @@ const TestimonialSlider = () => {
   };
 
   return (
-    <section className="py-24 bg-background relative overflow-hidden flex flex-col items-center w-full">
+    <section className="py-14 bg-background relative overflow-hidden flex flex-col items-center w-full">
       <div className="w-full px-4 text-center">
         <h2 className="text-4xl lg:text-5xl font-black mb-4">
           What students, love, about us
         </h2>
-        <p className="text-muted-foreground font-medium mb-16 max-w-2xl mx-auto">
+        <p className="text-muted-foreground font-medium mb-10 max-w-2xl mx-auto">
           Safe, effective, affordable learning. For language learners just like
           you.
         </p>

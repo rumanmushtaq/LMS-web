@@ -85,8 +85,11 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.25 0.03 273);
 
-  /* Primary Deep Academic Purple */
-  --primary: oklch(0.35 0.08 275);
+  /* Primary Deep Academic Purple.
+     Chroma is deliberately high: this drives call-to-action buttons, and at
+     the old 0.08 they read as grey-navy and lost the eye. Matches the vivid
+     purple already used by --ring and --sidebar-primary. */
+  --primary: oklch(0.45 0.22 300);
   --primary-foreground: oklch(1 0 0);
 
   /* Secondary Achievement Cyan */
@@ -133,11 +136,11 @@
   --footer-bottom: oklch(0.15 0.02 273);
 
   /* Brand (Varona Bird) */
-  --brand-purple: oklch(0.35 0.08 275);
+  --brand-purple: oklch(0.45 0.22 300);
   --brand-cyan: oklch(0.7 0.15 210);
   --brand-gold: oklch(0.85 0.18 85);
 
-  --primary-rgb: 59, 53, 97; 
+  --primary-rgb: 117, 38, 200;
 }
 
 /* =========================================================

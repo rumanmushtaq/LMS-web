@@ -5,11 +5,17 @@ import HeroSlider from "@/components/organisms/Auth/landingPAge/hero-Banner";
 import TestimonialSlider from "@/components/organisms/Auth/landingPAge/TestimonialSlider";
 import CourseCard from "@/components/molecules/shop/course-card";
 import JoinUs from "@/components/organisms/Auth/landingPAge/JoinUs";
-import FAQSection from "@/components/organisms/Auth/landingPAge/FAQSection";
 import LanguageTutorsSection from "@/components/organisms/Auth/landingPAge/LanguageTutorsSection";
 import WorldTutorsSection from "@/components/organisms/Auth/landingPAge/WorldTutorsSection";
 import HowItWorks from "@/components/organisms/Auth/landingPAge/HowItWorks";
-import { CheckCircle, Star, Loader2 } from "lucide-react";
+import {
+  CheckCircle,
+  Star,
+  Loader2,
+  Users,
+  GraduationCap,
+  TrendingUp,
+} from "lucide-react";
 import Image from "next/image";
 import instructorsService, {
   InstructorProfile as IInstructor,
@@ -131,8 +137,8 @@ export default function Home() {
       <HeroSlider />
 
       {/* TOP CATEGORIES SECTION */}
-      <section className="py-24 container mx-auto px-4 flex flex-col items-center">
-        <div className="text-center space-y-4 mb-16 max-w-3xl">
+      <section className="py-14 container mx-auto px-4 flex flex-col items-center">
+        <div className="text-center space-y-4 mb-10 max-w-3xl">
           <p className="text-primary font-bold bg-primary/10 px-4 py-1 rounded-full inline-block">
             Favourite Course
           </p>
@@ -202,10 +208,12 @@ export default function Home() {
       <WorldTutorsSection />
 
       {/* OUR BENEFITS SECTION */}
-      <section className="py-24 bg-muted/50 relative overflow-hidden flex flex-col items-center">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('/images/grid-pattern.png')] opacity-10" />
+      <section className="py-14 bg-muted/50 relative overflow-hidden flex flex-col items-center">
+        {/* bg-academic is the in-CSS dotted grid; the old /images/grid-pattern.png it
+            pointed at does not exist in public/ and silently 404'd. */}
+        <div className="absolute top-0 left-0 w-full h-full bg-academic opacity-60" />
         <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
-          <div className="space-y-4 mb-16 max-w-3xl">
+          <div className="space-y-4 mb-10 max-w-3xl">
             <p className="text-white bg-foreground/80 px-4 py-1 rounded-full inline-block">
               Our Benefits
             </p>
@@ -223,25 +231,25 @@ export default function Home() {
               {
                 title: "Stay motivated with instructors",
                 desc: "Stay motivated with engaging instructors on our platform, guiding you through every course.",
-                img: "👨‍🏫",
+                Icon: Users,
               },
               {
                 title: "Get certified on courses",
                 desc: "Get certified, master modern tech skills, and level up your career whether you're starting.",
-                img: "📜",
+                Icon: GraduationCap,
               },
               {
                 title: "Build skills on your way",
                 desc: "Build skills your way with hands-on labs and immersive courses, tailored to fit.",
-                img: "🚀",
+                Icon: TrendingUp,
               },
             ].map((benefit, i) => (
               <div
                 key={i}
                 className="text-center space-y-6 flex flex-col items-center"
               >
-                <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center text-4xl mx-auto outline outline-8 outline-primary/5">
-                  {benefit.img}
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto outline outline-8 outline-primary/5">
+                  <benefit.Icon className="w-9 h-9 text-primary" strokeWidth={1.5} />
                 </div>
                 <div className="space-y-3">
                   <h3 className="text-xl font-bold">{benefit.title}</h3>
@@ -258,8 +266,8 @@ export default function Home() {
 
 
       {/* FEATURED COURSES SECTION -> INSTRUCTOR OR TUTOR */}
-      <section className="py-24 container mx-auto px-4 flex flex-col items-center">
-        <div className="text-center space-y-4 mb-16 max-w-3xl">
+      <section className="py-14 container mx-auto px-4 flex flex-col items-center">
+        <div className="text-center space-y-4 mb-10 max-w-3xl">
           <p className="text-primary font-bold bg-primary/10 px-4 py-1 rounded-full inline-block">
             What's New
           </p>
@@ -332,14 +340,14 @@ export default function Home() {
       </section>
 
       {/* STATS SECTION */}
-      <section className="py-24 bg-primary text-primary-foreground rounded-[60px] lg:rounded-[100px] mx-4 lg:mx-12 my-12 relative overflow-hidden flex flex-col items-center shadow-2xl shadow-primary/20">
+      <section className="py-14 bg-primary text-primary-foreground rounded-[60px] lg:rounded-[100px] mx-4 lg:mx-12 my-6 relative overflow-hidden flex flex-col items-center shadow-2xl shadow-primary/20">
         <div className="absolute top-10 left-10 text-white opacity-20">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
             <path d="M13 3l-2 2 4 4-4 4 2 2 6-6-6-6zm-4 4l-6 6 6 6 2-2-4-4 4-4-2-2z" />
           </svg>
         </div>
         <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
-          <div className="space-y-4 mb-20 max-w-3xl">
+          <div className="space-y-4 mb-12 max-w-3xl">
             <h2 className="text-4xl lg:text-5xl font-black">
               Achieve your Goals with VaronaAcademy
             </h2>
@@ -373,8 +381,8 @@ export default function Home() {
       </section>
 
       {/* TRENDING INSTRUCTORS SECTION */}
-      <section className="py-24 container mx-auto px-4 flex flex-col items-center">
-        <div className="text-center space-y-4 mb-16 max-w-3xl">
+      <section className="py-14 container mx-auto px-4 flex flex-col items-center">
+        <div className="text-center space-y-4 mb-10 max-w-3xl">
           <p className="text-primary font-bold bg-primary/10 px-4 py-1 rounded-full inline-block">
             Trending Instructors
           </p>
@@ -447,7 +455,8 @@ export default function Home() {
 
       <JoinUs />
       <HowItWorks />
-      <FAQSection />
+      {/* FAQ now lives at /faq — it made the home page long enough that the
+          sections below it were rarely reached. */}
       <LanguageTutorsSection />
 
       <div className="flex justify-center w-full">

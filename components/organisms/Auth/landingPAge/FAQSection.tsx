@@ -7,9 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const faqs = [
   {
-    question: "What's DreamLMS want to give you?",
+    question: "What does Varona Academy give you?",
     answer:
-      "DreamLMS aims to provide you with a comprehensive and intuitive learning platform that enhances your educational experience.",
+      "Varona Academy aims to provide you with a comprehensive and intuitive learning platform that enhances your educational experience.",
   },
   {
     question: "Why choose us for your education?",

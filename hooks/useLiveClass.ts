@@ -3,12 +3,14 @@ import { io, Socket } from "socket.io-client";
 import { useAuthStore } from "@/store/auth";
 import chatService from "@/services/chat";
 import { LiveStatus } from "@/services/classes";
+import type { ChatAttachment } from "@/lib/chat/attachment";
 
 export interface LiveMessage {
   _id: string;
   conversationId: string;
   senderId: any;
   content: string;
+  attachment?: ChatAttachment | null;
   createdAt?: string;
   pending?: boolean;
 }
@@ -105,10 +107,16 @@ export function useLiveClass({ conversationId, onLiveStatus }: UseLiveClassArgs)
   }, [token, conversationId, pushMessage, currentUserId]);
 
   const sendMessage = useCallback(
-    (content: string) => {
+    (content: string, attachment?: ChatAttachment | null) => {
       const text = content.trim();
-      if (!text || !conversationId || !socketRef.current?.connected) return;
-      socketRef.current.emit("sendMessage", { conversationId, content: text });
+      // A file on its own is a message, so only bail when there is neither.
+      if (!text && !attachment) return;
+      if (!conversationId || !socketRef.current?.connected) return;
+      socketRef.current.emit("sendMessage", {
+        conversationId,
+        content: text,
+        attachment: attachment ?? null,
+      });
     },
     [conversationId],
   );

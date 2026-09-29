@@ -183,6 +183,10 @@ const Footer = () => {
         <div className="container mx-auto flex flex-col items-center justify-between gap-5 px-6 md:flex-row">
           <p>© 2025 Varona Academy. All rights reserved.</p>
           <div className="flex items-center gap-8">
+            <Link href="/faq" className="hover:text-white transition-colors">
+              FAQ
+            </Link>
+            <span className="text-white/20">|</span>
             <Link href="/terms-and-conditions" className="hover:text-white transition-colors">
               Terms & Conditions
             </Link>

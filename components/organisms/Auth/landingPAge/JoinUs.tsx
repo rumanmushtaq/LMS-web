@@ -6,7 +6,7 @@ import Link from "next/link";
 
 const JoinUs = () => {
   return (
-    <section className="py-24 relative overflow-hidden">
+    <section className="py-14 relative overflow-hidden">
       {/* Background ambient lighting */}
       <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-orange-400/10 dark:bg-orange-500/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-indigo-400/10 dark:bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
