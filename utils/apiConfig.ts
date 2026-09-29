@@ -56,6 +56,7 @@ const apiEndpoints = {
     UNBLOCK: (id: string) => `/api/v1/chat/conversations/${id}/unblock`,
     DELETE: (id: string) => `/api/v1/chat/conversations/${id}`,
     FLAG_MESSAGE: (id: string) => `/api/v1/chat/messages/${id}/flag`,
+    UPLOAD: "/api/v1/chat/upload",
   },
   Notifications: {
     ALL: "/api/v1/notifications",

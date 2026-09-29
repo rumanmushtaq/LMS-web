@@ -469,6 +469,7 @@ export default function TutorLiveClassView({ classId }: { classId: string }) {
             title="Student Q&A"
             messages={messages}
             currentUserId={currentUserId}
+            conversationId={info?.conversationId ?? null}
             isConnected={isConnected}
             typingUser={typingUser}
             onSend={sendMessage}
