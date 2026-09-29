@@ -12,48 +12,44 @@ export default function LanguageTutorsSection() {
       title: "Verified tutors",
       description:
         "Our community has over 2,000 expert tutors – all with prior teaching experience.",
-      icon: <ShieldCheck className="w-5 h-5 text-white" />,
+      Icon: ShieldCheck,
       gradient: "from-violet-500 to-purple-600",
       shadow: "shadow-violet-500/20",
-      emoji: "👨‍🏫",
     },
     {
       title: "Affordable",
       description:
         "With lesson prices starting at $5, Varona Academy provides remote learning to fit any budget.",
-      icon: <CircleDollarSign className="w-5 h-5 text-white" />,
+      Icon: CircleDollarSign,
       gradient: "from-emerald-400 to-teal-500",
       shadow: "shadow-emerald-500/20",
-      emoji: "💰",
     },
     {
       title: "Flexible schedule",
       description:
         "We make learning happen on your schedule. Book lessons when you want to learn.",
-      icon: <CalendarDays className="w-5 h-5 text-white" />,
+      Icon: CalendarDays,
       gradient: "from-orange-400 to-red-500",
       shadow: "shadow-orange-500/20",
-      emoji: "🗓️",
     },
     {
       title: "Travel Assistance",
       description:
         "Prepare for that big trip the right way. Know the language and customs. Do's and don't.",
-      icon: <Plane className="w-5 h-5 text-white" />,
+      Icon: Plane,
       gradient: "from-cyan-400 to-blue-500",
       shadow: "shadow-cyan-500/20",
-      emoji: "✈️",
     },
   ];
 
   return (
-    <section className="py-24 container mx-auto px-4 flex flex-col items-center">
+    <section className="py-14 container mx-auto px-4 flex flex-col items-center">
       {/* Main Container */}
-      <div className="w-full relative overflow-hidden bg-card border border-border/50 rounded-[40px] md:rounded-[60px] py-20 px-6 md:px-12 shadow-xl shadow-primary/5 dark:shadow-none flex flex-col items-center text-center">
+      <div className="w-full relative overflow-hidden bg-card border border-border/50 rounded-[40px] md:rounded-[60px] py-12 px-6 md:px-12 shadow-xl shadow-primary/5 dark:shadow-none flex flex-col items-center text-center">
         {/* Subtle Decorative Gradient */}
         <div className="absolute -top-[50%] -left-[10%] w-[120%] h-[120%] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent pointer-events-none opacity-60" />
 
-        <div className="relative z-10 space-y-4 mb-20 max-w-3xl">
+        <div className="relative z-10 space-y-4 mb-12 max-w-3xl">
           <p className="text-primary font-bold bg-primary/10 px-4 py-1 rounded-full inline-block text-sm tracking-wide uppercase">
             Why Choose Us
           </p>
@@ -79,15 +75,10 @@ export default function LanguageTutorsSection() {
                 />
 
                 {/* Inner Card */}
-                <div className="relative w-full h-full bg-card/80 rounded-[32px] border border-border/50 shadow-inner flex items-center justify-center text-6xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 backdrop-blur-md">
-                  <span className="drop-shadow-md">{feature.emoji}</span>
-                </div>
-
-                {/* Small Accent Icon */}
                 <div
-                  className={`absolute -bottom-3 -right-3 w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-br ${feature.gradient} border-4 border-card ${feature.shadow} group-hover:scale-110 transition-transform duration-500`}
+                  className={`relative w-full h-full rounded-[32px] flex items-center justify-center shadow-lg bg-gradient-to-br ${feature.gradient} ${feature.shadow} group-hover:scale-110 transition-transform duration-500`}
                 >
-                  {feature.icon}
+                  <feature.Icon className="w-10 h-10 text-white" strokeWidth={1.5} />
                 </div>
               </div>
 

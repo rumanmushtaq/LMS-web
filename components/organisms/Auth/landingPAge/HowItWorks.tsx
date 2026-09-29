@@ -22,7 +22,7 @@ export default function HowItWorks() {
   } as const;
 
   return (
-    <section className="py-32 overflow-hidden w-full bg-background relative">
+    <section className="py-16 overflow-hidden w-full bg-background relative">
       {/* Ambient enchanting background glows */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-1/4 -left-64 w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full mix-blend-screen"></div>
@@ -30,7 +30,7 @@ export default function HowItWorks() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl relative z-10">
-        <div className="text-center space-y-4 mb-24 max-w-3xl mx-auto">
+        <div className="text-center space-y-4 mb-12 max-w-3xl mx-auto">
           <h2 className="text-5xl lg:text-6xl font-black text-foreground tracking-tight">
             Here's how it works
           </h2>
@@ -41,7 +41,7 @@ export default function HowItWorks() {
         </div>
 
         <motion.div
-          className="flex flex-col gap-32 relative"
+          className="flex flex-col gap-16 relative"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"

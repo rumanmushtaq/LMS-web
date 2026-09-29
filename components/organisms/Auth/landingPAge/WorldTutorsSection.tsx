@@ -3,7 +3,7 @@ import WorldTutorsMarquee from "./WorldTutorsMarquee";
 
 export default function WorldTutorsSection() {
   return (
-    <section className="py-24 container mx-auto px-4 flex flex-col items-center">
+    <section className="py-14 container mx-auto px-4 flex flex-col items-center">
       <div className="text-center space-y-4 mb-10 max-w-3xl">
         <h2 className="text-3xl md:text-5xl font-black text-foreground leading-tight">
           Tutors from all over the world offer online lessons
