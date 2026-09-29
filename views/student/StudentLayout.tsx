@@ -19,6 +19,8 @@ import {
   CalendarClock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth";
+import { initialsOf } from "@/lib/user";
 
 const mainMenuItems = [
   { name: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
@@ -46,6 +48,7 @@ export default function StudentLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const user = useAuthStore((s) => s.user);
 
   return (
     <div className="min-h-screen bg-background">
@@ -122,12 +125,12 @@ export default function StudentLayout({
               <div className="mt-10 pt-6 border-t border-border/50">
                 <div className="bg-muted/40 rounded-2xl p-4 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">
-                    JS
+                    {initialsOf(user?.fullName)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate">Jane Smith</p>
+                    <p className="text-sm font-bold truncate">{user?.fullName ?? "Student"}</p>
                     <p className="text-[11px] text-muted-foreground truncate italic">
-                      Enrolled Student
+                      {user?.email ?? "Student"}
                     </p>
                   </div>
                 </div>

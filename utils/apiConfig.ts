@@ -18,6 +18,9 @@ const apiEndpoints = {
   Users: {
     PROFILE: "/api/v1/users/profile",
   },
+  Dashboard: {
+    SUMMARY: "/api/v1/dashboard/summary",
+  },
   Certificates: {
     MY: "/api/v1/certificates/my",
   },

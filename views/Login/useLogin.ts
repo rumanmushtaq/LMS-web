@@ -6,7 +6,6 @@ import { LoginFormValues, loginSchema } from "@/schemas/login";
 import authService from "@/services/auth";
 import { useAuthStore } from "@/store/auth";
 import { useRouter, useSearchParams } from "next/navigation";
-import { USER } from "@/constants/userRole";
 
 const useLogin = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -33,20 +32,12 @@ const useLogin = () => {
     try {
       const res = await authService.loginApi(data);
 
-      console.log("res", res);
-
       // Backend returns { user, accessToken, refreshToken }
       storeLogin(res.data.user, res.data.tokens.accessToken, res.data.tokens.refreshToken);
 
-      const user = useAuthStore.getState().user;
-
-      console.log("user", user);
-
-      if(user?.role === USER.STUDENT){
-        router.push("/instructors");
-      } else {
-        router.push(redirectUrl);
-      }
+      // A deep link the user was bounced off takes priority. Otherwise send
+      // them to /dashboard, which routes to the right one for their role.
+      router.push(redirectUrl === "/" ? "/dashboard" : redirectUrl);
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Login failed. Please try again.";
