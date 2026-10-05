@@ -1,8 +1,10 @@
 "use client";
 
-import { ShoppingBag, Star, Package } from "lucide-react";
+import { ShoppingBag, Star, Package, Plus } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { toast } from "sonner";
+import { useCart } from "@/store/cart";
 
 interface ProductCardProps {
   id: string;
@@ -13,6 +15,12 @@ interface ProductCardProps {
   price: string;
 }
 
+/** Pulls a numeric major-unit price out of a display string like "$24.00". */
+function parsePrice(price: string): number {
+  const n = Number(String(price).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) ? n : 0;
+}
+
 const ProductCard = ({
   id,
   image,
@@ -21,6 +29,24 @@ const ProductCard = ({
   sizes,
   price,
 }: ProductCardProps) => {
+  const add = useCart((s) => s.add);
+
+  const handleAdd = (e: React.MouseEvent) => {
+    // The whole card is a <Link>; keep the click from navigating.
+    e.preventDefault();
+    e.stopPropagation();
+    const size = sizes?.[0] || "M";
+    add({
+      productId: id,
+      title,
+      image,
+      price: parsePrice(price),
+      size,
+      sizes,
+    });
+    toast.success(`Added ${title} (${size}) to cart`);
+  };
+
   return (
     <Link
       href={`/shop/${id}`}
@@ -108,6 +134,16 @@ const ProductCard = ({
             )}
           </div>
         )}
+
+        {/* Add to cart */}
+        <button
+          type="button"
+          onClick={handleAdd}
+          className="mt-1 inline-flex items-center justify-center gap-2 w-full h-10 rounded-xl bg-primary/10 text-primary font-bold text-sm hover:bg-primary hover:text-primary-foreground transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Add to cart
+        </button>
       </div>
 
       {/* ── BOTTOM ACCENT LINE ── */}

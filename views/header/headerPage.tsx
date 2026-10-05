@@ -10,6 +10,7 @@ import { useThemeStore } from "@/store/theme";
 import { useAuthStore } from "@/store/auth";
 import { useNotificationStore } from "@/store/notification";
 import { useChatStore } from "@/store/chat";
+import { useCart } from "@/store/cart";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -31,6 +32,7 @@ const Header = () => {
   const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
   const unreadCount = useNotificationStore((state) => state.unreadCount);
   const openChat = useChatStore((state) => state.openChat);
+  const cartCount = useCart((state) => state.count());
 
   const isAuthPage =
     pathname.includes("/login") ||
@@ -269,14 +271,36 @@ const Header = () => {
           )}
 
           {/* Cart */}
-          <div className="relative cursor-pointer group">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted/50 transition-colors group-hover:bg-muted">
-              <ShoppingCart className="h-5 w-5 text-foreground/70 group-hover:text-foreground" />
+          <Link href="/cart">
+            <div
+              className={cn(
+                "relative cursor-pointer group",
+                pathname.startsWith("/cart") && "",
+              )}
+              title="Cart"
+            >
+              <div
+                className={cn(
+                  "flex h-11 w-11 items-center justify-center rounded-full bg-muted/50 transition-colors group-hover:bg-muted",
+                  pathname.startsWith("/cart") && "bg-primary/10",
+                )}
+              >
+                <ShoppingCart
+                  className={cn(
+                    "h-5 w-5 transition-colors",
+                    pathname.startsWith("/cart")
+                      ? "text-primary"
+                      : "text-foreground/70 group-hover:text-foreground",
+                  )}
+                />
+              </div>
+              {mounted && cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#1DBF73] text-[10px] font-bold text-white ring-2 ring-background">
+                  {cartCount}
+                </span>
+              )}
             </div>
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#1DBF73] text-[10px] font-bold text-white ring-2 ring-background">
-              1
-            </span>
-          </div>
+          </Link>
 
           {/* Auth Buttons (Desktop) */}
           <div className="hidden xl:flex items-center gap-3 ml-2">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { formatDate } from "@/lib/formatDate";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -240,8 +241,8 @@ export default function TaxFormsPage() {
         height: drawHeight,
       });
 
-      // Add date
-      const today = new Date().toLocaleDateString();
+      // Add date (DD/MM/YYYY)
+      const today = formatDate(new Date());
       page.drawText(today, {
         x: coords.date.x,
         y: coords.date.y,
