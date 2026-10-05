@@ -149,9 +149,9 @@ const Footer = () => {
                 </div>
                 <div className="pt-1.5">
                   <p className="text-[15px] leading-snug text-muted-foreground">
-                    3556 Beech Street, San Francisco,
+                    18034 Ventura Boulevard, Suite 313, Encino
                     <br />
-                    California, CA 94108
+                    California 91316
                   </p>
                 </div>
               </div>
@@ -165,14 +165,14 @@ const Footer = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-4">
+              {/* <div className="flex items-center gap-4">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-orange-50 dark:bg-orange-900/20 shadow-sm border border-orange-100/50 dark:border-orange-800/30">
                   <Phone className="h-5 w-5 text-orange-500" />
                 </div>
                 <p className="text-[15px] text-muted-foreground">
                   +19 123-456-7890
                 </p>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
