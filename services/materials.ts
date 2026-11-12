@@ -1,3 +1,4 @@
+import { PendingPayment, withIdempotencyKey } from "@/lib/checkout";
 import { HTTP_CLIENT } from '../utils/axiosClient';
 
 const BASE = '/api/v1/tutor-materials';
@@ -57,8 +58,21 @@ export const deleteMaterial = async (id: string) => {
   return response.data?.data ?? response.data;
 };
 
-export const purchaseMaterial = async (id: string) => {
-  const response = await HTTP_CLIENT.post(`${BASE}/${id}/purchase`);
+/**
+ * Student: start paying for a material. Owned once the provider's webhook
+ * settles the payment, not by this call. `idempotencyKey` is repeated on every
+ * retry of one attempt so the API never opens a second charge.
+ */
+export const purchaseMaterial = async (
+  id: string,
+  paymentMethod: string,
+  idempotencyKey: string,
+): Promise<PendingPayment> => {
+  const response = await HTTP_CLIENT.post(
+    `${BASE}/${id}/purchase`,
+    { paymentMethod },
+    withIdempotencyKey(idempotencyKey),
+  );
   return response.data?.data ?? response.data;
 };
 

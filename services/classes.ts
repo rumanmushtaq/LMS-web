@@ -1,3 +1,4 @@
+import { withIdempotencyKey } from "@/lib/checkout";
 import api from '../utils/axiosInstance';
 
 export enum ClassStatus {
@@ -246,10 +247,13 @@ export const getGroupClassInvite = async (
 export const purchaseSeat = async (
   id: string,
   paymentMethod: string,
+  idempotencyKey: string,
 ): Promise<SeatPurchaseResult> => {
-  const response = await api.post(`/api/v1/classes/${id}/purchase`, {
-    paymentMethod,
-  });
+  const response = await api.post(
+    `/api/v1/classes/${id}/purchase`,
+    { paymentMethod },
+    withIdempotencyKey(idempotencyKey),
+  );
   return response.data?.data ?? response.data;
 };
 

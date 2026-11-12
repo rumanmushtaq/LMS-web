@@ -17,6 +17,14 @@ import {
   purchaseSeat,
 } from "@/services/classes";
 import paymentsService, { PaymentMethod } from "@/services/payments";
+import StripeCardForm from "@/components/payments/StripeCardForm";
+import { useCheckoutAttempt } from "@/hooks/useCheckoutAttempt";
+import {
+  checkoutErrorMessage,
+  isCheckoutInProgress,
+  paymentReturnUrl,
+  PendingPayment,
+} from "@/lib/checkout";
 import { formatDuration, formatMoney, formatWhen } from "@/lib/format";
 
 /**
@@ -31,6 +39,9 @@ export default function JoinGroupClassPage({ token }: { token: string }) {
   const [preview, setPreview] = useState<GroupClassPreview | null>(null);
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<string>("");
+  const attempt = useCheckoutAttempt();
+  // Set once a card payment is started; shows the Stripe card form.
+  const [cardPayment, setCardPayment] = useState<PendingPayment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPaying, setIsPaying] = useState(false);
@@ -75,11 +86,17 @@ export default function JoinGroupClassPage({ token }: { token: string }) {
   }, [token]);
 
   const handlePay = async () => {
-    if (!preview || !selectedMethod) return;
+    if (!preview || !selectedMethod || isPaying) return;
 
     setIsPaying(true);
     try {
-      const result = await purchaseSeat(preview.classId, selectedMethod);
+      // Same key on every retry of this attempt: a double-click joins the
+      // payment the first click opened instead of charging twice.
+      const result = await purchaseSeat(
+        preview.classId,
+        selectedMethod,
+        attempt.key(),
+      );
       const instruction = result.instruction;
 
       if (instruction?.kind === "redirect") {
@@ -89,13 +106,11 @@ export default function JoinGroupClassPage({ token }: { token: string }) {
         return;
       }
 
-      // In-page confirmation (e.g. Stripe Elements) is not wired up yet, so
-      // say so plainly rather than pretending the seat is booked.
-      setAwaitingPayment(true);
+      // Card: confirm in-page with Stripe Elements.
+      setCardPayment(result as PendingPayment);
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || "Could not start the payment.",
-      );
+      toast.error(checkoutErrorMessage(err, "Could not start the payment."));
+      if (!isCheckoutInProgress(err)) attempt.renew();
     } finally {
       setIsPaying(false);
     }
@@ -236,6 +251,18 @@ export default function JoinGroupClassPage({ token }: { token: string }) {
                   ? "This class is no longer open for joining."
                   : "Every seat in this class has been taken."}
               </span>
+            </div>
+          ) : cardPayment?.instruction.kind === "client_secret" ? (
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
+                Card details
+              </label>
+              <StripeCardForm
+                clientSecret={cardPayment.instruction.clientSecret}
+                publishableKey={cardPayment.instruction.publishableKey || ""}
+                returnUrl={paymentReturnUrl(cardPayment.paymentId)}
+                onProcessing={() => setAwaitingPayment(true)}
+              />
             </div>
           ) : (
             <>

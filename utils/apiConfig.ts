@@ -47,6 +47,7 @@ const apiEndpoints = {
     METHODS: "/api/v1/payments/methods",
     SETTINGS: "/api/v1/payments/settings",
     MY_BALANCE: "/api/v1/payments/my-balance",
+    STATUS: (id: string) => `/api/v1/payments/${id}/status`,
   },
   Categories: {
     LIST: "/api/v1/categories",

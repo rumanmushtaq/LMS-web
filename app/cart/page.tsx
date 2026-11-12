@@ -8,6 +8,13 @@ import { useCart, cartKey } from "@/store/cart";
 import PaymentMethodPicker from "@/components/payments/PaymentMethodPicker";
 import StripeCardForm from "@/components/payments/StripeCardForm";
 import { HTTP_CLIENT } from "@/utils/axiosClient";
+import { useCheckoutAttempt } from "@/hooks/useCheckoutAttempt";
+import {
+  checkoutErrorMessage,
+  isCheckoutInProgress,
+  paymentReturnUrl,
+  withIdempotencyKey,
+} from "@/lib/checkout";
 
 interface PendingPayment {
   orderId: string;
@@ -42,6 +49,7 @@ export default function CartPage() {
   const [starting, setStarting] = useState(false);
   const [awaiting, setAwaiting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const attempt = useCheckoutAttempt();
 
   const shippingComplete = useMemo(
     () =>
@@ -59,9 +67,12 @@ export default function CartPage() {
       setError("Please choose a payment method.");
       return;
     }
+    if (starting) return;
     setError(null);
     setStarting(true);
     try {
+      // Same key for every retry of this checkout: a double-click or a retry
+      // after a timeout continues the first order instead of opening another.
       const res = await HTTP_CLIENT.post("/api/v1/shop/checkout", {
         items: items.map((i) => ({
           productId: i.productId,
@@ -70,7 +81,7 @@ export default function CartPage() {
         })),
         paymentMethod: method,
         shipping,
-      });
+      }, withIdempotencyKey(attempt.key()));
       const payload: PendingPayment = res.data?.data ?? res.data;
       setPending(payload);
 
@@ -81,10 +92,10 @@ export default function CartPage() {
         window.location.href = payload.instruction.redirectUrl;
       }
     } catch (e: any) {
-      const m =
-        e?.response?.data?.message ||
-        "We couldn't start your payment. Please try again.";
-      setError(Array.isArray(m) ? m.join(" · ") : m);
+      setError(
+        checkoutErrorMessage(e, "We couldn't start your payment. Please try again."),
+      );
+      if (!isCheckoutInProgress(e)) attempt.renew();
     } finally {
       setStarting(false);
     }
@@ -309,11 +320,7 @@ export default function CartPage() {
                 <StripeCardForm
                   clientSecret={pending.instruction.clientSecret}
                   publishableKey={pending.instruction.publishableKey || ""}
-                  returnUrl={
-                    typeof window !== "undefined"
-                      ? `${window.location.origin}/cart`
-                      : "/cart"
-                  }
+                  returnUrl={paymentReturnUrl(pending.paymentId)}
                   onProcessing={() => {
                     clear();
                     setAwaiting(true);

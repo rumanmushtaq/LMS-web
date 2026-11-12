@@ -24,9 +24,10 @@ import {
 } from "@/constants/instructorConstants";
 import { useChatStore } from "@/store/chat";
 import { useAuthStore } from "@/store/auth";
-import { MessageCircle, DollarSign, Download, Loader2 } from "lucide-react";
+import { MessageCircle, DollarSign, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getMaterials, purchaseMaterial, TutorMaterial } from "@/services/materials";
+import CheckoutDialog from "@/components/payments/CheckoutDialog";
 import { FileTypePlaceholder } from "@/components/materials/FileTypePlaceholder";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -47,7 +48,8 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
   const [showRequestModal, setShowRequestModal] = React.useState(false);
 
   const [materials, setMaterials] = React.useState<TutorMaterial[]>([]);
-  const [purchasingId, setPurchasingId] = React.useState<string | null>(null);
+  // The material being bought; the checkout dialog is open while it is set.
+  const [buying, setBuying] = React.useState<TutorMaterial | null>(null);
 
   React.useEffect(() => {
     if (data?._id) {
@@ -57,21 +59,7 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
     }
   }, [data?._id]);
 
-  const handlePurchase = async (material: TutorMaterial) => {
-    try {
-      setPurchasingId(material._id);
-      const res = await purchaseMaterial(material._id);
-      if (res.downloadUrl) {
-        window.open(res.downloadUrl, '_blank');
-        alert("Purchase successful! Your file is opening in a new tab.");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to process purchase.");
-    } finally {
-      setPurchasingId(null);
-    }
-  };
+  const handlePurchase = (material: TutorMaterial) => setBuying(material);
 
   // Wait for Zustand to rehydrate from localStorage before checking auth.
   // Without this, isAuthenticated() returns false on first render even for
@@ -510,23 +498,28 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
                       </p>
                       <button
                         onClick={() => handlePurchase(m)}
-                        disabled={purchasingId === m._id}
+                        disabled={buying?._id === m._id}
                         className="w-full mt-auto inline-flex items-center justify-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold py-2 rounded-lg transition-colors disabled:opacity-50"
                       >
-                        {purchasingId === m._id ? (
-                          <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
-                        ) : (
-                          <>
-                            <DollarSign className="w-4 h-4" />
-                            {(m.price / 100).toFixed(2)} - Purchase
-                          </>
-                        )}
+                        <DollarSign className="w-4 h-4" />
+                        {(m.price / 100).toFixed(2)} - Purchase
                       </button>
                     </div>
                   ))}
                 </div>
               </div>
             )}
+
+            <CheckoutDialog
+              open={buying !== null}
+              onOpenChange={(open) => !open && setBuying(null)}
+              title={buying ? `Buy "${buying.title}"` : "Buy material"}
+              description={
+                buying ? `${(buying.price / 100).toFixed(2)} · one-time purchase` : undefined
+              }
+              start={(method, key) => purchaseMaterial(buying!._id, method, key)}
+              doneText="Your payment is on its way. The material unlocks as soon as it is confirmed — you'll find it under your purchased materials."
+            />
 
             {/* ── Availability ── */}
             {data.availability && data.availability.length > 0 && (

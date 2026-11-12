@@ -18,7 +18,34 @@ export interface PaymentMethod {
   note?: string;
 }
 
+/** How a buyer's payment stands, as the payment-return page sees it. */
+export type BuyerPaymentStatus =
+  | "pending"
+  | "processing"
+  | "paid"
+  | "failed"
+  | "cancelled"
+  | "refunded";
+
+export interface BuyerPayment {
+  paymentId: string;
+  status: BuyerPaymentStatus;
+  area: "shop" | "materials" | "classes";
+  referenceId: string;
+  grossMinor: number;
+  currency: string;
+  failureReason: string | null;
+}
+
 class PaymentsService {
+  /** The signed-in buyer's own payment. */
+  async getStatus(paymentId: string): Promise<BuyerPayment> {
+    const { data } = await HTTP_CLIENT.get(
+      apiEndpoints.Payments.STATUS(paymentId),
+    );
+    return data?.data ?? data;
+  }
+
   /** Methods to offer, in the order the admin configured. */
   async getMethods(): Promise<PaymentMethod[]> {
     const { data } = await HTTP_CLIENT.get(apiEndpoints.Payments.METHODS);
