@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   CalendarClock,
@@ -40,6 +40,8 @@ export default function JoinGroupClassPage({ token }: { token: string }) {
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const attempt = useCheckoutAttempt();
+  // State lags a render behind; a ref blocks a second click in the same tick.
+  const inFlight = useRef(false);
   // Set once a card payment is started; shows the Stripe card form.
   const [cardPayment, setCardPayment] = useState<PendingPayment | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,8 +88,9 @@ export default function JoinGroupClassPage({ token }: { token: string }) {
   }, [token]);
 
   const handlePay = async () => {
-    if (!preview || !selectedMethod || isPaying) return;
+    if (!preview || !selectedMethod || inFlight.current) return;
 
+    inFlight.current = true;
     setIsPaying(true);
     try {
       // Same key on every retry of this attempt: a double-click joins the
@@ -112,6 +115,7 @@ export default function JoinGroupClassPage({ token }: { token: string }) {
       toast.error(checkoutErrorMessage(err, "Could not start the payment."));
       if (!isCheckoutInProgress(err)) attempt.renew();
     } finally {
+      inFlight.current = false;
       setIsPaying(false);
     }
   };

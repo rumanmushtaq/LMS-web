@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Minus, Plus, Trash2, ShoppingBag, Clock, Loader2 } from "lucide-react";
@@ -50,6 +50,8 @@ export default function CartPage() {
   const [awaiting, setAwaiting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const attempt = useCheckoutAttempt();
+  // State lags a render behind; a ref blocks a second click in the same tick.
+  const inFlight = useRef(false);
 
   const shippingComplete = useMemo(
     () =>
@@ -67,7 +69,8 @@ export default function CartPage() {
       setError("Please choose a payment method.");
       return;
     }
-    if (starting) return;
+    if (inFlight.current) return;
+    inFlight.current = true;
     setError(null);
     setStarting(true);
     try {
@@ -97,6 +100,7 @@ export default function CartPage() {
       );
       if (!isCheckoutInProgress(e)) attempt.renew();
     } finally {
+      inFlight.current = false;
       setStarting(false);
     }
   }

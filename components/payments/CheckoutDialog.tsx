@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Loader2, Lock } from "lucide-react";
 import {
   Dialog,
@@ -56,6 +56,8 @@ export default function CheckoutDialog({
   const [pending, setPending] = useState<PendingPayment | null>(null);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // State lags a render behind; a ref blocks a second click in the same tick.
+  const inFlight = useRef(false);
 
   // Every time the dialog opens it is a new purchase.
   useEffect(() => {
@@ -67,7 +69,8 @@ export default function CheckoutDialog({
   }, [open, renew]);
 
   async function handleContinue() {
-    if (!method || starting) return;
+    if (!method || inFlight.current) return;
+    inFlight.current = true;
     setStarting(true);
     setError(null);
     try {
@@ -85,6 +88,7 @@ export default function CheckoutDialog({
       // that same payment instead of opening another.
       if (!isCheckoutInProgress(err)) renew();
     } finally {
+      inFlight.current = false;
       setStarting(false);
     }
   }
