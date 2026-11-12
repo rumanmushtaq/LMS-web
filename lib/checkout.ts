@@ -52,8 +52,11 @@ export function checkoutErrorMessage(err: any, fallback: string): string {
   return m || fallback;
 }
 
-/** Same list as the API's money.ts: these currencies have no minor unit. */
-const ZERO_DECIMAL = new Set(["COP", "CLP", "JPY", "KRW", "VND", "PYG", "XAF", "XOF"]);
+/**
+ * Same list as the API's money.ts: these currencies have no minor unit. COP
+ * is not one of them — Stripe and Wompi both take it in centavos.
+ */
+const ZERO_DECIMAL = new Set(["CLP", "JPY", "KRW", "VND", "PYG", "XAF", "XOF"]);
 
 /** Ledger amounts are integer minor units; turn one back into major units. */
 export const minorToMajor = (minor: number, currency: string) =>
