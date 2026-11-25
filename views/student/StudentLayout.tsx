@@ -52,7 +52,7 @@ export default function StudentLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
+      <div className="container mx-auto px-4 sm:px-6 py-10">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Sidebar Menu */}
           <aside className="w-full lg:w-72 flex-shrink-0">

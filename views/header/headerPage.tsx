@@ -101,17 +101,31 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background shadow-sm">
-      <div className="container mx-auto flex h-32 items-center justify-between px-6">
-        {/* Left: Logo */}
-        <Link href="/" className="flex items-center group">
+      <div className="container mx-auto flex h-20 items-center justify-between px-6">
+        {/* Left: Logo — the bird mark plus the name as real text. The full
+            logo image bakes the name in at ~10% of its height, which rendered
+            it unreadably small in the header. */}
+        <Link
+          href="/"
+          aria-label="Varona Academy — home"
+          className="flex items-center gap-3 group"
+        >
           <Image
-            src="/images/logo-image.png"
-            alt="Varona Academy"
-            width={350}
-            height={140}
-            className="h-28 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+            src="/images/logo-mark.png"
+            alt=""
+            width={262}
+            height={256}
+            className="h-14 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
             priority
           />
+          <span className="flex flex-col leading-none">
+            <span className="text-2xl font-black tracking-tight text-foreground">
+              Varona
+            </span>
+            <span className="mt-1 text-[11px] font-bold uppercase tracking-[0.32em] text-primary">
+              Academy
+            </span>
+          </span>
         </Link>
 
         {/* Center: Navigation (Desktop) */}

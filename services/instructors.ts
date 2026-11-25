@@ -21,6 +21,8 @@ export interface InstructorProfile {
   totalDurationMinutes: number;
   studentCount: number;
   hourlyRate: number | null;
+  /** Starred by an admin for the home page "Trending Instructors". */
+  isTrending?: boolean;
   createdAt: string;
 }
 
@@ -107,6 +109,8 @@ export interface GetInstructorsParams {
   priceMin?: number;
   priceMax?: number;
   sortBy?: string;
+  /** Only tutors an admin marked trending, most recently marked first. */
+  trending?: boolean;
 }
 
 export interface MyStudent {
@@ -130,7 +134,7 @@ class InstructorsService {
     params: GetInstructorsParams = {},
   ): Promise<InstructorsListResponse> {
     const { instructorIds, ...rest } = params;
-    const queryParams: Record<string, string | number | string[]> = {
+    const queryParams: Record<string, string | number | boolean | string[]> = {
       ...rest,
     };
     if (instructorIds && instructorIds.length > 0) {
