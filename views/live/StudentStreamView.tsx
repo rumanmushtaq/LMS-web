@@ -32,6 +32,8 @@ export default function StudentStreamView({ streamId }: { streamId: string }) {
     enabled: isAuthed,
     staleTime: 60_000,
     retry: false,
+    // Live status arrives over the socket; refetching on focus adds nothing.
+    refetchOnWindowFocus: false,
   });
 
   // Socket pushes flip these without a refetch.
@@ -62,7 +64,7 @@ export default function StudentStreamView({ streamId }: { streamId: string }) {
     );
   }
 
-  if (error || !info) {
+  if (!info) {
     const message =
       (error as { response?: { data?: { message?: string } } } | null)?.response?.data
         ?.message || "Could not open this stream.";

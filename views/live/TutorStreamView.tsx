@@ -196,6 +196,9 @@ export default function TutorStreamView() {
     enabled: isAuthed,
     staleTime: 60_000,
     retry: false,
+    // Mutations keep this cache current; a background refetch can only hurt
+    // a broadcast in progress, so don't refetch on tab switches.
+    refetchOnWindowFocus: false,
   });
 
   const setStream = (next: StreamBroadcastInfo | null) =>
@@ -276,7 +279,10 @@ export default function TutorStreamView() {
     );
   }
 
-  if (error) {
+  // Only when nothing loaded: once a stream is on screen, a failed refetch
+  // must not swap the page out — that would unmount the camera and end the
+  // broadcast for every student.
+  if (error && stream === undefined) {
     return (
       <InstructorLayout>
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-center px-6">
