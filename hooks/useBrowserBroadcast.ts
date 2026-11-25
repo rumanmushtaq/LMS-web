@@ -143,7 +143,10 @@ export function useBrowserBroadcast({
     socket.on("ingestError", (payload: { message?: string }) => {
       stopRecorder();
       setError(payload?.message || "The broadcast failed. Try again.");
-      setState("error");
+      // The camera is still on: stay in preview so the teacher sees
+      // themselves and can retry, instead of a "turn on your camera" overlay
+      // drawn over a working picture.
+      setState(streamRef.current ? "preview" : "error");
     });
 
     socket.on("ingestEnded", () => {
