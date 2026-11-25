@@ -8,6 +8,8 @@ import { LiveStatus } from "./classes";
 export interface LiveTeacher {
   streamId: string;
   tutorId: string;
+  tutorName: string;
+  tutorPhoto: string | null;
   title: string;
   startedAt: string | null;
 }

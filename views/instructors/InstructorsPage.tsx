@@ -10,6 +10,7 @@ import instructorsService, {
 } from "@/services/instructors";
 import InstructorFilters from "./components/InstructorFilters";
 import InstructorToolbar from "./components/InstructorToolbar";
+import LiveNowStrip from "./components/LiveNowStrip";
 import InstructorListCard from "./components/InstructorListCard";
 import InstructorGridCard from "./components/InstructorGridCard";
 import InstructorPagination from "./components/InstructorPagination";
@@ -228,6 +229,8 @@ export default function InstructorsPage() {
 
           {/* Content Area */}
           <main className="flex-1 min-w-0">
+            <LiveNowStrip />
+
             {/* Toolbar */}
             <InstructorToolbar
               totalCount={totalCount}
