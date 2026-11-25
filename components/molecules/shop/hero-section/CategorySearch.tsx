@@ -47,7 +47,7 @@ const CategorySearch = () => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center bg-white dark:bg-card rounded-full border border-foreground/10 p-2 w-full max-w-3xl shadow-2xl relative z-50">
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-0 bg-white dark:bg-card rounded-3xl sm:rounded-full border border-foreground/10 p-2 w-full max-w-3xl shadow-2xl relative z-50">
       {/* Category Toggle */}
       <div className="hidden sm:block">
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -87,14 +87,14 @@ const CategorySearch = () => {
           onChange={(e) => setSearchValue(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           placeholder="Search Instructors..."
-          className="h-14 sm:h-12 border-0 bg-transparent text-foreground placeholder:text-foreground/60 focus-visible:ring-0 px-6 sm:px-4 text-base"
+          className="h-12 border-0 bg-transparent text-foreground placeholder:text-foreground/60 focus-visible:ring-0 px-4 text-base"
         />
       </div>
 
       {/* Search Button */}
       <Button
         onClick={handleSearch}
-        className="w-full sm:w-auto h-14 sm:h-12 px-8 rounded-full bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/25 transition-all"
+        className="w-full sm:w-auto h-12 px-8 rounded-2xl sm:rounded-full bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/25 transition-all"
       >
         <Search className="w-5 h-5 mr-2" />
         <span>Search</span>

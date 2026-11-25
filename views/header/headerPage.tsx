@@ -102,15 +102,19 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background shadow-sm">
       <div className="container mx-auto flex h-32 items-center justify-between px-6">
-        {/* Left: Logo — larger than the bar and nudged down so it floats
-            over the header's bottom edge; the shadow lifts it off the page. */}
-        <Link href="/" className="relative z-10 flex items-center self-start group">
+        {/* Left: Logo — a badge hanging from the top of the bar and floating
+            past its bottom edge. The badge's own light background keeps the
+            "VARONA ACADEMY" lettering readable over the dark hero below. */}
+        <Link
+          href="/"
+          className="relative z-10 flex items-center self-start rounded-b-[28px] bg-background px-3 pb-2 pt-2 shadow-[0_14px_30px_-10px_rgba(76,29,149,0.35)] ring-1 ring-border/40 transition-transform duration-200 hover:translate-y-0.5 group sm:px-4 sm:pb-3"
+        >
           <Image
             src="/images/logo-image.png"
             alt="Varona Academy"
             width={350}
             height={140}
-            className="mt-3 h-28 w-auto object-contain drop-shadow-[0_10px_18px_rgba(76,29,149,0.28)] transition-transform duration-200 group-hover:scale-105 sm:mt-2 sm:h-[150px]"
+            className="h-[104px] w-auto object-contain transition-transform duration-200 group-hover:scale-105 sm:h-[150px]"
             priority
           />
         </Link>
