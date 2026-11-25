@@ -76,7 +76,6 @@ const Header = () => {
                 ? "/instructor/dashboard"
                 : "/student/dashboard",
             hasDropdown: false,
-            highlighted: true,
           },
         ]
       : []),
@@ -95,6 +94,9 @@ const Header = () => {
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
+    // "Dashboard" stands for the whole signed-in area, not just its home page.
+    if (href === "/instructor/dashboard") return pathname.startsWith("/instructor/");
+    if (href === "/student/dashboard") return pathname.startsWith("/student/");
     if (href === "/shop" && pathname.startsWith("/product")) return true;
     return pathname.startsWith(href);
   };
@@ -134,26 +136,20 @@ const Header = () => {
         <nav className="hidden xl:flex items-center gap-5">
           {navLinks.map((link) => {
             const active = isActive(link.href);
-            const highlighted = (link as { highlighted?: boolean }).highlighted;
             return (
               <div key={link.name} className="group relative">
                 <Link
                   href={link.href}
                   className={cn(
-                    "flex items-center gap-1.5 text-[15px] relative font-semibold transition-all py-1 whitespace-nowrap",
-                    highlighted
-                      ? "text-white bg-[var(--primary)] px-4 py-2 rounded-full hover:bg-[var(--primary)]/90 hover:scale-105 shadow-lg shadow-primary/20"
-                      : cn(
-                          "hover:text-[var(--primary)]",
-                          active ? "text-[var(--primary)]" : "text-foreground/80",
-                        ),
+                    "flex items-center gap-1.5 text-[15px] relative font-semibold transition-all py-1 whitespace-nowrap hover:text-[var(--primary)]",
+                    active ? "text-[var(--primary)]" : "text-foreground/80",
                   )}
                 >
                   {link.name}
                   {link.hasDropdown && (
                     <ChevronDown className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                   )}
-                  {!highlighted && active && (
+                  {active && (
                     <motion.div
                       layoutId="header-active-tab-underline"
                       className="absolute left-0 right-0 -bottom-[8px] h-[3px] rounded-full bg-[var(--primary)]"
