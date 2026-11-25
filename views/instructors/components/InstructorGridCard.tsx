@@ -4,6 +4,8 @@ import { Heart, Star, BookOpen, Clock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { InstructorProfile } from "@/services/instructors";
+import { useTeacherLiveStream } from "@/hooks/useLiveTeachers";
+import JoinLiveButton, { LiveBadge } from "@/components/live/JoinLiveButton";
 
 interface InstructorGridCardProps {
   instructor: InstructorProfile;
@@ -33,6 +35,7 @@ export default function InstructorGridCard({
   } = instructor;
 
   const targetUrl = `/instructors/${slug || _id}`;
+  const liveStream = useTeacherLiveStream(_id);
 
   return (
     <div className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:shadow-xl hover:shadow-black/8 hover:border-border hover:-translate-y-1 transition-all duration-300">
@@ -60,6 +63,10 @@ export default function InstructorGridCard({
         >
           <Heart className="h-4 w-4" />
         </button>
+
+        {liveStream && (
+          <LiveBadge className="absolute bottom-3 left-3" />
+        )}
 
         {/* Rating overlay */}
         <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/90 backdrop-blur-sm rounded-full px-2.5 py-1 text-[12px] font-semibold shadow-sm">
@@ -101,6 +108,10 @@ export default function InstructorGridCard({
             {formatDuration(totalDurationMinutes)}
           </span>
         </div>
+
+        {liveStream && (
+          <JoinLiveButton stream={liveStream} className="mt-3 w-full" />
+        )}
       </div>
     </div>
   );

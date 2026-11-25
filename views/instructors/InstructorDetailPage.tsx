@@ -33,6 +33,8 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import RequestClassModal from "@/views/student/classes/components/RequestClassModal";
+import { useTeacherLiveStream } from "@/hooks/useLiveTeachers";
+import JoinLiveButton, { LiveBadge } from "@/components/live/JoinLiveButton";
 
 interface InstructorDetailPageProps {
   instructorSlug: string;
@@ -42,6 +44,7 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
   const router = useRouter();
   const { instructor: data, loading, error } = useInstructorDetail(instructorSlug);
   const { openChat } = useChatStore();
+  const liveStream = useTeacherLiveStream(data?._id);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated());
   const user = useAuthStore(state => state.user);
   const [hydrated, setHydrated] = React.useState(false);
@@ -212,6 +215,7 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
                   ) : (
                     <span className="text-4xl text-gray-400">{fullName.charAt(0)}</span>
                   )}
+                  {liveStream && <LiveBadge className="absolute bottom-3 left-3 z-10" />}
                   {/* gradient overlay bottom */}
                   <div
                     className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
@@ -245,6 +249,7 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
                     {fullName}
                   </h2>
                   <div className="flex items-center gap-2">
+                    {liveStream && <JoinLiveButton stream={liveStream} />}
                     {user?.role?.toLowerCase() === "student" && (
                       <button
                         onClick={() => openChat(data?._id, fullName)}

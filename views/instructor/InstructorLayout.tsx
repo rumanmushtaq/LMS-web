@@ -21,6 +21,7 @@ import {
   CalendarClock,
   Video,
   Library,
+  Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
@@ -29,6 +30,7 @@ import { initialsOf } from "@/lib/user";
 const mainMenuItems = [
   { name: "Dashboard", href: "/instructor/dashboard", icon: LayoutDashboard },
   { name: "My Classes", href: "/instructor/classes", icon: Video },
+  { name: "Go Live", href: "/instructor/live", icon: Radio },
   { name: "My Profile", href: "/instructor/profile", icon: User },
   { name: "Materials & Notes", href: "/instructor/materials", icon: Library },
   { name: "Class Requests", href: "/instructor/class-requests", icon: CalendarClock },

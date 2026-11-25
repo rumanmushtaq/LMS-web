@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { InstructorProfile } from "@/services/instructors";
 import { cn } from "@/lib/utils";
+import { useTeacherLiveStream } from "@/hooks/useLiveTeachers";
+import JoinLiveButton, { LiveBadge } from "@/components/live/JoinLiveButton";
 
 interface InstructorListCardProps {
   instructor: InstructorProfile;
@@ -36,6 +38,7 @@ export default function InstructorListCard({
   } = instructor;
 
   const targetUrl = `/instructors/${slug || _id}`;
+  const liveStream = useTeacherLiveStream(_id);
 
   return (
     <div className="group flex gap-5 rounded-2xl border border-border/60 bg-card p-4 sm:p-5 hover:shadow-lg hover:shadow-black/5 hover:border-border transition-all duration-300">
@@ -58,6 +61,9 @@ export default function InstructorListCard({
             )}
           </div>
         </Link>
+        {liveStream && (
+          <LiveBadge className="absolute bottom-2 left-1/2 -translate-x-1/2" />
+        )}
         {/* Wishlist button */}
         <button
           aria-label="Add to wishlist"
@@ -84,6 +90,7 @@ export default function InstructorListCard({
               </p>
             )}
           </div>
+          {liveStream && <JoinLiveButton stream={liveStream} />}
           {/* Rating */}
           <div className="flex items-center gap-1.5 text-[13px] whitespace-nowrap">
             <Star className="h-4 w-4 fill-amber-400 text-amber-400" />

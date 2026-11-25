@@ -76,6 +76,7 @@ export function resolveNotificationTarget(
     // The live alerts already carry their own destination.
     case "class_starting":
     case "class_live":
+    case "stream_live":
       return typeof payload.joinUrl === "string"
         ? { type: "route", href: payload.joinUrl }
         : { type: "route", href: classesHref(role) };
