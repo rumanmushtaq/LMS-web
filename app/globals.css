@@ -311,3 +311,54 @@
     color: white;
   }
 }
+/* ── Header logo: a cloth banner hanging from a rod ─────────────────────────
+   The cloth is light in both themes: the logo's dark-purple lettering needs a
+   light ground to stay readable. clip-path cuts the swallowtail; the shadow is
+   a drop-shadow filter on the parent because box-shadow would be clipped. */
+.hanging-banner {
+  transform-origin: top center;
+  animation: banner-sway 7s ease-in-out infinite;
+}
+@keyframes banner-sway {
+  0%,
+  100% {
+    transform: rotate(-0.9deg);
+  }
+  50% {
+    transform: rotate(0.9deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hanging-banner {
+    animation: none;
+  }
+}
+.banner-cloth {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 87%, 0 100%);
+  background:
+    /* fine vertical weave */
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0 9px,
+      rgba(76, 29, 149, 0.035) 9px 10px
+    ),
+    /* soft folds catching the light */
+    linear-gradient(
+      90deg,
+      rgba(30, 10, 70, 0.08) 0%,
+      rgba(255, 255, 255, 0) 14%,
+      rgba(30, 10, 70, 0.04) 38%,
+      rgba(255, 255, 255, 0) 52%,
+      rgba(30, 10, 70, 0.04) 70%,
+      rgba(255, 255, 255, 0) 84%,
+      rgba(30, 10, 70, 0.08) 100%
+    ),
+    #fbfaff;
+}
+/* Stitching just inside the edge, following the swallowtail. */
+.banner-stitch {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 87%, 0 100%);
+  background:
+    repeating-linear-gradient(180deg, rgba(112, 71, 235, 0.35) 0 5px, transparent 5px 9px) left / 1.5px 100% no-repeat,
+    repeating-linear-gradient(180deg, rgba(112, 71, 235, 0.35) 0 5px, transparent 5px 9px) right / 1.5px 100% no-repeat;
+}

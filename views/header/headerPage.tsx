@@ -101,22 +101,33 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background shadow-sm">
-      <div className="container mx-auto flex h-32 items-center justify-between px-6">
-        {/* Left: Logo — a badge hanging from the top of the bar and floating
-            past its bottom edge. The badge's own light background keeps the
-            "VARONA ACADEMY" lettering readable over the dark hero below. */}
+      <div className="container mx-auto flex h-20 items-center justify-between px-6">
+        {/* Left: Logo — a cloth banner hanging from a rod at the top of the
+            bar, swaying gently. The bar stays slim; the banner carries the
+            full-size logo and hangs over the page below. */}
         <Link
           href="/"
-          className="relative z-10 flex items-center self-start rounded-b-[28px] bg-background px-3 pb-2 pt-2 shadow-[0_14px_30px_-10px_rgba(76,29,149,0.35)] ring-1 ring-border/40 transition-transform duration-200 hover:translate-y-0.5 group sm:px-4 sm:pb-3"
+          aria-label="Varona Academy — home"
+          className="relative z-10 self-start drop-shadow-[0_12px_14px_rgba(46,16,101,0.28)]"
         >
-          <Image
-            src="/images/logo-image.png"
-            alt="Varona Academy"
-            width={350}
-            height={140}
-            className="h-[104px] w-auto object-contain transition-transform duration-200 group-hover:scale-105 sm:h-[150px]"
-            priority
+          {/* the rod */}
+          <span
+            aria-hidden
+            className="absolute -left-2 -right-2 top-0 z-10 h-2 rounded-full bg-gradient-to-b from-[#5b3fd1] to-[#2e1065] shadow-[0_2px_3px_rgba(0,0,0,0.35)]"
           />
+          <span className="hanging-banner block">
+            <span className="banner-cloth relative block px-3 pb-7 pt-3 sm:px-4 sm:pb-9 sm:pt-4">
+              <span aria-hidden className="banner-stitch absolute inset-[5px]" />
+              <Image
+                src="/images/logo-image.png"
+                alt="Varona Academy"
+                width={350}
+                height={140}
+                className="relative h-[96px] w-auto object-contain sm:h-[150px]"
+                priority
+              />
+            </span>
+          </span>
         </Link>
 
         {/* Center: Navigation (Desktop) */}
