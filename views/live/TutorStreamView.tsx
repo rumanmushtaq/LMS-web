@@ -237,7 +237,7 @@ export default function TutorStreamView() {
               <Radio className="w-3.5 h-3.5 animate-pulse" /> LIVE
             </span>
           )}
-          {!isLive && !isSelfHosted && (
+          {!isLive && !isSelfHosted && broadcastState === "idle" && (
             // OBS flow: the teacher starts the encoder, then flips live here.
             <button
               onClick={() => goLive.mutate(streamId)}
