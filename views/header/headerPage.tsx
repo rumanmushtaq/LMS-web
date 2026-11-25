@@ -116,14 +116,14 @@ const Header = () => {
             className="absolute -left-2 -right-2 top-0 z-10 h-2 rounded-full bg-gradient-to-b from-[#5b3fd1] to-[#2e1065] shadow-[0_2px_3px_rgba(0,0,0,0.35)]"
           />
           <span className="hanging-banner block">
-            <span className="banner-cloth relative block px-3 pb-7 pt-3 sm:px-4 sm:pb-9 sm:pt-4">
+            <span className="banner-cloth relative block px-2.5 pb-6 pt-2.5 sm:px-3 sm:pb-7 sm:pt-3">
               <span aria-hidden className="banner-stitch absolute inset-[5px]" />
               <Image
                 src="/images/logo-image.png"
                 alt="Varona Academy"
                 width={350}
                 height={140}
-                className="relative h-[96px] w-auto object-contain sm:h-[150px]"
+                className="relative h-[84px] w-auto object-contain sm:h-[120px]"
                 priority
               />
             </span>
