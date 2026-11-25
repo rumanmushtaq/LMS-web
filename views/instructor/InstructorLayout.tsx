@@ -61,7 +61,7 @@ export default function InstructorLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 sm:px-6 py-10">
+      <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-10">
         <div className="flex flex-col xl:flex-row gap-8">
           {/* Left Sidebar Menu */}
           <aside className="w-full xl:w-72 flex-shrink-0">
