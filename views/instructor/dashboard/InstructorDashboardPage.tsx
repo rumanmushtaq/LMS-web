@@ -158,10 +158,10 @@ export default function InstructorDashboardPage() {
 
       <Link
         href="/instructor/live"
-        className="group flex items-center gap-4 rounded-3xl border border-red-500/30 bg-red-500/5 p-5 hover:bg-red-500/10 transition-colors"
+        className="group flex items-center gap-4 rounded-3xl border border-primary/30 bg-primary/5 p-5 hover:bg-primary/10 transition-colors"
       >
-        <div className="w-11 h-11 rounded-2xl bg-red-500/15 grid place-items-center shrink-0">
-          <Radio className="w-5 h-5 text-red-500" />
+        <div className="w-11 h-11 rounded-2xl bg-primary/15 grid place-items-center shrink-0">
+          <Radio className="w-5 h-5 text-primary" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-bold text-foreground text-sm">Go live for every student</p>
@@ -169,7 +169,7 @@ export default function InstructorDashboardPage() {
             Start a live stream from your camera. Students see a Join live button on your card.
           </p>
         </div>
-        <span className="text-xs font-bold text-red-500 shrink-0 group-hover:underline">
+        <span className="text-xs font-bold text-primary shrink-0 group-hover:underline">
           Go live
         </span>
       </Link>
