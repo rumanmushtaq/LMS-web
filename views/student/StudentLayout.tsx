@@ -22,23 +22,25 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 import { initialsOf } from "@/lib/user";
 
+// `hidden: true` = the page is not built yet. Kept here (not deleted) so it
+// is a one-word change to show it again once the page exists.
 const mainMenuItems = [
   { name: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
   { name: "My Profile", href: "/student/profile", icon: User },
   { name: "My Classes", href: "/student/classes", icon: CalendarClock },
-  { name: "Enrolled Courses", href: "#", icon: BookOpen },
-  { name: "My Certificates", href: "#", icon: Award },
-  { name: "Wishlist", href: "#", icon: Heart },
-  { name: "Reviews", href: "#", icon: Star },
-  { name: "My Quiz Attempts", href: "#", icon: Clock },
-  { name: "Order History", href: "#", icon: ShoppingCart },
-  { name: "Referrals", href: "#", icon: Users },
-  { name: "Messages", href: "#", icon: MessageSquare },
-  { name: "Support Tickets", href: "#", icon: HelpCircle },
+  { name: "Enrolled Courses", href: "#", icon: BookOpen, hidden: true },
+  { name: "My Certificates", href: "/student/certificates", icon: Award },
+  { name: "Wishlist", href: "#", icon: Heart, hidden: true },
+  { name: "Reviews", href: "#", icon: Star, hidden: true },
+  { name: "My Quiz Attempts", href: "#", icon: Clock, hidden: true },
+  { name: "Order History", href: "#", icon: ShoppingCart, hidden: true },
+  { name: "Referrals", href: "#", icon: Users, hidden: true },
+  { name: "Messages", href: "/chat", icon: MessageSquare },
+  { name: "Support Tickets", href: "#", icon: HelpCircle, hidden: true },
 ];
 
 const accountSettingsItems = [
-  { name: "Settings", href: "#", icon: Settings },
+  { name: "Settings", href: "#", icon: Settings, hidden: true },
   { name: "Logout", href: "/api/v1/auth/logout", icon: LogOut },
 ];
 
@@ -75,7 +77,7 @@ export default function StudentLayout({
                 Main Menu
               </h3>
               <nav className="space-y-1.5 mb-10">
-                {mainMenuItems.map((item) => {
+                {mainMenuItems.filter((item) => !item.hidden).map((item) => {
                   const isActive = pathname.startsWith(item.href);
                   const Icon = item.icon;
                   return (
@@ -107,7 +109,7 @@ export default function StudentLayout({
                 Account Settings
               </h3>
               <nav className="space-y-1.5">
-                {accountSettingsItems.map((item) => {
+                {accountSettingsItems.filter((item) => !item.hidden).map((item) => {
                   const Icon = item.icon;
                   return (
                     <Link

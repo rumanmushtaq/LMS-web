@@ -27,6 +27,8 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 import { initialsOf } from "@/lib/user";
 
+// `hidden: true` = the page is not built yet. Kept here (not deleted) so it
+// is a one-word change to show it again once the page exists.
 const mainMenuItems = [
   { name: "Dashboard", href: "/instructor/dashboard", icon: LayoutDashboard },
   { name: "My Classes", href: "/instructor/classes", icon: Video },
@@ -34,22 +36,22 @@ const mainMenuItems = [
   { name: "My Profile", href: "/instructor/profile", icon: User },
   { name: "Materials & Notes", href: "/instructor/materials", icon: Library },
   { name: "Class Requests", href: "/instructor/class-requests", icon: CalendarClock },
-  { name: "Courses", href: "/instructor/courses", icon: BookOpen },
-  { name: "Announcements", href: "/instructor/announcements", icon: Bell },
-  { name: "Assignments", href: "/instructor/assignments", icon: FileCheck },
+  { name: "Courses", href: "/instructor/courses", icon: BookOpen, hidden: true },
+  { name: "Announcements", href: "/instructor/announcements", icon: Bell, hidden: true },
+  { name: "Assignments", href: "/instructor/assignments", icon: FileCheck, hidden: true },
   { name: "Students", href: "/instructor/students", icon: Users },
-  { name: "Quiz", href: "/instructor/quiz", icon: Clock },
-  { name: "Quiz Results", href: "/instructor/quiz-results", icon: FileCheck },
-  { name: "Certificates", href: "/instructor/certificates", icon: Award },
+  { name: "Quiz", href: "/instructor/quiz", icon: Clock, hidden: true },
+  { name: "Quiz Results", href: "/instructor/quiz-results", icon: FileCheck, hidden: true },
+  { name: "Certificates", href: "/instructor/certificates", icon: Award, hidden: true },
   { name: "Earnings", href: "/instructor/earnings", icon: CircleDollarSign },
   { name: "Payout", href: "/instructor/payout", icon: CreditCard },
-  { name: "Statements", href: "/instructor/statements", icon: FileText },
-  { name: "Messages", href: "/instructor/messages", icon: MessageSquare },
-  { name: "Support Tickets", href: "/instructor/support", icon: HelpCircle },
+  { name: "Statements", href: "/instructor/statements", icon: FileText, hidden: true },
+  { name: "Messages", href: "/chat", icon: MessageSquare },
+  { name: "Support Tickets", href: "/instructor/support", icon: HelpCircle, hidden: true },
 ];
 
 const accountSettingsItems = [
-  { name: "Settings", href: "/instructor/settings", icon: Settings },
+  { name: "Settings", href: "/instructor/settings", icon: Settings, hidden: true },
   { name: "Logout", href: "/api/v1/auth/logout", icon: LogOut },
 ];
 
@@ -86,7 +88,7 @@ export default function InstructorLayout({
                 Main Menu
               </h3>
               <nav className="space-y-1.5 mb-10">
-                {mainMenuItems.map((item) => {
+                {mainMenuItems.filter((item) => !item.hidden).map((item) => {
                   const isActive = pathname.startsWith(item.href);
                   const Icon = item.icon;
                   return (
@@ -118,7 +120,7 @@ export default function InstructorLayout({
                 Account Settings
               </h3>
               <nav className="space-y-1.5">
-                {accountSettingsItems.map((item) => {
+                {accountSettingsItems.filter((item) => !item.hidden).map((item) => {
                   const Icon = item.icon;
                   return (
                     <Link
