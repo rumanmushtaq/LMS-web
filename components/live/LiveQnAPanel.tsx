@@ -44,7 +44,9 @@ function senderName(msg: LiveMessage): string {
   if (s && typeof s === "object") {
     return [s.firstName, s.lastName].filter(Boolean).join(" ") || s.email || "User";
   }
-  return "User";
+  // Live socket messages carry only the sender's id, plus the name the
+  // server looked up for them.
+  return msg.senderName || "User";
 }
 
 function senderId(msg: LiveMessage): string {

@@ -9,6 +9,8 @@ export interface LiveMessage {
   _id: string;
   conversationId: string;
   senderId: any;
+  /** Set on live socket messages, where senderId is only an id. */
+  senderName?: string;
   content: string;
   attachment?: ChatAttachment | null;
   createdAt?: string;
