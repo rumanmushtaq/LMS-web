@@ -63,6 +63,7 @@ export interface AvailabilityItem {
 
 export interface InstructorDetailData extends InstructorProfile {
   aboutMe: string | null;
+  introVideoUrl?: string | null;
   education: EducationItem[];
   experience: ExperienceItem[];
   certifications: string[];

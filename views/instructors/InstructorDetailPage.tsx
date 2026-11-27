@@ -28,6 +28,7 @@ import { MessageCircle, DollarSign, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getMaterials, purchaseMaterial, TutorMaterial } from "@/services/materials";
 import CheckoutDialog from "@/components/payments/CheckoutDialog";
+import IntroVideo from "./components/IntroVideo";
 import { FileTypePlaceholder } from "@/components/materials/FileTypePlaceholder";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -99,6 +100,7 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
     rating,
     reviewCount,
     aboutMe,
+    introVideoUrl,
     lessonCount,
     studentCount,
     avatar,
@@ -394,6 +396,22 @@ export default function InstructorDetailPage({ instructorSlug }: InstructorDetai
                 Read More
               </button>
             </div>
+
+            {/* ── Intro Video ── */}
+            {introVideoUrl && (
+              <div
+                className="rounded-2xl"
+                style={{
+                  background: "#fff",
+                  border: "1px solid #edeef2",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.04), 0 12px 32px -8px rgba(0,0,0,0.07)",
+                  padding: "26px 28px",
+                }}
+              >
+                <SectionHeading>Intro Video</SectionHeading>
+                <IntroVideo url={introVideoUrl} title={`${fullName} intro video`} />
+              </div>
+            )}
 
             {/* ── Education ── */}
             <div
