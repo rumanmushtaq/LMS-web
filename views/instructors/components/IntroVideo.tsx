@@ -27,6 +27,23 @@ export function videoEmbedUrl(url: string): string | null {
   return null;
 }
 
+/**
+ * ImageKit re-encodes videos per browser unless told not to, which spends the
+ * account's video-processing quota ("Video transformations limit exceeded").
+ * Intro videos are served as uploaded instead.
+ */
+export const originalVideoUrl = (url: string): string => {
+  try {
+    const u = new URL(url);
+    if (!u.hostname.endsWith("imagekit.io")) return url;
+    if (u.searchParams.has("tr") || u.pathname.includes("/tr:")) return url;
+    u.searchParams.set("tr", "orig-true");
+    return u.toString();
+  } catch {
+    return url;
+  }
+};
+
 export default function IntroVideo({ url, title }: { url: string; title: string }) {
   const embed = videoEmbedUrl(url);
   return (
@@ -50,7 +67,7 @@ export default function IntroVideo({ url, title }: { url: string; title: string 
         />
       ) : (
         <video
-          src={url}
+          src={originalVideoUrl(url)}
           controls
           playsInline
           preload="metadata"
